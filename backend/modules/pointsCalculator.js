@@ -1,5 +1,7 @@
 'use strict';
 
+var db = require('./dbUtils.js'),
+    settings = require('./settings.js').getSettings();
 
 /*{ title: 'Чемпионат Харьковской области. Васищево-север..     Средняя,  21.02.2016.     Протокол результатов.',
   date: Sun Feb 21 2016 00:00:00 GMT+0000 (UTC),
@@ -7,46 +9,66 @@
   group: 
    [ { name: 'M21E', data: [Object] },
      { name: 'W21E', data: [Object] } ] }
-{ orderNumber: '2',
-  numberBib: '555',
-  lastName: 'Сухаревская',
-  firstName: 'Алёна',
-  birthDate: '1992',
-  qualification: 'мс',
-  team: 'КСО Компас',
-  result: '01:02:32',
-  place: '2',
-  timeBehind: '+6:23' }*/
-
-//var topPoints = [];
-var topTime = [];
+{ orderNumber: '10',
+  numberBib: '367',
+  lastName: 'Кизиев',
+  firstName: 'Сергей',
+  team: 'O-DEAF, КДЮСШ 3',
+  result: '00:53:48',
+  place: '10',
+  timeBehind: '+13:25',
+  fullName: 'Кизиев Сергей' }*/
 
 
-module.exports.processCompetitionResults = function(resultsObject){
+
+module.exports.processCompetitionResults = function(resultsObject, callback){
     //console.log(resultsObject);
     checkGroups(resultsObject);
+    var j = 0
+    //console.log(resultsObject.group[j]);
+    //resultsObject.group[i].avgPoints = 10;
+    getBestThreePoints(resultsObject.group[j], getBestThreePointsCallback);
     
-    for(var i=0; i<resultsObject.group.length; i++){
-        if(resultsObject.group[i].isValid){
-           resultsObject.group[i] = processGroup(resultsObject.group[i]);
+    function getBestThreePointsCallback(error, bestPoints){
+        if(error){
+            console.log(error);
+        }
+        //console.log(j);
+        resultsObject.group[j].avgPoints = getAvgData(bestPoints);
+        
+        if(++j < resultsObject.group.length){
+            getBestThreePoints(resultsObject.group[j], getBestThreePointsCallback);
+        }else{
+            
+            for(var i=0; i<resultsObject.group.length; i++){
+                if(resultsObject.group[i].isValid){
+                    resultsObject.group[i] = processGroup(resultsObject.group[i]);
+                }else{
+                    resultsObject.group[i] =processInvalidGroup(resultsObject.group[i]);
+                }
+            }
+            callback(resultsObject);
         }
     }
-    return resultsObject;
-}
+};
+
 
 
 function processGroup(group){
-    group = setResult(group);
-    var avgPoints = getAvgData(getBestThreePoints(group));
-    var avgTime = getAvgData(topTime);
+    group = setResultAndAvgTopTime(group);
     console.log(group.name);
     for(var i=0; i<group.data.length; i++){
         var result = group.data[i].resultSeconds;
-        group.data[i].points = countPoints(result, avgTime, avgPoints);
-        console.log(group.data[i].lastName + " " +
+        if(result === -1){
+            group.data[i].result = '00:00:00';
+            group.data[i].place = -1;
+            group.data[i].points = null;
+        }
+        group.data[i].points = countPoints(result, group.avgTime, group.avgPoints);
+        /*console.log(group.data[i].lastName + " " +
                     group.data[i].firstName + " " +
                     group.data[i].result + " " +
-                    group.data[i].points + " ");
+                    group.data[i].points + " ");*/
     }
     return group;
 }
@@ -54,10 +76,10 @@ function processGroup(group){
 
 function countPoints(time, avgTime, avgPoints, constant){
     if(constant === undefined){
-        constant = 75;
+        constant = settings.defaultPoints;
     }
     if(time === -1){
-        return 300;
+        return settings.maxPoints;
     }
     
     //Points (P) = (Time - (TM - PM /  KK)) õ KK
@@ -67,7 +89,7 @@ function countPoints(time, avgTime, avgPoints, constant){
 	var correlationValue = (constant + avgPoints)/avgTime;
 	var points = (time - (avgTime - avgPoints/correlationValue))*correlationValue;
 	
-	return points <= 300? round(points) : 300;
+	return points <= settings.maxPoints? round(points) : settings.maxPoints;
 }
 
 function round(points){
@@ -84,29 +106,41 @@ function getAvgData(threeTopData){
 }
 
 //from db
-function getBestThreePoints(group){
-    var bestPoints = [];
+function getBestThreePoints(group, callback){
+    if(!group.isValid){
+        callback('INVALID GROUP - NO POINTS', [settings.defaultPoints,settings.defaultPoints,settings.defaultPoints]);
+        return;
+    }
+    
     var personsArray = [];
     for(var j=0; j<group.data.length; j++ ){
         //resultsObject.group[i].data[j].currentPoints = 10;
-        personsArray.push(group.data[j].lastName + ' ' + group.data[j].firstName);
+        personsArray.push(group.data[j].fullName);
     }
     
-    //getPointsFromDB(personsArray);
-   
-    bestPoints = [10, 10, 10];
-    return bestPoints;
+    db.getBestThreePoints(personsArray, function(error, bestPoints){
+        if(error){
+            callback(error, [settings.defaultPoints,settings.defaultPoints,settings.defaultPoints]);
+        }else{
+            callback(null, bestPoints);
+        }
+        
+    })
 }
 
 
-function setResult(group){
-    topTime = [];
-    for(var j=0; j<group.data.length; j++ ){
-        group.data[j].resultSeconds = convertResultToSeconds(group.data[j].result);
-        if(j<3){
-            topTime.push(group.data[j].resultSeconds);
-        }
+function setResultAndAvgTopTime(group){
+    var topTime = [];
+    if(group.isValid){
+        for(var j=0; j<group.data.length; j++ ){
+            group.data[j].resultSeconds = convertResultToSeconds(group.data[j].result);
+            if(j<3){
+                topTime.push(group.data[j].resultSeconds);
+            }
+        } 
     }
+    
+    group.avgTime = getAvgData(topTime);
     return group;
 }
 
@@ -129,11 +163,30 @@ function checkGroups(resultsObject){
         }
         
         for(var j=0; j<resultsObject.group[i].data.length; j++){
-            if(convertResultToSeconds(resultsObject.group[i].data[j].result) === -1 && j <= 3){
+            if(convertResultToSeconds(resultsObject.group[i].data[j].result) === -1 && j < 3){
                 resultsObject.group[i].isValid = false;
                 break;
             }
         }
     }
+}
+
+function processInvalidGroup(group){
+    group = setResultAndAvgTopTime(group);
+    for(var i=0; i<group.data.length; i++){
+        var result = convertResultToSeconds(group.data[i].result);
+        group.data[i].resultSeconds = result;
+        if(result === -1){
+            group.data[i].result = '00:00:00';
+            group.data[i].place = -1;
+            
+        }
+        group.data[i].points = settings.maxPoints;
+        /*console.log(group.data[i].lastName + " " +
+                    group.data[i].firstName + " " +
+                    group.data[i].result + " " +
+                    group.data[i].points + " ");*/
+    }
+    return group;
 }
 

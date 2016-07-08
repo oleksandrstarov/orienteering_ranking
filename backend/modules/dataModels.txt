@@ -1,0 +1,64 @@
+newRunner
+
+{
+    date: reqCompetitionDate
+    fullName:
+    firstName:
+    lastName:
+    team:
+    sex:
+    
+    currentRank: settings.defaultPoints;
+    
+}
+======================
+
+CompetitonDataOn Runner 
+
+competitionData {
+    compID: 
+    date:
+    points:
+    type: 'competition'
+    title:
+    distance:
+}
+
+===============================
+
+Subjective competitions
+/*{
+    id:
+    date:
+    points:
+    type: normal/subjective
+}*/
+
+==================================
+
+       Root User: oleksandrstarov
+   Database Name: c9
+   
+   mysql-ctl cli
+   
+   
+   ==========================
+   
+   { id: '445',
+  url: 'http://orienteering.kh.ua/images/events/445_Protokol-rezultatov.-CHempionat-Harkovskoy-oblasti-(1-den).-Liga-Kompas-(1-etap).07.03.2015-(spliti).htm',
+  isValid: true,
+  title: 'Чемпионат Харьковской области (1 день)ига Компас (1 этап).Васищево. Средняя',
+  date: '2015-03-07 00:00:00',
+  group: [ { name: 'M21E', data: [] }, { name: 'W21E', data: [] } ] }
+{ name: 'M21E', data: [] }
+data:[
+ { orderNumber: '1',
+    numberBib: '363',
+    lastName: 'Дьяченко',
+    firstName: 'Вадим',
+    team: 'КСО КОМПАС',
+    result: '00:40:23',
+    place: '1',
+    timeBehind: '',
+    fullName: 'Дьяченко Вадим' }
+]

@@ -4,7 +4,9 @@ var express = require('express'),
     bodyParser = require('body-parser');
 
 
-this.serverSettings = {};
+this.serverSettings = {
+    hostname : '0.0.0.0'
+};
 
 var hostname = this.serverSettings.hostname || process.env.IP || process.env.OPENSHIFT_NODEJS_IP  || 'localhost';
 var port = this.serverSettings.port || process.env.PORT || process.env.OPENSHIFT_NODEJS_PORT ||  3000;
@@ -13,12 +15,14 @@ var port = this.serverSettings.port || process.env.PORT || process.env.OPENSHIFT
 
 var app = express();
 app.use(morgan('dev'));
-app.use(express.static(__dirname + "/../dist"));
+app.use(express.static(__dirname + "./../../dist"));
 app.use(bodyParser.json());
 
 
 app.get('/', function(req, res){
-  res.sendFile(__dirname + '/../dist/index.html');
+    //res.send('Hello World!');
+    res.sendFile(__dirname + './../../dist/index.html');
+  //res.sendFile(__dirname + '/../dist/index.html');
 });
 
 /*

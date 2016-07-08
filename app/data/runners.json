@@ -1,0 +1,28 @@
+{
+    "runners":[
+    {
+        "lastName":"Bjorn",
+        "firstName":"Axelson",
+        "team":"OK Denseln",
+        "points": 5.94
+    },
+     {
+        "lastName":"Folino",
+        "firstName":"Emil",
+         "team":"OK Ravinen",
+        "points": 7.94
+    },
+     {
+        "lastName":"Glibov",
+        "firstName":"Ruslan",
+         "team":"OK Kompas",
+        "points": 15.94
+    },
+     {
+        "lastName":"Uskvarok",
+        "firstName":"Pavel",
+         "team":"OK Trian",
+        "points": 5.54
+    }
+    ]
+}

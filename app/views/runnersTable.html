@@ -1,0 +1,20 @@
+<div class="container">
+  <table class="fullWidth">
+      <thead>
+        <tr>
+            <th>Full Name</th>
+            <th>Team</th>
+            <th>Points</th>
+        </tr>
+    
+      </thead>
+      <tbody>
+          <tr ng-repeat="runner in runnersCtrl.info | orderBy: 'points' ">
+        <td>{{ runner.lastName }} {{' ' + runner.firstName }}</td>
+        <td>{{runner.team}}</td>
+        <td>{{ runner.points }}</td>
+        </tr>
+      </tbody>
+  </table>
+
+</div>

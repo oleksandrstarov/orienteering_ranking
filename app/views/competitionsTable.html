@@ -1,0 +1,20 @@
+<div class="container">
+  <table class="fullWidth">
+      <thead>
+        <tr>
+            <th>Name</th>
+            <th>Date</th>
+            <th>Runners</th>
+        </tr>
+    
+      </thead>
+      <tbody>
+          <tr ng-repeat="competition in competitionsCtrl.info | orderBy: 'date' ">
+        <td>{{competition.name }}</td>
+        <td>{{competition.date}}</td>
+        <td>{{competition.runners }}</td>
+        </tr>
+      </tbody>
+  </table>
+
+</div>

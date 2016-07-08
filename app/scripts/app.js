@@ -8,9 +8,7 @@
  *
  * Main module of the application.
  */
-angular
-  .module('workspaceApp', [
-    'ngResource',
+var app = angular.module('app', [
     'ngRoute'
   ])
   .config(function ($routeProvider) {
@@ -20,12 +18,14 @@ angular
         controller: 'MainCtrl',
         controllerAs: 'main'
       })
-      .when('/about', {
-        templateUrl: 'views/about.html',
-        controller: 'AboutCtrl',
-        controllerAs: 'about'
+      .when('/competitions', {
+        template: '<competitions-table></competitions-table>'
+      })
+       .when('/runners', {
+        template: '<runners-table></runners-table>'
       })
       .otherwise({
         redirectTo: '/'
       });
-  });
+  })
+  .value('testValue', 333);

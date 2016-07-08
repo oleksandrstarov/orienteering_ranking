@@ -4,20 +4,38 @@
 // RUNS task
 var server = require('./modules/server.js'),
     updater = require('./modules/dataUpdater.js'),
-    cron = require('node-schedule');
+    cron = require('node-schedule'),
+    db = require('./modules/dbUtils.js');
 
 
 server.startServer();
 
+var now = new Date();
+    //console.log('This runs at 3:00AM every Saturday, Sunday and Monday.');
+    console.log('TEST');
+    console.log(now.getDate() + " " +now.getHours() +":" +now.getMinutes());
+
 var rule = new cron.RecurrenceRule();
 rule.dayOfWeek = [6,0,1];
-rule.hour = 3;
+rule.hour = 1;
+//rule.minute = 23;
 cron.scheduleJob(rule, function(){
     var now = new Date();
-    console.log('This runs at 3:00AM every Saturday, Sunday and Monday.');
+    console.log('AUTOUPDATE');
+    //console.log('TEST');
     console.log(now.getDate() + " " +now.getHours());
-    updater.updateData();
+    db.initDB(function(){
+        db.updateRunnersPoints(function(){
+            updater.updateData();
+        });
+    });
 });
 
-updater.updateData();
+
+/*db.initDB(function(){
+    updater.updateData();
+});*/
+
+
+
 
