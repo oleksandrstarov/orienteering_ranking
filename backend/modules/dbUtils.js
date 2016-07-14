@@ -43,6 +43,7 @@ module.exports.addCompetition = function(competition, callback){
         if(competition.isValid){
             addCompetitionResult(competition, function(){
                 db.updateCurrentRanking(competition.date, function(){
+                    console.log('UPDATED AFTER ' + competition.date);
                     callback();  
                 });
             });
@@ -76,7 +77,39 @@ module.exports.initDB = function(callback){
   });
 };
 
+module.exports.getRunnersList = function(callback){
+  db.getRunnersList(function(error, runners){
+      callback(error, JSON.stringify(runners));
+  });
+};
 
+module.exports.getCompetitionsList = function(callback){
+  db.getCompetitionsList(function(error, competitions){
+      callback(error, JSON.stringify(competitions));
+  });
+};
+
+module.exports.getRunnerResults = function(id, callback){
+    db.getRunnerResults(id, function(error, runnerResults){
+         db.getCompetitionDetails(id, function(error, runnerDetails){
+            var data = {};
+            data.details = runnerDetails;
+            data.results = runnerResults;
+            callback(error, JSON.stringify(data));
+        });
+    });
+};
+
+module.exports.getCompetitionResults = function(id, callback){
+    db.getCompetitionResults(id, function(error, competitionResults){
+        db.getCompetitionDetails(id, function(error, competitionDetails){
+            var data = {};
+            data.details = competitionDetails;
+            data.results = competitionResults;
+            callback(error, JSON.stringify(data));
+        });
+    });
+};
 
 
 

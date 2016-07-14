@@ -1,7 +1,9 @@
 var express = require('express'),
     http = require('http'),
     morgan = require('morgan'),
-    bodyParser = require('body-parser');
+    bodyParser = require('body-parser'),
+    path = require('path'),
+    db = require('./dbUtils.js');
 
 
 this.serverSettings = {
@@ -19,11 +21,48 @@ app.use(express.static(__dirname + "./../../dist"));
 app.use(bodyParser.json());
 
 
-app.get('/', function(req, res){
+app.get('/runners', function(req, res){
     //res.send('Hello World!');
-    res.sendFile(__dirname + './../../dist/index.html');
-  //res.sendFile(__dirname + '/../dist/index.html');
+    console.log('getData');
+    db.getRunnersList(function(error, data){
+         res.end(data);
+    });
+    //res.sendFile('index.html');
+    //res.sendFile(path.resolve(__dirname + './../../dist/index.html'));
 });
+
+app.get('/competitions', function(req, res){
+    //res.send('Hello World!');
+    console.log('getData');
+    db.getCompetitionsList(function(error, data){
+         res.end(data);
+    });
+    //res.sendFile('index.html');
+    //res.sendFile(path.resolve(__dirname + './../../dist/index.html'));
+});
+
+app.get('/runners/:id', function(req, res){
+    //res.send('Hello World!');
+    console.log('getData');
+    db.getRunnerResults(function(error, data){
+         res.end(data);
+    });
+    //res.sendFile('index.html');
+    //res.sendFile(path.resolve(__dirname + './../../dist/index.html'));
+});
+
+app.get('/competitions/:id', function(req, res){
+    //res.send('Hello World!');
+    console.log('getData');
+    db.getCompetitionResults(function(error, data){
+         res.end(data);
+    });
+    //res.sendFile('index.html');
+    //res.sendFile(path.resolve(__dirname + './../../dist/index.html'));
+});
+
+
+
 
 /*
 app.get('/dishes', function(req, res){

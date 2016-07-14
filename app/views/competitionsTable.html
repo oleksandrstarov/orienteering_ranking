@@ -9,10 +9,10 @@
     
       </thead>
       <tbody>
-          <tr ng-repeat="competition in competitionsCtrl.info | orderBy: 'date' ">
-        <td>{{competition.name }}</td>
-        <td>{{competition.date}}</td>
-        <td>{{competition.runners }}</td>
+          <tr ng-repeat="competition in competitionsCtrl.info | orderBy:'DATE':true">
+        <td>{{competition.NAME }}</td>
+        <td>{{competition.DATE | date:'dd-MM-yyyy'}}</td>
+        <td>{{competition.RUNNERS}}</td>
         </tr>
       </tbody>
   </table>

@@ -8,7 +8,7 @@ var server = require('./modules/server.js'),
     db = require('./modules/dbUtils.js');
 
 
-server.startServer();
+
 
 var now = new Date();
     //console.log('This runs at 3:00AM every Saturday, Sunday and Monday.');
@@ -27,14 +27,18 @@ cron.scheduleJob(rule, function(){
     db.initDB(function(){
         db.updateRunnersPoints(function(){
             updater.updateData();
+            
         });
     });
 });
 
 
-/*db.initDB(function(){
-    updater.updateData();
-});*/
+db.initDB(function(){
+     db.updateRunnersPoints(function(){
+            updater.updateData();
+            server.startServer();
+        });
+});
 
 
 

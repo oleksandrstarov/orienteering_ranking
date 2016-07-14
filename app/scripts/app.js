@@ -8,24 +8,45 @@
  *
  * Main module of the application.
  */
-var app = angular.module('app', [
-    'ngRoute'
-  ])
-  .config(function ($routeProvider) {
-    $routeProvider
-      .when('/', {
-        templateUrl: 'views/main.html',
-        controller: 'MainCtrl',
-        controllerAs: 'main'
+angular.module('app', [
+    'ui.router', 'ngResource'])
+  .config(function ($stateProvider, $urlRouterProvider) {
+    $stateProvider
+      .state('app', {
+        url: '/',
+        views:{
+           'header': {
+                templateUrl: 'views/header.html'
+            },
+            'content' :{
+                templateUrl : 'views/main.html',
+                controller: ''
+            },
+            'footer':{
+                templateUrl: 'views/footer.html'
+            }
+        }
       })
-      .when('/competitions', {
-        template: '<competitions-table></competitions-table>'
+      .state('app.runners', {
+        url: 'runners',
+        views:{
+            'content@' :{
+                templateUrl : 'views/runnersTable.html',
+                controller: 'RunnersController as runnersCtrl'
+            }
+        }
       })
-       .when('/runners', {
-        template: '<runners-table></runners-table>'
-      })
-      .otherwise({
-        redirectTo: '/'
+      .state('app.competitions', {
+        url: 'competitions',
+        views:{
+            'content@' :{
+                templateUrl : 'views/competitionsTable.html',
+                controller: 'CompetitionsController as competitionsCtrl'
+            }
+            
+        }
       });
-  })
-  .value('testValue', 333);
+      
+      $urlRouterProvider.otherwise('/');
+  });
+  

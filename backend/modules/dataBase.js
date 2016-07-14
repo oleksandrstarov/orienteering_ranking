@@ -30,7 +30,7 @@ module.exports.addCompetition = function(competition, callback){
   +"'" +(competition.isValid ? "SFR": "non-SFR") +"'"
   + ');'
  
-  console.log(query);
+  //console.log(query);
   connection.query(query, function(err, rows, fields) {
     
     if (!err){
@@ -103,7 +103,7 @@ module.exports.addResults = function(competition, callback){
 
 module.exports.getImportedCompetitionsIDs = function(callback){
   var query = 'SELECT ID FROM COMPETITIONS;';
-  console.log(query);
+  //console.log(query);
   connection.query(query, function(err, rows, fields) {
     if (!err){
       
@@ -259,13 +259,30 @@ module.exports.getBestThreePoints = function(persons, callback){
 
 module.exports.updateCurrentRanking = function(date, callback){
   console.log(date);
-  date =new Date(date);
-  var dateParam = '"' + date.toMysqlFormat() + '"';
+  
   if(!date){
-    dateParam = 'NOW()';
+    var dateParam = 'NOW()';
+  }else{
+    date =new Date(date);
+    var dateParam = '"' + date.toMysqlFormat() + '"';
   }
-  console.log(dateParam);
-  var query = 'UPDATE RUNNERS,(SELECT RUNNER_ID, NAME, CASE WHEN COUNT(PTS) < 6 THEN ((6 - COUNT(PTS)) * 300  + SUM(PTS))/6 ELSE AVG(PTS) END AS CUR_POINTS '
+  
+  var query = 'UPDATE RUNNERS SET CUR_RANK = NULL;';
+    // var query = 'SELECT 1;';
+                
+    //console.log(query);
+    connection.query(query, function(err, rows, fields) {
+      //console.log('selected');
+      if (!err){
+        console.log('DB UPDATE - DROPPED MAX POINTS');
+        //callback();
+      }else{
+        console.log(err);
+        //callback(err);
+      }
+      
+      console.log(dateParam);
+      var query = 'UPDATE RUNNERS,(SELECT RUNNER_ID, NAME, CASE WHEN COUNT(PTS) < 6 THEN ((6 - COUNT(PTS)) * 300  + SUM(PTS))/6 ELSE AVG(PTS) END AS CUR_POINTS '
                 + 'FROM ' 
                 + '(SELECT RUNNERS.ID RUNNER_ID, FULLNAME NAME, CUR_RANK CUR_POINTS, POINTS PTS, RESULTS.ID AS RESULT_ID '
                 + 'FROM RUNNERS '
@@ -282,36 +299,130 @@ module.exports.updateCurrentRanking = function(date, callback){
                 + '(CASE WHEN INNER_PROP.PTS <> OUTER_PROP.PTS THEN INNER_PROP.PTS < OUTER_PROP.PTS ELSE INNER_PROP.RESULT_ID < OUTER_PROP.RESULT_ID END) '
                 + ') < 6 '
                 + 'GROUP BY RUNNER_ID ORDER BY RUNNER_ID) AS TEMP_PROP '
-                + 'RIGHT JOIN RUNNERS R ON R.ID = TEMP_PROP.RUNNER_ID '
                 + 'SET RUNNERS.CUR_RANK = TEMP_PROP.CUR_POINTS '
-                + 'WHERE RUNNERS.ID = TEMP_PROP.RUNNER_ID; ';
+                + 'WHERE RUNNERS.ID = TEMP_PROP.RUNNER_ID;';
                
-  //console.log(query);
-  connection.query(query, function(err, rows, fields) {
-    //console.log('selected');
-    if (!err){
-      console.log('DB UPDATE COMPLETE');
-      //callback();
-    }else{
-      console.log(err);
-      //callback(err);
-    }
-    
-    var query = 'UPDATE RUNNERS SET CUR_RANK = 300 WHERE CUR_RANK IS NULL;';
-    // var query = 'SELECT 1;';
-                
-    //console.log(query);
-    connection.query(query, function(err, rows, fields) {
-      //console.log('selected');
-      if (!err){
-        console.log('DB UPDATE WITH MAX POINTS COMPLETE');
-        callback();
-      }else{
-        console.log(err);
-        callback(err);
-      }
+      //console.log(query);
+      connection.query(query, function(err, rows, fields) {
+        //console.log('selected');
+        if (!err){
+          console.log('DB UPDATE COMPLETE');
+          //callback();
+        }else{
+          console.log(err);
+          //callback(err);
+        }
+        
+        var query = 'UPDATE RUNNERS SET CUR_RANK = 300 WHERE CUR_RANK IS NULL;';
+        // var query = 'SELECT 1;';
+                    
+        //console.log(query);
+        connection.query(query, function(err, rows, fields) {
+          //console.log('selected');
+          if (!err){
+            console.log('DB UPDATE WITH MAX POINTS COMPLETE');
+            callback();
+          }else{
+            console.log(err);
+            callback(err);
+          }
+            
+        });
+      });
+      
+      
+      
         
     });
+};
+
+module.exports.getRunnersList = function(callback){
+  var query = 'SELECT ID, FULLNAME, TEAM, SEX, CUR_RANK FROM RUNNERS ORDER BY CUR_RANK;'
+  //console.log(query);
+  connection.query(query, function(err, rows, fields) {
+    if (!err){
+      callback(null, rows);
+    }else{
+      console.log(err);
+      callback(err);
+    }
+      
+  });
+};
+
+module.exports.getCompetitionsList = function(callback){
+  var query = 'SELECT C.ID AS ID, NAME, C.DATE AS DATE, COUNT(RUNNER) AS RUNNERS '
+  +'FROM COMPETITIONS C '
+  +'INNER JOIN RESULTS ON RESULTS.COMPETITION = C.ID '
+  +'WHERE STATUS = "SFR" GROUP BY C.ID ;';
+  
+  //SELECT  NAME, COUNT(RESULTS.ID) AS RUNNERS  FROM COMPETITIONS INNER JOIN RESULTS ON RESULTS.COMPETITION = COMPETITIONS.ID WHERE STATUS = 'SFR' GROUP BY COMPETITIONS.ID;
+  
+  //console.log(query);
+  connection.query(query, function(err, rows, fields) {
+    if (!err){
+      callback(null, rows);
+    }else{
+      console.log(err);
+      callback(err);
+    }
+      
+  });
+};
+
+module.exports.getRunnerResults = function(runnerID, callback){
+  var query = 'SELECT ID, COMPETITION, RUNNER, DATE, TIME, PLACE, POINTS, COMP_GROUP, DISTANCE, TIME_BEHIND FROM RESULTS WHERE RUNNER = '+runnerID+';'
+  //console.log(query);
+  connection.query(query, function(err, rows, fields) {
+    if (!err){
+      callback(null, rows);
+    }else{
+      console.log(err);
+      callback(err);
+    }
+      
+  });
+};
+
+module.exports.getCompetitionResults = function(competitionID, callback){
+  var query = 'SELECT ID, COMPETITION, RUNNER, DATE, TIME, PLACE, POINTS, COMP_GROUP, DISTANCE, TIME_BEHIND FROM RESULTS WHERE COMPETITION = '+competitionID+ ';'
+  //console.log(query);
+  connection.query(query, function(err, rows, fields) {
+    if (!err){
+      callback(null, rows);
+    }else{
+      console.log(err);
+      callback(err);
+    }
+      
+  });
+};
+
+module.exports.getRunnerDetails = function(runnerID, callback){
+  var query = 'SELECT ID, FULLNAME, FIRST_NAME, LAST_NAME, BIRTH_DATE, TEAM, SEX, CUR_RANK FROM RUNNERS WHERE RUNNER = '+runnerID+';'
+  //console.log(query);
+  connection.query(query, function(err, rows, fields) {
+    if (!err){
+      callback(null, rows);
+    }else{
+      console.log(err);
+      callback(err);
+    }
+      
+  });
+};
+
+module.exports.getCompetitionDetails = function(competitionID, callback){
+  var query = 'SELECT ID, DATE, NAME, STATUS FROM RESULTS WHERE COMPETITION = '+competitionID+ ';'
+  //console.log(query);
+  connection.query(query, function(err, rows, fields) {
+    if (!err){
+      callback(null, rows);
+    }else{
+      console.log(err);
+      callback(err);
+    }
+      
   });
 };
 

@@ -5,7 +5,7 @@ app.controller('RunnersController', ['$scope', 'runnerService', function($scope,
     self.info=[];
     console.log(self.info);
     runnerService.getRunner().success(function(data){
-      self.info = data.runners;
+      self.info = data;
       console.log(self.info);
     });
   

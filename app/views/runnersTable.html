@@ -9,10 +9,10 @@
     
       </thead>
       <tbody>
-          <tr ng-repeat="runner in runnersCtrl.info | orderBy: 'points' ">
-        <td>{{ runner.lastName }} {{' ' + runner.firstName }}</td>
-        <td>{{runner.team}}</td>
-        <td>{{ runner.points }}</td>
+          <tr ng-repeat="runner in runnersCtrl.info | orderBy: 'CUR_RANK' | filter: {'SEX':'M'}">
+        <td>{{$index+1}} {{ runner.FULLNAME}}</td>
+        <td>{{runner.TEAM}}</td>
+        <td>{{ runner.CUR_RANK | number:2}}</td>
         </tr>
       </tbody>
   </table>

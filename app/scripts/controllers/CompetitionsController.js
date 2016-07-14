@@ -5,8 +5,8 @@ app.controller('CompetitionsController', ['$scope', 'competitionsService', 'test
     self.info=[];
     
     competitionsService.getData().success(function(data){
-      self.info = data.competitions;
-      console.log(data + 'comp');
+      self.info = data;
+      console.log(data);
       
     });
     console.log(testValue);
