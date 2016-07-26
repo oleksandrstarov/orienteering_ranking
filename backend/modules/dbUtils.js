@@ -91,7 +91,7 @@ module.exports.getCompetitionsList = function(callback){
 
 module.exports.getRunnerResults = function(id, callback){
     db.getRunnerResults(id, function(error, runnerResults){
-         db.getCompetitionDetails(id, function(error, runnerDetails){
+         db.getRunnerDetails(id, function(error, runnerDetails){
             var data = {};
             data.details = runnerDetails;
             data.results = runnerResults;

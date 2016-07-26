@@ -43,8 +43,8 @@ app.get('/competitions', function(req, res){
 
 app.get('/runners/:id', function(req, res){
     //res.send('Hello World!');
-    console.log('getData');
-    db.getRunnerResults(function(error, data){
+    console.log('getData ' + req.params.id);
+    db.getRunnerResults(req.params.id, function(error, data){
          res.end(data);
     });
     //res.sendFile('index.html');
@@ -53,8 +53,8 @@ app.get('/runners/:id', function(req, res){
 
 app.get('/competitions/:id', function(req, res){
     //res.send('Hello World!');
-    console.log('getData');
-    db.getCompetitionResults(function(error, data){
+     console.log('getData ' + req.params.id);
+    db.getCompetitionResults(req.params.id, function(error, data){
          res.end(data);
     });
     //res.sendFile('index.html');

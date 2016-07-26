@@ -94,3 +94,8 @@ body {
   position: absolute;
   right: 0px;
 }
+
+div.version{
+  text-align: right;
+  font-size: 8px;
+}

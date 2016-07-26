@@ -1,16 +1,17 @@
 <div class="container">
+  <h1>Соревнования в системе(только SFR с официального сайта ХФСО)</h1>
   <table class="fullWidth">
       <thead>
         <tr>
-            <th>Name</th>
-            <th>Date</th>
-            <th>Runners</th>
+            <th>Название</th>
+            <th>Дата проведения</th>
+            <th>Спортсмены</th>
         </tr>
     
       </thead>
       <tbody>
           <tr ng-repeat="competition in competitionsCtrl.info | orderBy:'DATE':true">
-        <td>{{competition.NAME }}</td>
+        <td><a ui-sref="app.competition({id: competition.ID})">{{competition.NAME }}</a></td>
         <td>{{competition.DATE | date:'dd-MM-yyyy'}}</td>
         <td>{{competition.RUNNERS}}</td>
         </tr>

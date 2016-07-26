@@ -5,11 +5,31 @@ angular.module('app')
     var self = this;
     self.info=[];
     
-    competitionsService.getData().success(function(data){
-      self.info = data;
-      console.log(data);
-      
-    });
+    competitionsService.getCompetitions().query(
+      function(response){
+        self.info = response;
+        
+      },
+      function(response){
+        console.log(response.status + '' + response.statusText);
+      });
+   
+  
+}])
+
+.controller('CompetitionViewController', ['$scope', '$stateParams', 'competitionsService', function($scope, $stateParams, competitionsService) {
+    var self = this;
+    self.info=[];
+    
+    competitionsService.getCompetition().get({id:parseInt($stateParams.id,10)})
+    .$promise.then(
+      function(response){
+        self.info = response;
+        console.log(response);
+      },
+      function(response){
+        console.log(response.status + '' + response.statusText);
+      });
    
   
 }])
@@ -18,10 +38,32 @@ angular.module('app')
 .controller('RunnersController', ['$scope', 'runnerService', function($scope, runnerService) {
     var self = this;
     self.info=[];
-    console.log(self.info);
-    runnerService.getRunner().success(function(data){
-      self.info = data;
-      console.log(self.info);
-    });
+   
+    runnerService.getRunners().query(
+      function(response){
+        self.info = response;
+      
+      },
+      function(response){
+        console.log(response.status + '' + response.statusText);
+      });
   
-}]);
+}])
+
+
+.controller('RunnerViewController', ['$scope', '$stateParams', 'runnerService', function($scope, $stateParams, runnerService) {
+    var self = this;
+    self.info=[];
+    //self.fullName = 'Test';
+    //console.log(self.info);
+    runnerService.getRunner().get({id:parseInt($stateParams.id,10)})
+    .$promise.then(
+      function(response){
+        self.info = response;
+      },
+      function(response){
+        console.log(response.status + '' + response.statusText);
+      });
+  
+}])
+;

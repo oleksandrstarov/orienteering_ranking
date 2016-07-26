@@ -1,0 +1,34 @@
+<div class="container">
+  <div class="row">
+    
+    <h1>{{runnerViewCtrl.info.details[0].FULLNAME}} - Текущий рейтинг: {{runnerViewCtrl.info.details[0].CUR_RANK  | number:2}}</h1>
+    <table class="fullWidth">
+        <thead>
+          <tr>
+              <th>Дата</th>
+              <th>Соревнования</th>
+              <th>Результат</th>
+              <th>Место</th>
+              <th>Очки</th>
+          </tr>
+      
+        </thead>
+        <tbody>
+            <tr ng-repeat="entry in runnerViewCtrl.info.results | orderBy:'DATE':true">
+          <td>{{entry.DATE | date:'dd-MM-yyyy'}}</td>
+           <td><a ui-sref="app.competition({id: entry.COMPETITION})">{{entry.NAME}}</a></td>
+          <td ng-switch="entry.PLACE">
+             <span ng-switch-when="-1">-</span>
+             <span ng-switch-default>{{entry.TIME | date:'HH:mm:ss' : 'UTC'}}</span>
+          </td>
+           <td ng-switch="entry.PLACE">
+            <span ng-switch-when="-1">-</span>
+            <span ng-switch-default>{{entry.PLACE}}</span>
+          </td>
+          <td>{{entry.POINTS | number:2}}</td>
+          </tr>
+        </tbody>
+    </table>
+    
+  </div>
+</div>

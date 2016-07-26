@@ -371,7 +371,9 @@ module.exports.getCompetitionsList = function(callback){
 };
 
 module.exports.getRunnerResults = function(runnerID, callback){
-  var query = 'SELECT ID, COMPETITION, RUNNER, DATE, TIME, PLACE, POINTS, COMP_GROUP, DISTANCE, TIME_BEHIND FROM RESULTS WHERE RUNNER = '+runnerID+';'
+  var query = 'SELECT RESULTS.ID AS ID, COMPETITION, NAME, RUNNER, RESULTS.DATE AS DATE, TIME, PLACE, POINTS, COMP_GROUP, DISTANCE, TIME_BEHIND FROM RESULTS'
+  +' LEFT JOIN COMPETITIONS C ON C.ID = COMPETITION'
+  +' WHERE RUNNER = '+runnerID+';'
   //console.log(query);
   connection.query(query, function(err, rows, fields) {
     if (!err){
@@ -385,7 +387,9 @@ module.exports.getRunnerResults = function(runnerID, callback){
 };
 
 module.exports.getCompetitionResults = function(competitionID, callback){
-  var query = 'SELECT ID, COMPETITION, RUNNER, DATE, TIME, PLACE, POINTS, COMP_GROUP, DISTANCE, TIME_BEHIND FROM RESULTS WHERE COMPETITION = '+competitionID+ ';'
+  var query = 'SELECT RESULTS.ID AS ID, COMPETITION, RUNNER, R.FULLNAME AS NAME, DATE, TIME, PLACE, POINTS, COMP_GROUP, DISTANCE, TIME_BEHIND'
+  +' FROM RESULTS LEFT JOIN RUNNERS R ON R.ID = RUNNER'
+  +' WHERE COMPETITION = '+competitionID+ ';'
   //console.log(query);
   connection.query(query, function(err, rows, fields) {
     if (!err){
@@ -399,7 +403,7 @@ module.exports.getCompetitionResults = function(competitionID, callback){
 };
 
 module.exports.getRunnerDetails = function(runnerID, callback){
-  var query = 'SELECT ID, FULLNAME, FIRST_NAME, LAST_NAME, BIRTH_DATE, TEAM, SEX, CUR_RANK FROM RUNNERS WHERE RUNNER = '+runnerID+';'
+  var query = 'SELECT ID, FULLNAME, FIRST_NAME, LAST_NAME, BIRTH_DATE, TEAM, SEX, CUR_RANK FROM RUNNERS WHERE ID = '+runnerID+';'
   //console.log(query);
   connection.query(query, function(err, rows, fields) {
     if (!err){
@@ -413,7 +417,7 @@ module.exports.getRunnerDetails = function(runnerID, callback){
 };
 
 module.exports.getCompetitionDetails = function(competitionID, callback){
-  var query = 'SELECT ID, DATE, NAME, STATUS FROM RESULTS WHERE COMPETITION = '+competitionID+ ';'
+  var query = 'SELECT ID, DATE, NAME, STATUS FROM COMPETITIONS WHERE ID = '+competitionID+ ';'
   //console.log(query);
   connection.query(query, function(err, rows, fields) {
     if (!err){

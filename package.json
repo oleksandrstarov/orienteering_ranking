@@ -45,6 +45,7 @@
     "font-awesome": "^4.6.3",
     "http": "0.0.0",
     "iconv-lite": "^0.4.13",
+    "jquery": "^1.9.1",
     "mongodb": "^2.1.21",
     "mysql": "^2.11.1",
     "node-schedule": "^1.1.0",

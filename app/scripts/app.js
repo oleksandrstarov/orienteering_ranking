@@ -36,6 +36,15 @@ angular.module('app', [
             }
         }
       })
+      .state('app.runner', {
+        url: 'runners/:id',
+        views:{
+            'content@' :{
+                templateUrl : 'views/runnerView.html',
+                controller: 'RunnerViewController as runnerViewCtrl'
+            }
+        }
+      })
       .state('app.competitions', {
         url: 'competitions',
         views:{
@@ -45,7 +54,27 @@ angular.module('app', [
             }
             
         }
-      });
+      })
+      .state('app.competition', {
+        url: 'competitions/:id',
+        views:{
+            'content@' :{
+                templateUrl : 'views/competitionView.html',
+                controller: 'CompetitionViewController as competitionViewCtrl'
+            }
+            
+        }
+      })
+       .state('app.about', {
+        url: 'about',
+        views:{
+            'content@' :{
+                templateUrl : 'views/about.html'
+            }
+            
+        }
+      })
+      ;
       
       $urlRouterProvider.otherwise('/');
   });

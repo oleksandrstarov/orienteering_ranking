@@ -1,20 +1,44 @@
 <div class="container">
-  <table class="fullWidth">
-      <thead>
-        <tr>
-            <th>Full Name</th>
-            <th>Team</th>
-            <th>Points</th>
-        </tr>
-    
-      </thead>
-      <tbody>
-          <tr ng-repeat="runner in runnersCtrl.info | orderBy: 'CUR_RANK' | filter: {'SEX':'M'}">
-        <td>{{$index+1}} {{ runner.FULLNAME}}</td>
-        <td>{{runner.TEAM}}</td>
-        <td>{{ runner.CUR_RANK | number:2}}</td>
-        </tr>
-      </tbody>
-  </table>
-
+  <div class="row">
+    <div class="col-xs-12  col-sm-12 col-md-6 col-lg-6">
+    <h1>Мужчины</h1>
+    <table class="fullWidth">
+        <thead>
+          <tr>
+              <th>Имя</th>
+              <th>Спортивное общество</th>
+              <th>Очки</th>
+          </tr>
+      
+        </thead>
+        <tbody>
+            <tr ng-repeat="runner in runnersCtrl.info | orderBy: 'CUR_RANK' | filter: {'SEX':'M'}">
+          <td><a ui-sref="app.runner({id: runner.ID})">{{$index+1}} {{ runner.FULLNAME}}</a></td>
+          <td>{{runner.TEAM}}</td>
+          <td>{{ runner.CUR_RANK | number:2}}</td>
+          </tr>
+        </tbody>
+    </table>
+    </div>
+    <div class="col-xs-12  col-sm-12 col-md-6 col-lg-6">
+    <h1>Женщины</h1>
+    <table class="fullWidth">
+        <thead>
+          <tr>
+              <th>Имя</th>
+              <th>Спортивное общество</th>
+              <th>Очки</th>
+          </tr>
+      
+        </thead>
+        <tbody>
+            <tr ng-repeat="runner in runnersCtrl.info | orderBy: 'CUR_RANK' | filter: {'SEX':'W'}">
+          <td><a ui-sref="app.runner({id: runner.ID})">{{$index+1}} {{ runner.FULLNAME}}</a></td>
+          <td>{{runner.TEAM}}</td>
+          <td>{{ runner.CUR_RANK | number:2}}</td>
+          </tr>
+        </tbody>
+    </table>
+    </div>
+  </div>
 </div>

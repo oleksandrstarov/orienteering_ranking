@@ -1,17 +1,23 @@
 'use strict';
 
 angular.module('app')
-.service('competitionsService',['$http', function($http){
+.service('competitionsService',['$resource', function($resource){
 
-    this.getData = function() {
-        return $http.get('/competitions');
+    this.getCompetitions = function() {
+        return $resource('/competitions');
+    };
+    
+    this.getCompetition = function() {
+        return $resource('/competitions/:id');
     }
 }])
 
-.service('runnerService',['$http', function($http){
-
-
+.service('runnerService',['$resource', function($resource){
+    this.getRunners = function() {
+        return $resource('/runners');
+    };
+    
     this.getRunner = function() {
-        return $http.get('/runners');
-    }
+        return $resource('/runners/:id');
+    };
 }]);
