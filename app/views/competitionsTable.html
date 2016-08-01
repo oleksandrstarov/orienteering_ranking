@@ -1,21 +1,24 @@
 <div class="container">
-  <h1>Соревнования в системе(только SFR с официального сайта ХФСО)</h1>
-  <table class="fullWidth">
-      <thead>
-        <tr>
-            <th>Название</th>
-            <th>Дата проведения</th>
-            <th>Спортсмены</th>
-        </tr>
-    
-      </thead>
-      <tbody>
-          <tr ng-repeat="competition in competitionsCtrl.info | orderBy:'DATE':true">
-        <td><a ui-sref="app.competition({id: competition.ID})">{{competition.NAME }}</a></td>
-        <td>{{competition.DATE | date:'dd-MM-yyyy'}}</td>
-        <td>{{competition.RUNNERS}}</td>
-        </tr>
-      </tbody>
-  </table>
+ <loader-template ng-hide="isDataLoaded"></loader-template>
+  <div class="row"ng-show="isDataLoaded">
+    <h1>Соревнования в системе(только SFR с официального сайта ХФСО)</h1>
+    <table class="fullWidth">
+        <thead>
+          <tr>
+              <th>Название</th>
+              <th>Дата проведения</th>
+              <th>Спортсмены</th>
+          </tr>
+      
+        </thead>
+        <tbody>
+            <tr ng-repeat="competition in competitionsCtrl.info | orderBy:'DATE':true">
+          <td><a ui-sref="app.competition({id: competition.ID})">{{competition.NAME }}</a></td>
+          <td>{{competition.DATE | date:'dd-MM-yyyy'}}</td>
+          <td>{{competition.RUNNERS}}</td>
+          </tr>
+        </tbody>
+    </table>
+  </div>
 
 </div>

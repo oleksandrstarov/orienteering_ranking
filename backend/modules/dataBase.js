@@ -19,13 +19,14 @@ connection.query('SELECT * from TEST', function(err, rows, fields) {
 connection.end();*/
 
 module.exports.addCompetition = function(competition, callback){
-  var query = 'INSERT INTO COMPETITIONS (ID, DATE, NAME, STATUS) '
+  var query = 'INSERT INTO COMPETITIONS (ID, DATE, URL, NAME, STATUS) '
   + 'VALUES';
   
   
   query += '(' 
   + competition.id + ', ' 
-  + "'" + competition.date   +"'"+ ', ' 
+  + "'" + competition.date   +"'"+ ', '
+  + "'" + competition.url   +"'"+ ', ' 
   + "'" + competition.title+ "'" + ', ' 
   +"'" +(competition.isValid ? "SFR": "non-SFR") +"'"
   + ');'
@@ -371,9 +372,13 @@ module.exports.getCompetitionsList = function(callback){
 };
 
 module.exports.getRunnerResults = function(runnerID, callback){
-  var query = 'SELECT RESULTS.ID AS ID, COMPETITION, NAME, RUNNER, RESULTS.DATE AS DATE, TIME, PLACE, POINTS, COMP_GROUP, DISTANCE, TIME_BEHIND FROM RESULTS'
+  var query = 'SELECT R.ID AS ID, COMPETITION, NAME, RUNNER, R.DATE AS DATE, TIME, PLACE, POINTS, COMP_GROUP, DISTANCE, TIME_BEHIND, '
+  +' CASE WHEN R.DATE > DATE_SUB(NOW(), INTERVAL 1 YEAR) THEN "C" END AS ACT_RESULT'
+  +' FROM RESULTS R'
   +' LEFT JOIN COMPETITIONS C ON C.ID = COMPETITION'
-  +' WHERE RUNNER = '+runnerID+';'
+  +' WHERE RUNNER = '+runnerID+' ORDER BY ACT_RESULT DESC, POINTS;';
+  
+  //  CASE WHEN R.DATE > DATE_SUB(NOW(), INTERVAL 1 YEAR) THEN CASE WHEN (SELECT COUNT(POINTS) + 1 FROM RESULTS WHERE RUNNER = 1001 AND POINTS < R.POINTS AND DATE > DATE_SUB(NOW(), INTERVAL 1 YEAR)) END AS ORDER_PTS FROM RESULTS R LEFT JOIN COMPETITIONS C ON C.ID = R.COMPETITION WHERE RUNNER = 1001 ORDER BY POINTS;
   //console.log(query);
   connection.query(query, function(err, rows, fields) {
     if (!err){
@@ -417,7 +422,7 @@ module.exports.getRunnerDetails = function(runnerID, callback){
 };
 
 module.exports.getCompetitionDetails = function(competitionID, callback){
-  var query = 'SELECT ID, DATE, NAME, STATUS FROM COMPETITIONS WHERE ID = '+competitionID+ ';'
+  var query = 'SELECT ID, DATE, NAME, URL, STATUS FROM COMPETITIONS WHERE ID = '+competitionID+ ';'
   //console.log(query);
   connection.query(query, function(err, rows, fields) {
     if (!err){
@@ -450,6 +455,7 @@ function createTables(connection, callback){
     var query = 'CREATE TABLE COMPETITIONS (ID MEDIUMINT NOT NULL,' 
   +'DATE DATETIME NOT NULL, '
   +'NAME nvarchar(300), '
+  +'URL nvarchar(1000), '
   +'STATUS nvarchar(20), PRIMARY KEY (ID));'
     connection.query(query, function(err, rows, fields) {
       if (err){

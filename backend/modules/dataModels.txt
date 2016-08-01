@@ -62,3 +62,12 @@ data:[
     timeBehind: '',
     fullName: 'Дьяченко Вадим' }
 ]
+
+Competitions imported automatically! every day.
+recalculation every day
+automatically updated results Sunday/Monday
+in Admin view list of competitions:
+    possible to add url = new competitons
+    possible to check what to import and what to not
+    possible to Reset/Update - insert competitions inside
+    

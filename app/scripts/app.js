@@ -8,8 +8,7 @@
  *
  * Main module of the application.
  */
-angular.module('app', [
-    'ui.router', 'ngResource'])
+angular.module('app', ['ui.router', 'ngResource'])
   .config(function ($stateProvider, $urlRouterProvider) {
     $stateProvider
       .state('app', {
@@ -66,16 +65,24 @@ angular.module('app', [
         }
       })
        .state('app.about', {
-        url: 'about',
-        views:{
-            'content@' :{
-                templateUrl : 'views/about.html'
-            }
+            url: 'about',
+            views:{
+                'content@' :{
+                    templateUrl : 'views/about.html'
+                }
             
         }
       })
       ;
       
       $urlRouterProvider.otherwise('/');
-  });
+  })
+  .directive('loaderTemplate', function(){
+       return{
+          restrict: 'E',
+          
+          templateUrl : 'views/loader.html'
+       };
+   })
+ ;
   

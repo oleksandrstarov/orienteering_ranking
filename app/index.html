@@ -17,17 +17,17 @@
     
     <!--<link rel="stylesheet" href="styles/main.css"> -->
     <link rel="stylesheet" href="styles/mystyles.css">
-    <link rel="stylesheet" href="styles/main2.css">
     <!-- endbuild -->
   </head>
   <body ng-app="app">
     <!--[if lte IE 8]>
       <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
     <![endif]-->
-    <div ui-view="header"></div>
-    <div ui-view="content"></div>
-    <div ui-view="footer"></div>
-   
+    <div id="wrapper">
+      <div ui-view="header"></div>
+      <div ui-view="content" class="content"></div>
+      <div ui-view="footer" class="footer"></div>
+    </div>
 
 
   

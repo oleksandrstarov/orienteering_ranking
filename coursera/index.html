@@ -27,9 +27,11 @@
     <![endif]-->
 </head>
 <body>
-    <div ui-view="header"></div>
-    <div ui-view="content"></div>
-    <div ui-view="footer"></div>
+    <div id="wrapper">
+        <div ui-view="header"></div>
+        <div ui-view="content"></div>
+        <div ui-view="footer"></div>
+    </div>
     <!--<ng-include src="'menu.html'"></ng-include>-->
 <!-- build:js scripts/main.js -->
     <script src="../bower_components/angular/angular.min.js"></script>
