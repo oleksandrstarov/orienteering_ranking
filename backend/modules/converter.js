@@ -9,6 +9,7 @@ var request = require('request'),
     url = 'http://orienteering.kh.ua/Result/';
 
 
+///FILE NOT IN USE!!!
 
 
 function grabResults(callback){
@@ -51,7 +52,7 @@ function grabResults(callback){
         callback(null, availableCompetitions);
     });
     
-};
+}
 
 
 

@@ -1,0 +1,34 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Ранг Харьков Ориентирование</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <!-- build:css main.css -->
+    <link rel="stylesheet" href="../../node_modules/bootstrap/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../../node_modules/bootstrap/dist/css/bootstrap-theme.min.css">
+    <link rel="stylesheet" href="../../node_modules/font-awesome/css/font-awesome.min.css">
+    
+   
+    <link rel="stylesheet" href="../styles/mystyles.css">
+    <!-- endbuild -->
+    
+  </head>
+  <body ng-app="adminApp">
+    <div id="wrapper">
+      <a ui-sref="competitions">Competitions</a> | <a ui-sref="runners">Runners</a>
+      <div ui-view="content" class="content"></div>
+      
+    </div>
+
+
+         <!-- build:js({.tmp,app/admin}) scripts.js -->
+        <script src="../../node_modules/angular/angular.min.js"></script>
+        <script src="../../node_modules/angular-ui-router/release/angular-ui-router.min.js"></script>
+        <script src="../../node_modules/angular-resource/angular-resource.min.js"></script>
+        <script src="adminApp.js"></script>
+        <!-- endbuild -->
+</body>
+</html>

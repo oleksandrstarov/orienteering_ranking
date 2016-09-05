@@ -17,7 +17,7 @@ var now = new Date();
 
 var rule = new cron.RecurrenceRule();
 rule.dayOfWeek = [6,0,1];
-rule.hour = 1;
+rule.hour = 18;
 //rule.minute = 23;
 cron.scheduleJob(rule, function(){
     var now = new Date();
@@ -34,10 +34,10 @@ cron.scheduleJob(rule, function(){
 
 
 db.initDB(function(){
-     db.updateRunnersPoints(function(){
+     //db.updateRunnersPoints(function(){
             updater.updateData();
             server.startServer();
-        });
+       // });
 });
 
 

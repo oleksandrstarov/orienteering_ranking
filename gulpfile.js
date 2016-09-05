@@ -30,12 +30,22 @@ gulp.task('clean', function() {
 
 // Default task
 gulp.task('default', ['clean'], function() {
-    gulp.start('usemin', 'imagemin','copyfonts');
+    gulp.start('usemin', 'imagemin', 'adminApp','copyfonts');
+});
+
+// admin
+gulp.task('adminApp',['jshint'], function () {
+  return gulp.src('./app/admin/*.html')
+      .pipe(usemin({
+        css:[minifycss(),rev()],
+        js: [ngannotate(),uglify(),rev()]
+      }))
+      .pipe(gulp.dest('dist/admin'));
 });
 
 
 gulp.task('usemin',['jshint'], function () {
-  return gulp.src('./app/**/*.html')
+  return gulp.src(['./app/**/*.html', '!./app/admin/*.html'])
       .pipe(usemin({
         css:[minifycss(),rev()],
         js: [ngannotate(),uglify(),rev()]

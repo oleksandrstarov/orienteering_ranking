@@ -37,5 +37,5 @@ function twoDigits(d) {
 };
 
 String.prototype.normalizeTitle = function(){
-   return this.replace(/ {2,}/g, ' ').replace(/,?[, -]\d{2,}.+/, '').replace(/\../, '');
+   return this.replace(/\n/g, ' ').replace(/\r/g, ' ').replace(/ {2,}/g, ' ');//.replace(/,?[, -]\d{2,}/, '');
 };

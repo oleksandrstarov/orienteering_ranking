@@ -8,15 +8,17 @@
               <th>Название</th>
               <th>Дата проведения</th>
               <th>Спортсмены</th>
+              <th>Статус</th>
           </tr>
       
         </thead>
         <tbody>
             <tr ng-repeat="competition in competitionsCtrl.info | orderBy:'DATE':true">
-          <td><a ui-sref="app.competition({id: competition.ID})">{{competition.NAME }}</a></td>
-          <td>{{competition.DATE | date:'dd-MM-yyyy'}}</td>
-          <td>{{competition.RUNNERS}}</td>
-          </tr>
+                <td><a ui-sref="app.competition({id: competition.ID})">{{competition.NAME }}</a></td>
+                <td>{{competition.DATE | date:'dd-MM-yyyy'}}</td>
+                <td>{{competition.RUNNERS}}</td>
+                <td>{{competition.STATUS}}</td>
+            </tr>
         </tbody>
     </table>
   </div>
