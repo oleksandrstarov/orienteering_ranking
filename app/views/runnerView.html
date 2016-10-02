@@ -37,7 +37,7 @@
         </thead>
         <tbody>
           <tr ng-repeat="entry in runnerViewCtrl.info.results | orderBy:'DATE':true" ng-class="{past: runnerViewCtrl.info.results[$index].ACT_RESULT !='C'}">
-            <td>{{entry.DATE | date:'dd-MM-yyyy'}}</td>
+            <td class="date-field">{{entry.DATE | date:'dd-MM-yyyy'}}</td>
             <td><a ui-sref="app.competition({id: entry.COMPETITION})">{{entry.NAME}}</a></td>
             <td ng-switch="entry.PLACE">
                <span ng-switch-when="-1">-</span>

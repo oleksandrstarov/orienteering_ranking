@@ -11,9 +11,21 @@ var request = require('request'),
 
 
 
-module.exports.getAvailableResults = function(competitionsInDB, callback){
-    grabResults(function(error, data){
-        //console.log(data.length);
+module.exports.getAvailableResults = function(competitionsInDB, customURL, callback){
+    if(!customURL){
+        
+        grabResults(function(error, data){
+            //console.log(data.length);
+           importCompetitions(data);
+            //callback(error, data);
+        });
+    }else{
+        var data = [];
+        data.push(parseUrl(customURL));
+        importCompetitions(data);
+    }
+    
+    function importCompetitions(data){
         var newResults = filterNewResults(data, competitionsInDB);
         //console.log(newResults.length);
         //
@@ -28,7 +40,7 @@ module.exports.getAvailableResults = function(competitionsInDB, callback){
          
         function processCompetitionCallback(error, result){
             if(error){
-                console.log(error);
+                console.error(error);
                
             }
             //filter duplicated splits-results
@@ -44,9 +56,8 @@ module.exports.getAvailableResults = function(competitionsInDB, callback){
                 callback(null, newCompetitionsData);
             }
         }
-        
-        //callback(error, data);
-    });
+    }
+    
 };
 
 function grabResults(callback){
@@ -73,9 +84,7 @@ function grabResults(callback){
                 if(link.indexOf('.htm') != -1){
                     
                     if(link.match(/events\/\d+_/)[0].length > 0){
-                        availableCompetitions.push({ url: link,
-                                                        id: link.match(/events\/\d+_/)[0].match(/\d+/)[0]
-                        });
+                        availableCompetitions.push(parseUrl(link));
                     }
                 }
             });
@@ -86,7 +95,13 @@ function grabResults(callback){
         //console.log(availableCompetitions);
         callback(null, availableCompetitions);
     });
-    
+}
+
+function parseUrl(link){
+    if(/events\/\d+_/.test(link)){
+        return {url: link, id: link.match(/events\/\d+_/)[0].match(/\d+/)[0]};
+    }
+    return {url: link, id: null};
 }
 
 function filterNewResults(allResults, existingResults){

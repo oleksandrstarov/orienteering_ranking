@@ -55,15 +55,17 @@ gulp.task('usemin',['jshint'], function () {
 
 // Images
 gulp.task('imagemin', function() {
-  return del(['dist/images']), gulp.src('app/images/**/*')
-    .pipe(cache(imagemin({ optimizationLevel: 3, progressive: true, interlaced: true })))
-    .pipe(gulp.dest('dist/images'))
-    .pipe(notify({ message: 'Images task complete' }));
+  return gulp.src('app/images/**/*')
+    .pipe(gulp.dest('dist/images'));
 });
 
 gulp.task('copyfonts', function () {
   return gulp.src('app/fonts/**/*')
     .pipe(gulp.dest('dist/fonts'));
+});
+
+gulp.task('web', ['clean'], function () {
+  gulp.start('usemin', 'imagemin', 'copyfonts');
 });
 
 /*gulp.task('build', ['clean'], function () {

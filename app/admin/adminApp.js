@@ -35,36 +35,68 @@ angular.module('adminApp', ['ui.router', 'ngResource'])
   })
   
   .controller('AdminCompetitionsController', ['$scope', 'adminCompetitionsService', function($scope, service){
-    $scope.newCompetition = '';
-    var addUrlbtn = document.querySelector('#add-url');
-    addUrlbtn.addEventListener('click', function(){
-        console.log($scope.newCompetition);
-        service.addLink().update({data: $scope.newCompetition});
-        $scope.newCompetition = '';
-    });
-    
-     var recalculatebtn = document.querySelector('#recalculate');
-    recalculatebtn.addEventListener('click', function(){
-        console.log('recalculate');
-    });
-    
-     var dropbtn = document.querySelector('#drop');
-    dropbtn.addEventListener('click', function(){
-        console.log('drop');
-        
-    });
-    
     var self = this;
+    self.info=[];
+    $scope.message = '';
+    $scope.newCompetition = '';
+   
+    
+    $scope.addCompetition =  function(){
+        $scope.message = 'Adding...';
+        console.log($scope.newCompetition);
+        if(!$scope.newCompetition){
+            $scope.message = 'Empty link!';
+            return;
+            
+        }
+        service.addLink().update({data: $scope.newCompetition}, function(response){
+            if(!response.error){
+                self.info.push(mapValue([response.data]));    
+            }
+            $scope.message = response.error || 'Competition added';
+        });
+        $scope.newCompetition = '';
+    };
+    
+    
+    $scope.recalculate = function(){
+        $scope.message = 'Recalculation...';
+        service.recalculateCompetitions().update({data: self.info}, function(response){
+            if(!response.error){
+                
+                self.info = mapValue(JSON.parse(response.data));
+                
+                //item.selected prop
+            }
+            $scope.message = response.error || 'Competitions updated';
+        });
+        $scope.newCompetition = '';
+    };
+    
+    $scope.updateCompetition = function(){
+        $scope.message = 'Updating...';
+        service.updateCompetition().update({data:{id:self.selectedCompetition.ID, title:self.selectedCompetition.NAME}},
+        function(response){
+            $scope.message = response.data || 'Data updated';
+        });
+    };
+    
+    
     self.info=[];
     service.getCompetitions().query(
         function(response){
-            console.log(response);
-            self.info = response;
+            self.info = mapValue(response);
         },
         function(response){
-            console.log(response.status + '' + response.statusText);
+            $scope.message = response.status + '' + response.statusText;
         }
     );
+    function mapValue(arr){
+        return arr.map(function(item){
+                item.IS_ALLOWED_UPDATED = item.IS_ALLOWED;
+                return item;
+            }); 
+    };
     
   }])
    .controller('AdminRunnersController',  ['$scope', 'adminRunnersService', function($scope, service){
@@ -123,9 +155,18 @@ angular.module('adminApp', ['ui.router', 'ngResource'])
     };
     
     this.addLink = function() {
-        return $resource('/competitions/update', null, {'update':{method: 'PUT'}});
+        return $resource('/competitions/addCompetition', null, {'update':{method: 'PUT'},'query': {method: 'GET', isArray: true }});
+    };
+    
+    this.recalculateCompetitions = function() {
+        return $resource('/competitions/recalculate', null, {'update':{method: 'PUT'},'query': {method: 'GET', isArray: true }});
+    };
+    
+    this.updateCompetition = function() {
+        return $resource('/competitions/updateCompetitionDetails', null, {'update':{method: 'PUT'},'query': {method: 'GET', isArray: false }});
     };
   }])
+  
    .service('adminRunnersService', ['$resource', function($resource){
     this.getRunners = function() {
         return $resource('/runners');
@@ -135,7 +176,7 @@ angular.module('adminApp', ['ui.router', 'ngResource'])
     };
     
   }])
-  
+
   /*.directive('loaderTemplate', function(){
        return{
           restrict: 'E',

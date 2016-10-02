@@ -220,3 +220,20 @@ thead th, thead td {
 .content{
   padding-bottom: 200px;
 }
+.bottom-margin{
+  margin-bottom: 20px;
+}
+
+.no-left-padding{
+  padding-left:0px;
+}
+
+.no-margin{
+  margin-left: 0px;
+  margin-right: 0px;
+}
+
+.date-field{
+  min-width: 90px;
+}
+

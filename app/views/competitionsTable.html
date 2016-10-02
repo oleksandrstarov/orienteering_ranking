@@ -1,7 +1,7 @@
 <div class="container">
  <loader-template ng-hide="isDataLoaded"></loader-template>
   <div class="row"ng-show="isDataLoaded">
-    <h1>Соревнования в системе(только SFR с официального сайта ХФСО)</h1>
+    <h1>Соревнования в системе</h1>
     <table class="fullWidth">
         <thead>
           <tr>
@@ -15,9 +15,12 @@
         <tbody>
             <tr ng-repeat="competition in competitionsCtrl.info | orderBy:'DATE':true">
                 <td><a ui-sref="app.competition({id: competition.ID})">{{competition.NAME }}</a></td>
-                <td>{{competition.DATE | date:'dd-MM-yyyy'}}</td>
+                <td ng-switch="competition.STATUS">
+                    <span ng-switch-when="invalid"></span>
+                    <span ng-switch-default>{{competition.DATE | date:'dd-MM-yyyy'}}</span>
+                </td>
                 <td>{{competition.RUNNERS}}</td>
-                <td>{{competition.STATUS}}</td>
+                <td><img ng-src="images/{{competition.STATUS}}_icon.png"></td>
             </tr>
         </tbody>
     </table>

@@ -17,15 +17,15 @@ var now = new Date();
 
 var rule = new cron.RecurrenceRule();
 rule.dayOfWeek = [6,0,1];
-rule.hour = 18;
-//rule.minute = 23;
+rule.hour = 3;
+rule.minute = 0;
 cron.scheduleJob(rule, function(){
     var now = new Date();
     console.log('AUTOUPDATE');
     //console.log('TEST');
-    console.log(now.getDate() + " " +now.getHours());
+    console.log('Day: ' + now.getDate() + " Hour: " +now.getHours());
     db.initDB(function(){
-        db.updateRunnersPoints(function(){
+        db.updateRunnersPoints(null, function(){
             updater.updateData();
             
         });
@@ -34,7 +34,7 @@ cron.scheduleJob(rule, function(){
 
 
 db.initDB(function(){
-     //db.updateRunnersPoints(function(){
+     //db.updateRunnersPoints(null, function(){
             updater.updateData();
             server.startServer();
        // });

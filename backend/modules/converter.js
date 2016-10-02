@@ -73,7 +73,7 @@ module.exports.getAvailableResults = function(competitionsInDB, callback){
          
         function processCompetitionCallback(error, result){
             if(error){
-                //console.log(error);
+                //console.error(error);
                 newCompetitionsData.push(result);
             }else{
                 newCompetitionsData.push(result);

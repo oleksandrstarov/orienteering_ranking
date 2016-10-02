@@ -10,34 +10,77 @@ var competitionsCollector = require('./dataCollector.js'),
 //updateData();
 
 module.exports.updateData = function (){
-    /*db.updateRunnersPoints(function(){
+    /*db.updateRunnersPoints(null, function(){
         getNewCompetitionsResults();
     });*/
     getNewCompetitionsResults();
 };
 
 
-function getNewCompetitionsResults(){
+module.exports.recalculateCompetitions = function (competitionsArray, callback){
+   db.updateCompetitionsStatus(competitionsArray, function(error, earliestReadyCompetition){
+       if(error){
+           callback(error);
+           return;
+       }
+       db.rollBackToDate(earliestReadyCompetition, function(error){
+           db.getReadyToImportCompetitions(function(error, competitions){
+                if(competitions.length != 0){
+                    importResults(competitions, function(){
+                        db.updateRunnersPoints(null, function(error){
+                            callback(error);
+                        });
+                    });
+                }else{
+                    db.updateRunnersPoints(null, function(error){
+                        callback('Updated');
+                    });
+                }
+                
+            });
+       });
+   });
+};
+
+module.exports.manualImport = function (data, callback){
+    /*db.updateRunnersPoints(null, function(){
+        getNewCompetitionsResults();
+    });*/
+    
+    if(/http:\/\/(.+)\.(.+)\/(.+)\.(htm|html)/.test(data)){
+        getNewCompetitionsResults(data, callback);
+    }else{
+        callback('Invalid URL provided. Please check');
+    }
+};
+
+
+function getNewCompetitionsResults(URLsArray, callback){
      var processedCompetitions = [];
      db.getImportedCompetitionsIDs(function(data){
         //console.log(data);
         processedCompetitions = data;
         console.log('after get old ids');
-        competitionsCollector.getAvailableResults(processedCompetitions, function(error, list){
+        competitionsCollector.getAvailableResults(processedCompetitions, URLsArray, function(error, list){
             if(error){
-                console.log(error);
-                 db.getReadyToImportCompetitions(function(competitions){
+               
+                 db.getReadyToImportCompetitions(function(error, competitions){
+                    
                     if(competitions.length != 0){
                         importResults(competitions);
                     }
                 });
             }else{
-                
                 console.log('new competitions = ' + list.length);
                 if(list.length > 0){
-                    db.saveNewCompetitions(list, function(error){
+                    db.saveNewCompetitions(list.reverse(), function(error){
+                        if(URLsArray){
+                            callback();
+                            return;
+                        }
                         if(!error){
-                            db.getReadyToImportCompetitions(function(competitions){
+                            db.getReadyToImportCompetitions(function(error, competitions){
+                                console.log(competitions);
                                 if(competitions.length != 0){
                                     importResults(competitions);
                                 }
@@ -54,18 +97,17 @@ function getNewCompetitionsResults(){
 }
 
 
-function importResults(list){
+function importResults(list, callback, err){
     
     var i = 0;
-    
     processCompetition(list[i], processCompetitionCallback);
      
     function processCompetitionCallback(error){
         if(error){
-            console.log(error);
+            console.error(error);
            
         }
-        return;
+       
         //console.log(list[i].DATE);
         if(++i <= list.length-1){
         // if(--i >= list.length-1){  
@@ -74,6 +116,10 @@ function importResults(list){
         }else{
             //exit here
             console.log('DONE');
+            if(callback){
+                callback(err);
+                return;
+            }
         }
     }
 }
@@ -84,15 +130,23 @@ function processCompetition(competition, callback){
     
     getResults(competition, function(error, competitionData){
         if(error){
-            console.log(error);
-            callback();
-        }
-        console.log(competitionData);
-        pointsCalculator.processCompetitionResults(competitionData, function(competitionData){
+            console.error(error);
             db.processCompetition(competitionData, function(){
                 callback();
+                return;
+            });
+        }
+        console.log('COMPETITION ' + competitionData.DATE.toMysqlFormat());
+        
+        db.updateRunnersPoints(competitionData.DATE, function(error){
+            pointsCalculator.processCompetitionResults(competitionData, function(competitionData){
+                db.processCompetition(competitionData, function(){
+                    callback();
+                    return;
+                });
             });
         });
+        
     });
     
 }
@@ -104,9 +158,9 @@ function getResults(competition, callback){
         });
         
     }else if(competition.TYPE === 'WINORIENT'){
-        console.log('PASSED');
+        
         WOparser.processCompetition(competition, function(error, data){
-            console.log('PASSED');
+            
             callback(error, data);
         });
     }else{

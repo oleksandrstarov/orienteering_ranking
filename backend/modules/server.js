@@ -3,7 +3,8 @@ var express = require('express'),
     morgan = require('morgan'),
     bodyParser = require('body-parser'),
     path = require('path'),
-    db = require('./dbUtils.js');
+    db = require('./dbUtils.js'),
+    dataUpdater = require('./dataUpdater.js');
 
 
 this.serverSettings = {
@@ -80,12 +81,42 @@ app.get('/competitions/:id', function(req, res){
 app.put('/runners/update', function(req, res){
     //res.send('Hello World!');
     //console.log(req.body);
+    //should send runner name - and duplicates names
 });
 
-app.put('/competitions/update', function(req, res){
-    //res.send('Hello World!');
-    console.log(req.body);
+app.put('/competitions/addCompetition', function(req, res){
+    dataUpdater.manualImport(req.body.data, function(error){
+        if(error){
+            res.end(JSON.stringify({error:error}));
+        }else{
+             db.getCompetitionsList(function(error, data){
+                 res.end(JSON.stringify({data:data, error:null}));
+            });
+        }
+    });
+    //should be new comp list
+    
 });
+
+app.put('/competitions/updateCompetitionDetails', function(req, res){
+    db.updateCompetition(req.body.data, function(error){
+        res.end(JSON.stringify({data:error}));
+    });
+});
+
+app.put('/competitions/recalculate', function(req, res){
+    dataUpdater.recalculateCompetitions(req.body.data, function(error){
+        if(error){
+            res.end(JSON.stringify({error:error}));
+        }else{
+             db.getCompetitionsList(function(error, data){
+                 res.end(JSON.stringify({data:data, error:null}));
+            });
+        }
+    });
+    //should be new comp list
+});
+
 
 
 

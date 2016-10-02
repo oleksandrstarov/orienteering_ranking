@@ -31,7 +31,7 @@ module.exports.processCompetitionResults = function(resultsObject, callback){
     
     function getBestThreePointsCallback(error, bestPoints){
         if(error){
-            console.log(error);
+            console.error(error);
         }
         //console.log(j);
         resultsObject.group[j].avgPoints = getAvgData(bestPoints);

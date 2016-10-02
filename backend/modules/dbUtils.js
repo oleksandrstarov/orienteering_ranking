@@ -9,14 +9,11 @@ module.exports.getImportedCompetitionsIDs = function(callback){
    
    db.getImportedCompetitionsIDs(function(error, data){
        if(!error){
-           
-        
-                competitionsIDs = data.map(function(item){
-                   return item.WEB_ID.toString();
-               });
-           callback(competitionsIDs);       
-           
-           
+        competitionsIDs = data.map(function(item){
+           return item.WEB_ID.toString();
+        });
+        callback(competitionsIDs);       
+        return;
        }
    });
 };
@@ -41,13 +38,18 @@ module.exports.getBestThreePoints = function(personsArray, callback){
 module.exports.processCompetition = function(competition, callback){
    
     db.processCompetition(competition, function(error){
+        if(competition.STATUS === 'invalid'){
+            callback();
+            return;
+        }
         
         addCompetitionResult(competition, function(competition){
             
             db.updateCurrentRanking(competition.DATE, function(){
                
-                console.log('UPDATED AFTER ' + competition.DATE);
-                callback();  
+                console.log('UPDATED AFTER ' + competition.DATE.toMysqlFormat());
+                callback();
+                return;
             });
         });
         
@@ -59,14 +61,10 @@ module.exports.processCompetition = function(competition, callback){
     
 };
 
-module.exports.updateRunnersPoints = function(callback){
-    db.updateCurrentRanking(null, function(error){
-        if(error){
-            callback(error);
-        }
-        else{
-            callback();
-        }
+module.exports.updateRunnersPoints = function(date, callback){
+    db.updateCurrentRanking(date, function(error){
+        callback(error);
+        
     });
 };
 
@@ -118,26 +116,48 @@ module.exports.saveNewCompetitions = function(competitions, callback){
 
 module.exports.getReadyToImportCompetitions = function(callback){
     db.getReadyToImportCompetitions(function(error, competitions){
-        callback(competitions);
+        callback(error, competitions);
+    });
+};
+
+//TODO
+module.exports.rollBackToDate = function(date, callback){
+    console.log('rolling back to ' + date);
+    db.rollBackToDate(date, function(error){
+        callback(error);  
+    });
+};
+
+module.exports.updateCompetitionsStatus = function(competitions, callback){
+    db.updateCompetitionsStatus(competitions, function(error, idArray){
+        if(error && error!=='noUpdates'){
+            callback(error);
+            return;
+        }
+        console.log(idArray);
+        db.getDateToDropFrom(idArray, function(error, earliestDate){
+            callback(error, earliestDate);  
+        });
+    });
+};
+
+module.exports.updateCompetition = function(competition, callback){
+    db.updateCompetition(competition, function(error){
+        callback(error);  
     });
 };
 
 
 function addCompetitionResult(competition, callback){
-    //var self = this;
-    //console.log("competition processsing");
-    //console.log(competition);
     db.setRunnersIDs(competition, function(error, competition){
         if(!error){
-            
             db.addResults(competition, function(error){
-                
                 if(error){
-                    console.log(error);
+                    console.error(error);
                 }
                 
                 callback(competition);
-               /* console.log(error);
+               /* console.error(error);
                 self.addResults();*/
             });
         }else{
