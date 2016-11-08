@@ -23,23 +23,46 @@ module.exports.recalculateCompetitions = function (competitionsArray, callback){
            callback(error);
            return;
        }
-       db.rollBackToDate(earliestReadyCompetition, function(error){
-           db.getReadyToImportCompetitions(function(error, competitions){
-                if(competitions.length != 0){
-                    importResults(competitions, function(){
-                        db.updateRunnersPoints(null, function(error){
-                            callback(error);
-                        });
-                    });
-                }else{
-                    db.updateRunnersPoints(null, function(error){
-                        callback('Updated');
-                    });
-                }
-                
-            });
-       });
+       rollBackDB(earliestReadyCompetition, callback);
    });
+};
+
+
+function rollBackDB(date, callback){
+    db.rollBackToDate(date, function(error){
+       db.getReadyToImportCompetitions(function(error, competitions){
+            if(competitions.length != 0){
+                importResults(competitions, function(){
+                    db.updateRunnersPoints(null, function(error){
+                        callback(error);
+                    });
+                });
+            }else{
+                db.updateRunnersPoints(null, function(error){
+                    callback(error, 'Updated');
+                });
+            }
+            
+        });
+   });
+}
+
+module.exports.mergeDuplicates = function (main, duplicates, callback){
+    //*TODO 
+    db.setDuplicates(main, duplicates, function(error){
+        if(error){
+            callback('Error setting duplicates: ' + error);
+            return;
+        }
+        var idArray = [main.ID];
+        duplicates.forEach(function(runner){
+            idArray.push(runner.ID);
+        });
+        //*TODO 
+        db.getEarliestResultDate(idArray, function(error, earliestResultDate){
+            rollBackDB(earliestResultDate, callback);
+       });
+    });
 };
 
 module.exports.manualImport = function (data, callback){

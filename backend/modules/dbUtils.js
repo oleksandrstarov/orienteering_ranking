@@ -120,7 +120,6 @@ module.exports.getReadyToImportCompetitions = function(callback){
     });
 };
 
-//TODO
 module.exports.rollBackToDate = function(date, callback){
     console.log('rolling back to ' + date);
     db.rollBackToDate(date, function(error){
@@ -144,6 +143,32 @@ module.exports.updateCompetitionsStatus = function(competitions, callback){
 module.exports.updateCompetition = function(competition, callback){
     db.updateCompetition(competition, function(error){
         callback(error);  
+    });
+};
+
+module.exports.updateRunnerDetails = function(runner, callback){
+    db.updateRunnerDetails(runner, function(error){
+        callback(error);  
+    });
+};
+
+module.exports.setDuplicates = function(main, duplicates, callback){
+    var mainName = main.FULLNAME;
+    
+    var duplicatesNames = [];
+    duplicates.forEach(function(runner){
+        duplicatesNames.push(runner.FULLNAME);
+    });
+    
+    db.setDuplicates(mainName, duplicatesNames, function(error, date){
+        callback(error, date);  
+    });
+};
+
+//TODO
+module.exports.getEarliestResultDate = function(runnersIDs, callback){
+    db.getEarliestResultDate(runnersIDs, function(error, date){
+        callback(error, date);  
     });
 };
 

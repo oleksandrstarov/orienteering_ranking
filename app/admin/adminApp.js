@@ -104,24 +104,49 @@ angular.module('adminApp', ['ui.router', 'ngResource'])
     $scope.info=[];
     self.selectedRunner = {};
     $scope.show = false;
-   
+    $scope.selectedRunners =[];
+    $scope.isMerge = false;
+    $scope.message = '';
     
-    var mergebtn = document.querySelector('#merge');
+    $scope.$watch('selectedRunners', function(){
+        
+        $scope.isMerge = $scope.selectedRunners.length > 2?true:false;
+    });
     
-    this.merge =  function(){
-        console.log($scope.show);
-        var selected = $scope.info.filter(function(runner){
-            return runner.isSelected;
+    $scope.merge =  function(){
+        $scope.message = 'Merging...';
+        
+        service.mergeDuplicates().update({data:{main:self.selectedRunner, duplicates:$scope.selectedRunners}}, function(response){
+            
+            if(!response.error){
+                console.log($scope.info);
+                $scope.info = JSON.parse(response.data);
+                console.log($scope.info);
+                
+            }
+            $scope.message = response.error || 'Runners updated';
         });
-        console.log(selected);
-        console.log(self.selectedRunner);
-        service.mergeDuplicates().update({main:self.selectedRunner, duplicates:selected});
         
         self.selectedRunner = {};
         $scope.show = false;
         
-        for(var i =0; i < selected.length; i++){
-            selected[i].isSelected = false;
+        for(var i =0; i < $scope.selectedRunners.length; i++){
+            $scope.selectedRunners[i].isSelected = false;
+        }
+        
+    };
+    
+    $scope.update =  function(){
+        $scope.message = 'Updating...';
+        service.updateRunner().update({data:self.selectedRunner}, function(response){
+            $scope.message = response.error || 'Runner updated';
+        });
+        
+        self.selectedRunner = {};
+        $scope.show = false;
+        
+        for(var i =0; i < $scope.selectedRunners.length; i++){
+            $scope.selectedRunners[i].isSelected = false;
         }
         
     };
@@ -172,7 +197,10 @@ angular.module('adminApp', ['ui.router', 'ngResource'])
         return $resource('/runners');
     };
     this.mergeDuplicates = function(){
-        return $resource('/runners/update', null, {'update':{method:'PUT'}});
+        return $resource('/runners/merge', null, {'update':{method:'PUT'},'query': {method: 'GET', isArray: false }});
+    };
+    this.updateRunner = function(){
+        return $resource('/runners/update', null, {'update':{method:'PUT'},'query': {method: 'GET', isArray: false }});
     };
     
   }])

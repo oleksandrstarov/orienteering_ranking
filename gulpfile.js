@@ -36,9 +36,13 @@ gulp.task('default', ['clean'], function() {
 // admin
 gulp.task('adminApp',['jshint'], function () {
   return gulp.src('./app/admin/*.html')
-      .pipe(usemin({
+     /* .pipe(usemin({
         css:[minifycss(),rev()],
         js: [ngannotate(),uglify(),rev()]
+      }))*/
+      .pipe(usemin({
+        css:[rev()],
+        js: [ngannotate(), rev()]
       }))
       .pipe(gulp.dest('dist/admin'));
 });

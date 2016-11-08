@@ -192,8 +192,19 @@ function isValidWinOrient(string){
 }
 
 function toDate(dateStr) {
-    var parts = dateStr.split(".");
-    return new Date(parts[2].length === 2? '20'+parts[2]: parts[2], parts[1] - 1, parts[0]);
+    var delimeter = dateStr.indexOf('.') != -1? '.': '-';
+    var parts = dateStr.split(delimeter);
+    if(!parts.length){
+        return null;
+    }
+    if(delimeter == '-'){
+        //2016-10-14
+         return new Date(parts[0], parts[1]-1, parts[2]);
+    }
+    if(delimeter == '.'){
+         return new Date(parts[2].length === 2? '20'+parts[2]: parts[2], parts[1]-1, parts[0]);
+    }
+   
 }
 
 

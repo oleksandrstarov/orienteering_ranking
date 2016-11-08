@@ -145,7 +145,7 @@ function setResultAndAvgTopTime(group){
 }
 
 function convertResultToSeconds(resultString){
-    var re = new RegExp(/(\d{2}:){2}(\d{2})/);
+    var re = new RegExp(/(\d{1,2}:\d{2}:\d{2})/);
     var result = -1;
     if(re.test(resultString)){
         var data = resultString.split(':');

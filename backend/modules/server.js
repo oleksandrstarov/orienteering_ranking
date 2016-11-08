@@ -78,10 +78,32 @@ app.get('/competitions/:id', function(req, res){
     //res.sendFile(path.resolve(__dirname + './../../dist/index.html'));
 });
 
+app.put('/runners/merge', function(req, res){
+    console.log(req.body.data);
+    
+    dataUpdater.mergeDuplicates(req.body.data.main, req.body.data.duplicates, function(error){
+        
+        db.getRunnersList(function(err, data){
+           
+             res.end(JSON.stringify({error:error+err, data:data}));
+        });
+        //getlist
+       
+    });
+    // gets runner main and array of duplicates
+    // should update duplicates prop
+    // get earliest result of all merged runners
+    // drop data from this result 
+    //recalculate 
+    // send back result with all runners
+});
+
 app.put('/runners/update', function(req, res){
-    //res.send('Hello World!');
-    //console.log(req.body);
-    //should send runner name - and duplicates names
+    console.log(req.body.data);
+    db.updateRunnerDetails(req.body.data, function(error){
+        res.end(JSON.stringify({error:error}));
+    })
+    //  /res.end(JSON.stringify({error:'Under development'}));
 });
 
 app.put('/competitions/addCompetition', function(req, res){

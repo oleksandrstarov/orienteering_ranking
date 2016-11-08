@@ -1,4 +1,7 @@
-<h1>RUNNERS</h1>
+<h1>RUNNERS</h1><br/>
+<div class="row">
+    <div class='text-danger bg-info col-sm-2' ng-show='message != ""'>{{message}}</div>
+</div>
 <div class="container">
  <div class="row">
     <div class="col-md-6 col-lg-6">
@@ -23,8 +26,7 @@
       </table>
     </div>
     <div class="col-md-6">
-        <h1>Duplicates</h1>
-       
+        <h1>Выбраные</h1> 
         <table class="fullWidth">
             <thead>
             <tr>
@@ -34,7 +36,7 @@
             </tr>
           </thead>
             <tbody>
-                <tr ng-repeat="runner in info | orderBy: 'FULLNAME' | filter: {'isSelected':true}">
+                <tr ng-repeat="runner in info | orderBy: 'FULLNAME' | filter: {'isSelected':true} as selectedRunners">
                 <td><input type="radio" name="duplicates" ng-value="runner" ng-change="AdminRunnersCtrl.selectedPrimary(runner)" ng-model="AdminRunnersCtrl.selectedRunner"/></td>
                 <td>{{runner.FULLNAME}}</a></td>
                 <td>{{runner.TEAM}}</td>
@@ -51,13 +53,14 @@
                     <dt>ID</dt>
                     <dd>{{AdminRunnersCtrl.selectedRunner.ID}}</dd>
                     <dt>Клуб</dt>
-                    <dd>{{AdminRunnersCtrl.selectedRunner.TEAM}}</dd>
+                    <dd><input type="text" class="input-medium form-control" ng-model="AdminRunnersCtrl.selectedRunner.TEAM" ng-disabled="selectedRunners.length>1"></dd>
                     <dt>Пол</dt>
                     <dd>{{AdminRunnersCtrl.selectedRunner.SEX}}</dd>
                </dl>
             </div>
             </div>
-            <button type="button" class="btn btn-danger" id="merge" ng-click="AdminRunnersCtrl.merge()">Merge</button>
+            <button ng-show="selectedRunners.length>1" type="button" class="btn btn-danger" ng-click="merge()">Merge</button>
+            <button ng-hide="selectedRunners.length>1" type="button" class="btn btn-danger" ng-click="update()">Update</button>
         </div>
   </div>
 </div>

@@ -71,3 +71,25 @@ in Admin view list of competitions:
     possible to check what to import and what to not
     possible to Reset/Update - insert competitions inside
     
+    
+    dupl:
+    { main: 
+   { ID: 1038,
+     FULLNAME: 'Андрейкович Виктор',
+     TEAM: 'НЮУ',
+     SEX: 'M',
+     CUR_RANK: 300,
+     isSelected: false },
+  duplicates: 
+   [ { ID: 1077,
+       FULLNAME: 'Абополов Владислав',
+       TEAM: 'ХНЭУ 23',
+       SEX: 'M',
+       CUR_RANK: 300,
+       isSelected: false },
+     { ID: 1038,
+       FULLNAME: 'Андрейкович Виктор',
+       TEAM: 'НЮУ',
+       SEX: 'M',
+       CUR_RANK: 300,
+       isSelected: false } ] }

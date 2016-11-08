@@ -3,8 +3,8 @@
 
 var settings = {
     defaultPoints: 10,
-    defaultTime: 75,
-    maxPoints: 300,
+    defaultTime: 60,
+    maxPoints: 90,
 };
 
 var sqlSettings = {
@@ -41,6 +41,8 @@ String.prototype.normalizeTitle = function(){
    .replace(/\r/g, ' ')
    .replace(/ {2,}/g, ' ')
    .replace('Протокол результатов (промежуточные времена).', '')
+   .replace('"', '')
+   .replace("'", '')
    .replace('Протокол результатов.', '').trim();
    //.replace(/,?[, -]\d{2,}/, '');
 };

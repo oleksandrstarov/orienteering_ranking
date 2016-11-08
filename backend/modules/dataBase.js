@@ -2,6 +2,7 @@
 
 var sql = require('mysql'),
     settings = require('./settings.js').getSQLSettings(),
+    globalSettings = require('./settings.js').getSettings(),
     defaultSettings = require('./settings.js').getSettings();
 
 //var connection = sql.createConnection(settings);
@@ -51,6 +52,7 @@ handleDisconnect();
 
 //todo drop to date
 
+//COMPETITIONS
 module.exports.processCompetition = function(competition, callback){
   var status =(competition.STATUS && competition.STATUS==='invalid'?competition.STATUS:'imported');
   var allowed =(status ==='invalid'?'N':'Y');
@@ -72,7 +74,6 @@ module.exports.processCompetition = function(competition, callback){
     }
   });
 };
-
 
 module.exports.saveNewCompetitions = function(competitions, callback){
   var query = 'INSERT INTO COMPETITIONS (DATE, URL, NAME, TYPE, STATUS, WEB_ID) '
@@ -129,69 +130,6 @@ module.exports.getReadyToImportCompetitions = function(callback){
   });
 };
 
-module.exports.addResults = function(competition, callback){
-  /*ID MEDIUMINT NOT NULL AUTO_INCREMENT,' 
-      +'COMPETITION INT NOT NULL, '
-      +'RUNNER INT NOT NULL, '
-      +'DATE DATETIME, '
-      +'TIME DATETIME, '
-      +'PLACE SMALLINT, '
-      +'POINTS DECIMAL(5,2), '
-      +'COMP_GROUP nvarchar(10), '
-      +'DISTANCE nvarchar(1), ' //L,M,S,N...
-      +'TIME_BEHIND nvarchar(15)*/
-  //console.log(competition);
-  if(competition.STATUS !== 'valid'){
-    callback('INVALID STATUS');
-    return;
-  }
-  
-  var query = 'INSERT INTO RESULTS '
-  +'(COMPETITION, RUNNER, DATE, TIME, PLACE, POINTS, COMP_GROUP, DISTANCE, TIME_BEHIND) '
-  + 'VALUES ';
-  
-  for(var i=0; i<competition.group.length; i++){
-    var group = competition.group[i];
-    for(var j=0; j<group.data.length; j++){
-      //console.log(group.data[j].id);
-      query += '(' 
-      + competition.ID + ', ' 
-      + group.data[j].id + ', ' 
-      + "'" + competition.DATE.toMysqlFormat()   +"'"+ ', ' 
-      + "'" + '1970-01-01 '+ group.data[j].result + "'" + ', '
-      +  group.data[j].place + ', '
-      +  group.data[j].points + ', '
-      +  "'" + group.name + "'" + ', '
-      + "'" +  'L' + "'" + ', '
-      +  "'" + group.data[j].timeBehind + "'"
-      + '), ';
-      
-      /*if(j!= group.data.length -1 && i != competition.group.length -1){
-        query += ', ';
-      }else{
-        query += ';';
-      }*/
-    }
-  }
-  query = query.replace(/\,.$/, ';');
-  //console.log(query);
-  
-  connection.query(query, function(err, rows, fields) {
-    if (!err){
-      //console.log('RESULTS ADDED');
-      callback();
-    }
-    else{
-      /*console.log(competition.group[0].data);
-      console.log(competition.group[1].data);*/
-      console.log(query);
-      console.log(err);
-      callback(err);
-    }
-      
-  });
-};
-
 module.exports.getImportedCompetitionsIDs = function(callback){
   var query = 'SELECT WEB_ID FROM COMPETITIONS WHERE WEB_ID IS NOT NULL;';
   //console.log(query);
@@ -205,6 +143,126 @@ module.exports.getImportedCompetitionsIDs = function(callback){
   });
 };
 
+module.exports.getCompetitionsList = function(callback){
+  var query = 'SELECT C.ID AS ID, NAME, C.DATE AS DATE, COUNT(RUNNER) AS RUNNERS, C.STATUS AS STATUS, C.URL AS URL, C.IS_ALLOWED AS IS_ALLOWED '
+  +'FROM COMPETITIONS C '
+  +'LEFT JOIN RESULTS ON RESULTS.COMPETITION = C.ID '
+  +'GROUP BY C.ID ;';
+  
+  //SELECT  NAME, COUNT(RESULTS.ID) AS RUNNERS  FROM COMPETITIONS INNER JOIN RESULTS ON RESULTS.COMPETITION = COMPETITIONS.ID WHERE STATUS = 'SFR' GROUP BY COMPETITIONS.ID;
+  
+  //console.log(query);
+  connection.query(query, function(err, rows, fields) {
+    if (!err){
+      //console.log(rows);
+      callback(null, rows);
+    }else{
+      console.log(err);
+      callback(err);
+    }
+      
+  });
+};
+
+module.exports.getCompetitionResults = function(competitionID, callback){
+  var query = 'SELECT RESULTS.ID AS ID, COMPETITION, RUNNER, R.FULLNAME AS NAME, DATE, TIME, PLACE, POINTS, COMP_GROUP, DISTANCE, TIME_BEHIND'
+  +' FROM RESULTS LEFT JOIN RUNNERS R ON R.ID = RUNNER'
+  +' WHERE COMPETITION = '+competitionID+ ';';
+  //console.log(query);
+  connection.query(query, function(err, rows, fields) {
+    if (!err){
+      callback(null, rows);
+    }else{
+      console.log(err);
+      callback(err);
+    }
+      
+  });
+};
+
+module.exports.getCompetitionDetails = function(competitionID, callback){
+  var query = 'SELECT ID, DATE, NAME, URL, TYPE, STATUS, IS_ALLOWED FROM COMPETITIONS WHERE ID = '+competitionID+ ';';
+  //console.log(query);
+  connection.query(query, function(err, rows, fields) {
+    if (!err){
+      callback(null, rows);
+    }else{
+      console.log(err);
+      callback(err);
+    }
+      
+  });
+};
+
+module.exports.updateCompetition = function(competition, callback){
+  var query = 'UPDATE COMPETITIONS SET NAME = "' + competition.title + '" WHERE ID = ' +competition.id + ';';
+  connection.query(query, function(err, rows, fields) {
+    
+    callback(err);
+  });
+};
+
+module.exports.getDateToDropFrom = function(idArray, callback){
+  var query = 'SELECT DATE FROM COMPETITIONS'
+  +' WHERE  (IS_ALLOWED = "N" AND STATUS = "imported") OR (IS_ALLOWED = "Y" AND STATUS = "valid")'
+  + ((idArray&&idArray.length>0)?' OR ID IN ('+ idArray.join(', ') +')':'')
+  +' ORDER BY DATE LIMIT 1;';
+  
+  
+  connection.query(query, function(err, rows, fields) {
+    if(rows.length === 0){
+      err = 'Nothing to update';
+    }
+    if (!err){
+      console.log('COMPETITIONS SELECTED', rows);
+      callback(null, rows[0].DATE);
+    }else{
+      console.log(err);
+      callback(err);
+    }
+      
+  });
+};
+
+module.exports.updateCompetitionsStatus = function(competitions, callback){
+  var query = 'UPDATE COMPETITIONS SET IS_ALLOWED = CASE';
+  var idArray = [];
+  
+  for(var i = 0; i < competitions.length; i++){
+    if(competitions[i].IS_ALLOWED_UPDATED !== competitions[i].IS_ALLOWED){
+      idArray.push(competitions[i].ID);
+    }else{
+      continue;
+    }
+    query += ' WHEN ID = ' + competitions[i].ID + ' THEN '+ "'"+ competitions[i].IS_ALLOWED_UPDATED +"'";
+  }
+  
+  if(idArray.length === 0){
+      callback('noUpdates', null);
+      return;
+      
+  }
+  
+  query += ' END WHERE ID IN (' +idArray.join(', ')+ ');';
+  //console.log(query);
+  
+  //console.log(query);
+  connection.query(query, function(err, rows, fields) {
+    
+    if (!err){
+      //console.log('COMPETITIONS UPDATED');
+      callback(null, idArray);
+    }
+    else{
+      console.log(err);
+      callback(err);
+    }
+      
+  });
+  
+};
+
+//RUNNERS
 module.exports.getPersonID = function(runner, callback){
   if(!runner){
     callback('NO VALID RUNNER DATA');
@@ -219,17 +277,19 @@ module.exports.getPersonID = function(runner, callback){
       var id = null;
       //console.log(rows);
       if(rows.length === 0){
-        //console.log('New Created');
-        addNewRunner(runner, function(error, runnerID){
-          if(!error){
-            //console.log(runnerID);
-            id = runnerID;
-            callback(null, id);
-          }else{
-            callback(error);
-          }
+        checkMainName(runner.fullName, function(error, fullname){
+          addNewRunner(runner, function(error, runnerID){
+            if(!error){
+              //console.log(runnerID);
+              id = runnerID;
+              callback(null, id);
+            }else{
+              callback(error);
+            }
           
+          });
         });
+        
       }else{
         //console.log('Old Used');
         id = rows[0].ID;
@@ -344,7 +404,7 @@ module.exports.updateCurrentRanking = function(date, callback){
       }
       
       //console.log(dateParam);
-      var query = 'UPDATE RUNNERS,(SELECT RUNNER_ID, NAME, CASE WHEN COUNT(PTS) < 6 THEN ((6 - COUNT(PTS)) * 300  + SUM(PTS))/6 ELSE AVG(PTS) END AS CUR_POINTS '
+      var query = 'UPDATE RUNNERS,(SELECT RUNNER_ID, NAME, CASE WHEN COUNT(PTS) < 6 THEN ((6 - COUNT(PTS)) * '+globalSettings.maxPoints+'  + SUM(PTS))/6 ELSE AVG(PTS) END AS CUR_POINTS '
                 + 'FROM ' 
                 + '(SELECT RUNNERS.ID RUNNER_ID, FULLNAME NAME, CUR_RANK CUR_POINTS, POINTS PTS, RESULTS.ID AS RESULT_ID '
                 + 'FROM RUNNERS '
@@ -375,7 +435,7 @@ module.exports.updateCurrentRanking = function(date, callback){
           //callback(err);
         }
         
-        var query = 'UPDATE RUNNERS SET CUR_RANK = 300 WHERE CUR_RANK IS NULL;';
+        var query = 'UPDATE RUNNERS SET CUR_RANK = '+globalSettings.maxPoints+' WHERE CUR_RANK IS NULL;';
         // var query = 'SELECT 1;';
                     
         //console.log(query);
@@ -408,27 +468,6 @@ module.exports.getRunnersList = function(callback){
   });
 };
 
-module.exports.getCompetitionsList = function(callback){
-  var query = 'SELECT C.ID AS ID, NAME, C.DATE AS DATE, COUNT(RUNNER) AS RUNNERS, C.STATUS AS STATUS, C.URL AS URL, C.IS_ALLOWED AS IS_ALLOWED '
-  +'FROM COMPETITIONS C '
-  +'LEFT JOIN RESULTS ON RESULTS.COMPETITION = C.ID '
-  +'GROUP BY C.ID ;';
-  
-  //SELECT  NAME, COUNT(RESULTS.ID) AS RUNNERS  FROM COMPETITIONS INNER JOIN RESULTS ON RESULTS.COMPETITION = COMPETITIONS.ID WHERE STATUS = 'SFR' GROUP BY COMPETITIONS.ID;
-  
-  //console.log(query);
-  connection.query(query, function(err, rows, fields) {
-    if (!err){
-      //console.log(rows);
-      callback(null, rows);
-    }else{
-      console.log(err);
-      callback(err);
-    }
-      
-  });
-};
-
 module.exports.getRunnerResults = function(runnerID, callback){
   var query = 'SELECT R.ID AS ID, COMPETITION, NAME, RUNNER, R.DATE AS DATE, TIME, PLACE, POINTS, COMP_GROUP, DISTANCE, TIME_BEHIND, '
   +' CASE WHEN R.DATE > DATE_SUB(NOW(), INTERVAL 1 YEAR) THEN "C" END AS ACT_RESULT'
@@ -437,22 +476,6 @@ module.exports.getRunnerResults = function(runnerID, callback){
   +' WHERE RUNNER = '+runnerID+' ORDER BY ACT_RESULT DESC, POINTS;';
   
   //  CASE WHEN R.DATE > DATE_SUB(NOW(), INTERVAL 1 YEAR) THEN CASE WHEN (SELECT COUNT(POINTS) + 1 FROM RESULTS WHERE RUNNER = 1001 AND POINTS < R.POINTS AND DATE > DATE_SUB(NOW(), INTERVAL 1 YEAR)) END AS ORDER_PTS FROM RESULTS R LEFT JOIN COMPETITIONS C ON C.ID = R.COMPETITION WHERE RUNNER = 1001 ORDER BY POINTS;
-  //console.log(query);
-  connection.query(query, function(err, rows, fields) {
-    if (!err){
-      callback(null, rows);
-    }else{
-      console.log(err);
-      callback(err);
-    }
-      
-  });
-};
-
-module.exports.getCompetitionResults = function(competitionID, callback){
-  var query = 'SELECT RESULTS.ID AS ID, COMPETITION, RUNNER, R.FULLNAME AS NAME, DATE, TIME, PLACE, POINTS, COMP_GROUP, DISTANCE, TIME_BEHIND'
-  +' FROM RESULTS LEFT JOIN RUNNERS R ON R.ID = RUNNER'
-  +' WHERE COMPETITION = '+competitionID+ ';';
   //console.log(query);
   connection.query(query, function(err, rows, fields) {
     if (!err){
@@ -479,13 +502,120 @@ module.exports.getRunnerDetails = function(runnerID, callback){
   });
 };
 
-module.exports.getCompetitionDetails = function(competitionID, callback){
-  var query = 'SELECT ID, DATE, NAME, URL, TYPE, STATUS, IS_ALLOWED FROM COMPETITIONS WHERE ID = '+competitionID+ ';';
+module.exports.updateRunnerDetails = function(runner, callback){
+  var query = 'UPDATE RUNNERS SET TEAM   = '+ "'"+ runner.TEAM +"'"
+  +' WHERE ID = ' + runner.ID;
+ 
+  connection.query(query, function(err, rows, fields) {
+    
+    if (!err){
+      callback(null);
+    }
+    else{
+      callback(err);
+    }
+  });
+  
+};
+
+module.exports.setDuplicates = function(mainName, duplicatesNames, callback){
+  var query = 'DELETE FROM DUPLICATES WHERE VARIANT IN (';
+  for(var i =0; i< duplicatesNames.length; i++){
+    query += '"' +duplicatesNames[i]+ '"';
+    if(i != duplicatesNames.length -1){
+      query += ', ';
+    }
+  }
+  query += ');';
+  console.log(query);
+  connection.query(query, function(err, rows, fields) {
+   
+    if (!err){
+      var query = 'INSERT INTO DUPLICATES (MAIN, VARIANT) '
+       + 'VALUES ';
+      for(var j=1; j<duplicatesNames.length; j++){
+        query += '(' 
+        + '"' + mainName + '", ' 
+        + '"' + duplicatesNames[j]+'"'
+        + ')';
+        
+        if(j!= duplicatesNames.length-1){
+          query = query+ ',';
+        }
+      }
+      query = query + ';';
+      connection.query(query, function(err, rows, fields) {
+        console.log(query);
+        if (!err){
+          callback(null);
+        }
+        else{
+          callback(err);
+        }
+      });
+    }else{
+      callback(err);
+    }
+  });
+};
+
+//RESULTS
+module.exports.addResults = function(competition, callback){
+  /*ID MEDIUMINT NOT NULL AUTO_INCREMENT,' 
+      +'COMPETITION INT NOT NULL, '
+      +'RUNNER INT NOT NULL, '
+      +'DATE DATETIME, '
+      +'TIME DATETIME, '
+      +'PLACE SMALLINT, '
+      +'POINTS DECIMAL(5,2), '
+      +'COMP_GROUP nvarchar(10), '
+      +'DISTANCE nvarchar(1), ' //L,M,S,N...
+      +'TIME_BEHIND nvarchar(15)*/
+  //console.log(competition);
+  if(competition.STATUS !== 'valid'){
+    callback('INVALID STATUS');
+    return;
+  }
+  
+  var query = 'INSERT INTO RESULTS '
+  +'(COMPETITION, RUNNER, DATE, TIME, PLACE, POINTS, COMP_GROUP, DISTANCE, TIME_BEHIND) '
+  + 'VALUES ';
+  
+  for(var i=0; i<competition.group.length; i++){
+    var group = competition.group[i];
+    for(var j=0; j<group.data.length; j++){
+      //console.log(group.data[j].id);
+      query += '(' 
+      + competition.ID + ', ' 
+      + group.data[j].id + ', ' 
+      + "'" + competition.DATE.toMysqlFormat()   +"'"+ ', ' 
+      + "'" + '1970-01-01 '+ group.data[j].result + "'" + ', '
+      +  group.data[j].place + ', '
+      +  group.data[j].points + ', '
+      +  "'" + group.name + "'" + ', '
+      + "'" +  'L' + "'" + ', '
+      +  "'" + group.data[j].timeBehind + "'"
+      + '), ';
+      
+      /*if(j!= group.data.length -1 && i != competition.group.length -1){
+        query += ', ';
+      }else{
+        query += ';';
+      }*/
+    }
+  }
+  query = query.replace(/\,.$/, ';');
   //console.log(query);
+  
   connection.query(query, function(err, rows, fields) {
     if (!err){
-      callback(null, rows);
-    }else{
+      //console.log('RESULTS ADDED');
+      callback();
+    }
+    else{
+      /*console.log(competition.group[0].data);
+      console.log(competition.group[1].data);*/
+      console.log(query);
       console.log(err);
       callback(err);
     }
@@ -493,11 +623,28 @@ module.exports.getCompetitionDetails = function(competitionID, callback){
   });
 };
 
+module.exports.getEarliestResultDate = function(runnersIDs, callback){
+  var query = 'SELECT DATE FROM RESULTS WHERE COMPETITION <> 0 AND RUNNER IN ('+runnersIDs.join(', ')+') ORDER BY DATE ASC LIMIT 1';
+ 
+  connection.query(query, function(err, rows, fields) {
+    
+    if (!err && rows.length > 0){
+      callback(null, rows[0].DATE);
+    }else{
+      callback(err);
+    }
+  });
+  
+};
+
+//MAIN
 module.exports.rollBackToDate = function(date, callback){
   //update Competitions (changeStatus)
   //clear results (if none left - clear subjective too)
   //clear runners with no results (and with subjective too)
   
+  //TODO
+  //check logic!!!
   
   
   
@@ -516,10 +663,19 @@ module.exports.rollBackToDate = function(date, callback){
           if (!err){
             //console.log(query);
             var query = 'DELETE FROM RESULTS WHERE RUNNER NOT IN (SELECT DISTINCT ID FROM RUNNERS);';
-            
-            callback(null);
+            connection.query(query, function(err, rows, fields) {
+              if (!err){
+                //console.log(query);
+                callback(null);
+              }else{
+                //console.log(err);
+                callback(err);
+              }
+                
+            });
+           
           }else{
-            //console.log(err);
+            console.log(err);
             callback(err);
           }
             
@@ -542,73 +698,9 @@ module.exports.rollBackToDate = function(date, callback){
   });
 };
 
-module.exports.updateCompetition = function(competition, callback){
-  var query = 'UPDATE COMPETITIONS SET NAME = "' + competition.title + '" WHERE ID = ' +competition.id + ';';
-  connection.query(query, function(err, rows, fields) {
-    callback(err);
-  });
-};
 
-module.exports.getDateToDropFrom = function(idArray, callback){
-  var query = 'SELECT DATE FROM COMPETITIONS'
-  +' WHERE  (IS_ALLOWED = "N" AND STATUS = "imported") OR (IS_ALLOWED = "Y" AND STATUS = "valid")'
-  + ((idArray&&idArray.length>0)?' OR ID IN ('+ idArray.join(', ') +')':'')
-  +' ORDER BY DATE LIMIT 1;';
-  
-  
-  connection.query(query, function(err, rows, fields) {
-    if(rows.length === 0){
-      err = 'Nothing to update';
-    }
-    if (!err){
-      console.log('COMPETITIONS SELECTED', rows);
-      callback(null, rows[0].DATE);
-    }else{
-      console.log(err);
-      callback(err);
-    }
-      
-  });
-};
 
-module.exports.updateCompetitionsStatus = function(competitions, callback){
-  var query = 'UPDATE COMPETITIONS SET IS_ALLOWED = CASE';
-  var idArray = [];
-  
-  for(var i = 0; i < competitions.length; i++){
-    if(competitions[i].IS_ALLOWED_UPDATED !== competitions[i].IS_ALLOWED){
-      idArray.push(competitions[i].ID);
-    }else{
-      continue;
-    }
-    query += ' WHEN ID = ' + competitions[i].ID + ' THEN '+ "'"+ competitions[i].IS_ALLOWED_UPDATED +"'";
-  }
-  
-  if(idArray.length === 0){
-      callback('noUpdates', null);
-      return;
-      
-  }
-  
-  query += ' END WHERE ID IN (' +idArray.join(', ')+ ');';
-  //console.log(query);
-  
-  //console.log(query);
-  connection.query(query, function(err, rows, fields) {
-    
-    if (!err){
-      //console.log('COMPETITIONS UPDATED');
-      callback(null, idArray);
-    }
-    else{
-      console.log(err);
-      callback(err);
-    }
-      
-  });
-  
-};
-
+//DB
 module.exports.prepareDB = function(callback){
   
   //connection.connect();
@@ -654,7 +746,6 @@ function createTables(connection, callback){
   
   connection.query(query, function(err, rows, fields) {
     if (err){
-      
       console.log(err);
     }
     var query = 'CREATE TABLE COMPETITIONS (ID MEDIUMINT NOT NULL AUTO_INCREMENT,' 
@@ -703,7 +794,7 @@ function createTables(connection, callback){
                 console.log(err);
               }
                var query = 'CREATE TABLE DUPLICATES (MAIN nvarchar(100) NOT NULL,' 
-                +'VARIANT nvarchar(100) NOT NULL);'; 
+                +'VARIANT nvarchar(100) NOT NULL, PRIMARY KEY(VARIANT));'; 
                 connection.query(query, function(err, rows, fields) {
                 if (err){
                   console.log(err);
@@ -760,61 +851,96 @@ function addNewRunner(runner, callback){
       console.log(err);
     }
     var runnerID = rows.insertId;
-    var query = 'INSERT INTO DUPLICATES (VARIANT, MAIN) '
-    + 'VALUES('
-    +'"'+ runner.fullName+'",'
-    +'"'+ runner.fullName+'"'
-    +');';
-    //console.log(query);
-    connection.query(query, function(err, rows, fields) {
-     // console.log(rows);
-      if (!err){
-        
-        var date = new Date(runner.date);
-        //console.log(date);
-        var points = defaultSettings.defaultPoints;
-        //console.log('NEW RUNNER ID  '+ runner.fullName+' IS ' + runnerID);
-        
-        var query = 'INSERT INTO RESULTS '
-        +'(COMPETITION, RUNNER, DATE, POINTS) '
-        + 'VALUES ';
-        for(var j=1; j<=6; j++){
-          
-          var targDate = new Date(date);
-          targDate.setMonth(targDate.getMonth()-j);
-          //console.log(targDate);
-          query += '(' 
-          + 0 + ', ' 
-          + runnerID + ', ' //+ '"'+date.toMysqlFormat() +'"'+ ', '
-          + "'" + targDate.toMysqlFormat()   +"'"+ ', ' 
-          +  points
-          + ')';
-          
-          if(j!= 6){
-            query = query+ ',';
-          }
-        }
-        query = query + ';';
-        
-        
-        connection.query(query, function(err, rows, fields) {
-          //console.log(query);
-          if (!err){
-            callback(null, runnerID);
-          }else{
-            callback(err);
-          }
-          
-        });
-      }else{
-        console.log(query);
-        console.log(err);
-         callback(err);
-      }
+    var date = new Date(runner.date);
     
+    var points = defaultSettings.defaultPoints;
+  
+    var query = 'INSERT INTO RESULTS '
+    +'(COMPETITION, RUNNER, DATE, POINTS) '
+    + 'VALUES ';
+    for(var j=1; j<=6; j++){
+      
+      var targDate = new Date(date);
+      targDate.setMonth(targDate.getMonth()-j);
+      //console.log(targDate);
+      query += '(' 
+      + 0 + ', ' 
+      + runnerID + ', ' //+ '"'+date.toMysqlFormat() +'"'+ ', '
+      + "'" + targDate.toMysqlFormat()   +"'"+ ', ' 
+      +  points
+      + ')';
+      
+      if(j!= 6){
+        query = query+ ',';
+      }
+    }
+    query = query + ';';
+    
+    
+    connection.query(query, function(err, rows, fields) {
+      //console.log(query);
+      if (!err){
+        callback(null, runnerID);
+      }else{
+        callback(err);
+      }
+      
     });
   });
 }
+
+function checkMainName(runnerName, callback){
+  var query = 'SELECT MAIN FROM DUPLICATES WHERE VARIANT = "' + runnerName+'" LIMIT 1;'
+  connection.query(query, function(err, rows, fields) {
+    if (!err){
+      if(rows.length === 0){
+        var query = 'INSERT INTO DUPLICATES (VARIANT, MAIN) '
+        + 'VALUES( "'+ runnerName+'",'
+        +'"'+ runnerName+'" );';
+        connection.query(query, function(err, rows, fields) {
+          if (!err){
+              callback(null, runnerName);
+          }else{
+            callback(err);
+          }
+        });
+      }else{
+        callback(null, rows[0]);
+      }
+    }else{
+      callback(err);
+    }
+  });
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 /*orderNumber: '1',
