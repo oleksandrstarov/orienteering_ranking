@@ -123,6 +123,7 @@ function getNewCompetitionsResults(URLsArray, callback){
 function importResults(list, callback, err){
     
     var i = 0;
+    
     processCompetition(list[i], processCompetitionCallback);
      
     function processCompetitionCallback(error){
@@ -130,7 +131,7 @@ function importResults(list, callback, err){
             console.error(error);
            
         }
-       
+        
         //console.log(list[i].DATE);
         if(++i <= list.length-1){
         // if(--i >= list.length-1){  
@@ -153,25 +154,29 @@ function processCompetition(competition, callback){
     
     getResults(competition, function(error, competitionData){
         if(error){
-            console.error(error);
+            
             db.processCompetition(competitionData, function(){
+                
                 callback();
                 return;
             });
-        }
-        console.log('COMPETITION ' + competitionData.DATE.toMysqlFormat());
+        }else{
+            console.log('COMPETITION ' + competitionData.DATE.toMysqlFormat());
         
-        db.updateRunnersPoints(competitionData.DATE, function(error){
-            pointsCalculator.processCompetitionResults(competitionData, function(competitionData){
-                db.processCompetition(competitionData, function(){
-                    callback();
-                    return;
+            db.updateRunnersPoints(competitionData.DATE, function(error){
+                
+                pointsCalculator.processCompetitionResults(competitionData, function(competitionData){
+                
+                    db.processCompetition(competitionData, function(){
+                    
+                        callback();
+                        return;
+                    });
                 });
-            });
-        });
+            });    
+        }
         
     });
-    
 }
 
 function getResults(competition, callback){

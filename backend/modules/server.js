@@ -23,7 +23,7 @@ app.use(bodyParser.json());
 
 app.get('/admin', function(req, res){
     //res.send('Hello World!');
-    console.log('admin');
+    //console.log('admin');
     /*db.getRunnersList(function(error, data){
          res.end(data);
     });*/
@@ -37,7 +37,7 @@ app.get('/admin', function(req, res){
 
 app.get('/runners', function(req, res){
     //res.send('Hello World!');
-    console.log('getData');
+    //console.log('getData');
     db.getRunnersList(function(error, data){
         //console.log(data);
          res.end(data);
@@ -48,7 +48,7 @@ app.get('/runners', function(req, res){
 
 app.get('/competitions', function(req, res){
     //res.send('Hello World!');
-    console.log('getData');
+    //console.log('getData');
     db.getCompetitionsList(function(error, data){
          res.end(data);
     });
@@ -61,7 +61,7 @@ app.get('/runners/:id', function(req, res){
     console.log('getData ' + req.params.id);
     
     db.getRunnerResults(req.params.id, function(error, data){
-        //console.log(data);
+        console.log(data);
          res.end(data);
     });
     //res.sendFile('index.html');

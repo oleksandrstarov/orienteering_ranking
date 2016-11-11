@@ -214,7 +214,6 @@ module.exports.getDateToDropFrom = function(idArray, callback){
       err = 'Nothing to update';
     }
     if (!err){
-      console.log('COMPETITIONS SELECTED', rows);
       callback(null, rows[0].DATE);
     }else{
       console.log(err);
@@ -268,7 +267,7 @@ module.exports.getPersonID = function(runner, callback){
     callback('NO VALID RUNNER DATA');
     return;
   }
-  var query = 'SELECT ID FROM RUNNERS INNER JOIN DUPLICATES ON FULLNAME = MAIN WHERE VARIANT = '+ '"' + runner.fullName+'"'+ ' LIMIT 1;'
+  var query = 'SELECT ID, ACTIVE FROM RUNNERS INNER JOIN DUPLICATES ON FULLNAME = MAIN WHERE VARIANT = '+ '"' + runner.fullName+'"'+ ' LIMIT 1;'
   //console.log(query);
   connection.query(query, function(err, rows, fields) {
     //console.log(rows);
@@ -276,8 +275,12 @@ module.exports.getPersonID = function(runner, callback){
       //console.log('RUNNER ' + runner.fullName+' ID IS ' + rows);
       var id = null;
       //console.log(rows);
-      if(rows.length === 0){
+      if(rows.length === 0 || rows[0].ACTIVE == 0){
         checkMainName(runner.fullName, function(error, fullname){
+          if(rows.length != 0){
+            runner.id = rows[0].ID;
+            runner.active = rows[0].ACTIVE;
+          }
           addNewRunner(runner, function(error, runnerID){
             if(!error){
               //console.log(runnerID);
@@ -353,7 +356,7 @@ module.exports.setRunnersIDs = function(competition, callback){
 };
 
 module.exports.getBestThreePoints = function(persons, callback){
-  var query = 'SELECT CUR_RANK FROM RUNNERS INNER JOIN DUPLICATES ON MAIN = FULLNAME WHERE VARIANT IN ('+ persons + ') ORDER BY CUR_RANK LIMIT 3;'
+  var query = 'SELECT CUR_RANK FROM RUNNERS INNER JOIN DUPLICATES ON MAIN = FULLNAME WHERE ACTIVE = 1 AND VARIANT IN ('+ persons + ') ORDER BY CUR_RANK LIMIT 3;'
   
   connection.query(query, function(err, rows, fields) {
    
@@ -426,7 +429,7 @@ module.exports.updateCurrentRanking = function(date, callback){
                
       //console.log(query);
       connection.query(query, function(err, rows, fields) {
-        console.log(fields);
+        
         if (!err){
           //console.log('DB UPDATE COMPLETE');
           //callback();
@@ -455,7 +458,7 @@ module.exports.updateCurrentRanking = function(date, callback){
 };
 
 module.exports.getRunnersList = function(callback){
-  var query = 'SELECT ID, FULLNAME, TEAM, SEX, CUR_RANK FROM RUNNERS ORDER BY CUR_RANK;'
+  var query = 'SELECT ID, FULLNAME, TEAM, SEX, CUR_RANK FROM RUNNERS WHERE ACTIVE = 1 ORDER BY CUR_RANK;'
   //console.log(query);
   connection.query(query, function(err, rows, fields) {
     if (!err){
@@ -489,7 +492,7 @@ module.exports.getRunnerResults = function(runnerID, callback){
 };
 
 module.exports.getRunnerDetails = function(runnerID, callback){
-  var query = 'SELECT ID, FULLNAME, FIRST_NAME, LAST_NAME, BIRTH_DATE, TEAM, SEX, CUR_RANK FROM RUNNERS WHERE ID = '+runnerID+';';
+  var query = 'SELECT ID, FULLNAME, BIRTH_DATE, TEAM, SEX, CUR_RANK FROM RUNNERS WHERE ID = '+runnerID+';';
   //console.log(query);
   connection.query(query, function(err, rows, fields) {
     if (!err){
@@ -519,7 +522,7 @@ module.exports.updateRunnerDetails = function(runner, callback){
 };
 
 module.exports.setDuplicates = function(mainName, duplicatesNames, callback){
-  var query = 'DELETE FROM DUPLICATES WHERE VARIANT IN (';
+  var query = 'UPDATE DUPLICATES SET MAIN = "' + mainName +'" WHERE VARIANT IN (';
   for(var i =0; i< duplicatesNames.length; i++){
     query += '"' +duplicatesNames[i]+ '"';
     if(i != duplicatesNames.length -1){
@@ -529,28 +532,22 @@ module.exports.setDuplicates = function(mainName, duplicatesNames, callback){
   query += ');';
   console.log(query);
   connection.query(query, function(err, rows, fields) {
-   
     if (!err){
-      var query = 'INSERT INTO DUPLICATES (MAIN, VARIANT) '
-       + 'VALUES ';
-      for(var j=1; j<duplicatesNames.length; j++){
-        query += '(' 
-        + '"' + mainName + '", ' 
-        + '"' + duplicatesNames[j]+'"'
-        + ')';
-        
-        if(j!= duplicatesNames.length-1){
-          query = query+ ',';
+      var query = 'UPDATE RUNNERS SET FULLNAME = "'+mainName+'" WHERE FULLNAME IN ('
+      for(var i =0; i< duplicatesNames.length; i++){
+        query += '"' +duplicatesNames[i]+ '"';
+        if(i != duplicatesNames.length -1){
+          query += ', ';
         }
       }
-      query = query + ';';
+      query += ');';
       connection.query(query, function(err, rows, fields) {
         console.log(query);
-        if (!err){
-          callback(null);
-        }
-        else{
-          callback(err);
+        if(!err){
+          console.log(err);
+          callback();
+        }else{
+          console.log(err);
         }
       });
     }else{
@@ -657,12 +654,12 @@ module.exports.rollBackToDate = function(date, callback){
       connection.query(query, function(err, rows, fields) {
       if (!err){
         
-         var query = 'DELETE FROM RUNNERS WHERE ID IN (SELECT RUNNER FROM RESULTS GROUP BY RUNNER HAVING COUNT(RUNNER)=6);';
+         var query = 'UPDATE RUNNERS SET ACTIVE = 0 WHERE ID IN (SELECT RUNNER FROM RESULTS GROUP BY RUNNER HAVING COUNT(RUNNER)=6);';
          //console.log(query);
          connection.query(query, function(err, rows, fields) {
           if (!err){
             //console.log(query);
-            var query = 'DELETE FROM RESULTS WHERE RUNNER NOT IN (SELECT DISTINCT ID FROM RUNNERS);';
+            var query = 'DELETE FROM RESULTS WHERE RUNNER NOT IN (SELECT DISTINCT ID FROM RUNNERS WHERE ACTIVE = 1);';
             connection.query(query, function(err, rows, fields) {
               if (!err){
                 //console.log(query);
@@ -735,12 +732,12 @@ module.exports.prepareDB = function(callback){
 function createTables(connection, callback){
   var query = 'CREATE TABLE RUNNERS (ID MEDIUMINT NOT NULL AUTO_INCREMENT,' 
   +'FULLNAME nvarchar(100) NOT NULL, '
-  +'FIRST_NAME nvarchar(50), '
-  +'LAST_NAME nvarchar(50), '
   +'BIRTH_DATE nvarchar(15), '
   +'TEAM nvarchar(100), '
   +'SEX nvarchar(1), '
-  +'CUR_RANK DECIMAL(5,2), PRIMARY KEY (ID));';
+  +'ACTIVE nvarchar(1), '
+  +'CUR_RANK DECIMAL(5,2), PRIMARY KEY (ID)) '
+  +'AUTO_INCREMENT=1001;';
   
   
   
@@ -756,7 +753,7 @@ function createTables(connection, callback){
   +'WEB_ID MEDIUMINT, '
   +'NOTES nvarchar(1000), '
   +'IS_ALLOWED nvarchar(1), ' //Y, N
-  +'STATUS nvarchar(20), PRIMARY KEY (ID));'; // valid, invalid, imported
+  +'STATUS nvarchar(20), PRIMARY KEY (ID)) AUTO_INCREMENT=1001;'; // valid, invalid, imported
     connection.query(query, function(err, rows, fields) {
       if (err){
         console.log(err);
@@ -770,39 +767,19 @@ function createTables(connection, callback){
       +'POINTS DECIMAL(5,2), '
       +'COMP_GROUP nvarchar(10), '
       +'DISTANCE nvarchar(1), ' //L,M,S,N...
-      +'TIME_BEHIND nvarchar(15), PRIMARY KEY (ID));';
+      +'TIME_BEHIND nvarchar(15), PRIMARY KEY (ID)) AUTO_INCREMENT=1001;';
       
       connection.query(query, function(err, rows, fields) {
         if (err){
           console.log(err);
         }
-        var query = 'ALTER TABLE RESULTS AUTO_INCREMENT=1001;';
-        connection.query(query, function(err, rows, fields) {
+         var query = 'CREATE TABLE DUPLICATES (MAIN nvarchar(100) NOT NULL,' 
+          +'VARIANT nvarchar(100) NOT NULL, PRIMARY KEY(VARIANT));'; 
+          connection.query(query, function(err, rows, fields) {
           if (err){
             console.log(err);
           }
-          
-          var query = 'ALTER TABLE COMPETITIONS AUTO_INCREMENT=1001;';
-          connection.query(query, function(err, rows, fields) {
-            if (err){
-              console.log(err);
-            }
-            
-            var query = 'ALTER TABLE RUNNERS AUTO_INCREMENT=1001;'; 
-            connection.query(query, function(err, rows, fields) {
-              if (err){
-                console.log(err);
-              }
-               var query = 'CREATE TABLE DUPLICATES (MAIN nvarchar(100) NOT NULL,' 
-                +'VARIANT nvarchar(100) NOT NULL, PRIMARY KEY(VARIANT));'; 
-                connection.query(query, function(err, rows, fields) {
-                if (err){
-                  console.log(err);
-                }
-                callback();
-              });
-            });
-          });
+          callback();
         });
       });
     });
@@ -837,22 +814,38 @@ function switchToDB(connection, callback){
 
 //with duplicates save
 function addNewRunner(runner, callback){
-  var query = 'INSERT INTO RUNNERS (FULLNAME, FIRST_NAME, LAST_NAME, TEAM, SEX) '
-  + 'VALUES('
-  +'"'+ runner.fullName+'",'
-  +'"'+ runner.firstName+'",'  
-  +'"'+ runner.lastName+'",'
-  +'"'+ runner.team+'",'
-  +'"'+ runner.sex+'"'
-  +');';
-  //console.log(query);
-  connection.query(query, function(err, rows, fields) {
-    if(err){
-      console.log(err);
-    }
-    var runnerID = rows.insertId;
+  if(!runner.active){
+    var query = 'INSERT INTO RUNNERS (FULLNAME, TEAM, SEX, ACTIVE) '
+    + 'VALUES('
+    +'"'+ runner.fullName+'",'
+    +'"'+ runner.team+'",'
+    +'"'+ runner.sex+'",'
+    +'"'+ 1 +'"'
+    +');';
+    //console.log(query);
+    connection.query(query, function(err, rows, fields) {
+      if(err){
+        console.log(err);
+      }
+      var runnerID = rows.insertId;
+      var date = new Date(runner.date);
+      setDefaultPoints(runnerID, date).then(function(){
+        callback(null, runnerID);
+      });
+     
+    });
+  }else{
+    var runnerID = runner.id;
     var date = new Date(runner.date);
-    
+    setDefaultPoints(runnerID, date).then(function(){
+      callback(null, runnerID);
+    });
+  }
+  
+}
+
+function setDefaultPoints (runnerID, date){
+  return new Promise(function(resolve, reject){
     var points = defaultSettings.defaultPoints;
   
     var query = 'INSERT INTO RESULTS '
@@ -876,13 +869,19 @@ function addNewRunner(runner, callback){
     }
     query = query + ';';
     
-    
     connection.query(query, function(err, rows, fields) {
       //console.log(query);
       if (!err){
-        callback(null, runnerID);
+        var query = 'UPDATE RUNNERS SET ACTIVE = 1 WHERE ID = '+ runnerID + ';';
+        connection.query(query, function(err, rows, fields) {
+          if(!err){
+            resolve();
+          }else{
+            reject(err);
+          }
+        });
       }else{
-        callback(err);
+        reject(err);
       }
       
     });

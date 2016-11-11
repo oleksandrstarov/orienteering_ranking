@@ -84,7 +84,7 @@ function countPoints(time, avgTime, avgPoints, constant){
     
     //Points (P) = (Time - (TM - PM /  KK)) õ KK
 		//KK  =  (75 + PM) / TM)
-		//limit is 300
+		//limit is 300 90
 		
 	var correlationValue = (constant + avgPoints)/avgTime;
 	var points = (time - (avgTime - avgPoints/correlationValue))*correlationValue;

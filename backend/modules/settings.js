@@ -43,6 +43,7 @@ String.prototype.normalizeTitle = function(){
    .replace('Протокол результатов (промежуточные времена).', '')
    .replace('"', '')
    .replace("'", '')
-   .replace('Протокол результатов.', '').trim();
+   .replace('Протокол результатов.', '')
+   .replace('ПРОТОКОЛ РЕЗУЛЬТАТОВ', '').trim();
    //.replace(/,?[, -]\d{2,}/, '');
 };

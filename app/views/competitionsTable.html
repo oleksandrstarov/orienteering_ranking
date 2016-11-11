@@ -5,22 +5,28 @@
     <table class="fullWidth">
         <thead>
           <tr>
-              <th>Название</th>
-              <th>Дата проведения</th>
-              <th>Спортсмены</th>
               <th>Статус</th>
+              <th>Дата</th>
+              <th>Название</th>
+              <th>Участников</th>
           </tr>
       
         </thead>
         <tbody>
             <tr ng-repeat="competition in competitionsCtrl.info | orderBy:'DATE':true">
-                <td><a ui-sref="app.competition({id: competition.ID})">{{competition.NAME }}</a></td>
-                <td ng-switch="competition.STATUS">
-                    <span ng-switch-when="invalid"></span>
-                    <span ng-switch-default>{{competition.DATE | date:'dd-MM-yyyy'}}</span>
+                <td ng-switch="competition.STATUS" style="text-align: center;">
+                    <span ng-switch-when="invalid" class="glyphicon glyphicon-remove-sign" style="color:red; "></span>
+                    <span ng-switch-when="imported" class="glyphicon glyphicon-ok-sign" style="color:green;"></span>
+                    <span ng-switch-when="valid" class="glyphicon glyphicon-exclamation-sign" style="color:blue;"></span>
                 </td>
+                <td ng-switch="competition.STATUS">{{competition.DATE | date:'yyyy-MM-dd'}}
+                    <span ng-switch-when="invalid"></span>
+                    <span ng-switch-default></span>
+                </td>
+                <td><a ui-sref="app.competition({id: competition.ID})">{{competition.NAME }}</a></td>
                 <td>{{competition.RUNNERS}}</td>
-                <td><img ng-src="images/{{competition.STATUS}}_icon.png"></td>
+                
+                <!--<td><img ng-src="images/{{competition.STATUS}}_icon.png"></td>-->
             </tr>
         </tbody>
     </table>

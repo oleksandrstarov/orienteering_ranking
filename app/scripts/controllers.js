@@ -51,6 +51,17 @@ angular.module('app')
     $scope.isDataLoaded = false;
     $scope.isError = false;
     $scope.message = '';
+    self.manFilter = '';
+    self.womanFilter = '';
+    self.search = function(runner){
+      if(runner.SEX === 'M'){
+        var normalizedFilter = self.manFilter.toLowerCase();
+        return runner.FULLNAME.toLowerCase().indexOf(normalizedFilter) != -1 || runner.TEAM.toLowerCase().indexOf(normalizedFilter) != -1;
+      }else{
+        var normalizedFilter = self.womanFilter.toLowerCase();
+        return runner.FULLNAME.toLowerCase().indexOf(normalizedFilter) != -1 ||  runner.TEAM.toLowerCase().indexOf(normalizedFilter) != -1;
+      }
+    };
     
     runnerService.getRunners().query(
       function(response){
@@ -64,6 +75,16 @@ angular.module('app')
         $scope.message = response.status + '' + response.statusText;
         
       });
+      
+    self.getPlace = function(points, sex){
+      console.log();
+      var place = self.info.filter(function(runner){
+        
+        return runner.SEX === sex && runner.CUR_RANK < points;
+      }).length;
+      console.log(place);
+      return place;
+    }
   
 }])
 
