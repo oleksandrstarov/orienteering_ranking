@@ -10,7 +10,7 @@ module.exports.processCompetition = function(competitionData, callback){
     var url = competitionData.URL;
     request({ encoding: null, method: "GET", url: url}, function (error, response, body) {
         if (!error) {
-            //console.log(url);
+            ////console.log(url);
             
             body = iconv.decode(new Buffer(body), "win1251");
            
@@ -22,11 +22,11 @@ module.exports.processCompetition = function(competitionData, callback){
             competitionData.group[0].data = processResults('М21Е', $);
             competitionData.group[1].name = 'W21E';
             competitionData.group[1].data = processResults('Ж21Е', $);
-            //console.log(result.group[1].data);
+            ////console.log(result.group[1].data);
             if(competitionData.group[0].data.length === 0 && competitionData.group[1].data.length === 0){
                 competitionData.NAME += ' NO VALID GROUPS';
-                competitionData.STATUS = 'invalid';
-                //console.log(result.title);
+                competitionData.STATUS = 'INVALID';
+                ////console.log(result.title);
                 callback(competitionData.ID + ' NO VALID GROUPS', competitionData);
                 return; 
             }
@@ -34,7 +34,7 @@ module.exports.processCompetition = function(competitionData, callback){
             callback(null, competitionData);
         } else {
             
-            console.log('error: ' + error);
+            //console.log('error: ' + error);
             callback(error, null);
         }
         
@@ -82,7 +82,8 @@ function createEntryPattern(headers){
                 pattern[header] = 'place';
             break;
             
-            case 'Дельта ':  
+            case 'Дельта ':
+            case 'Отставание ':
                 pattern[header] = 'timeBehind';
             break;
         }
@@ -124,7 +125,7 @@ function processResults(group, $){
             $(element).find('nobr').each(function(i, el){
                 data.push($(el).text());
             });
-            //console.log(data);
+            ////console.log(data);
             var result = processResultLine(data, pattern);
             
             if(result != null){
@@ -134,7 +135,7 @@ function processResults(group, $){
         }
        
     });
-    //console.log(groupResult);
+    ////console.log(groupResult);
     return groupResult;
 }
 
@@ -158,7 +159,7 @@ function normalizeResultSet(resultSet){
     resultSet.team = normalizeClub(resultSet.team);
     
     resultSet.fullName = resultSet.lastName + ' ' + resultSet.firstName;
-    //console.log(resultSet);
+    ////console.log(resultSet);
     return resultSet;
     
 }

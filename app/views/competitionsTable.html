@@ -15,12 +15,12 @@
         <tbody>
             <tr ng-repeat="competition in competitionsCtrl.info | orderBy:'DATE':true">
                 <td ng-switch="competition.STATUS" style="text-align: center;">
-                    <span ng-switch-when="invalid" class="glyphicon glyphicon-remove-sign" style="color:red; "></span>
-                    <span ng-switch-when="imported" class="glyphicon glyphicon-ok-sign" style="color:green;"></span>
-                    <span ng-switch-when="valid" class="glyphicon glyphicon-exclamation-sign" style="color:blue;"></span>
+                    <span ng-switch-when="INVALID" class="glyphicon glyphicon-remove-sign" style="color:red; "></span>
+                    <span ng-switch-when="IMPORTED" class="glyphicon glyphicon-ok-sign" style="color:green;"></span>
+                    <span ng-switch-when="VALID" class="glyphicon glyphicon-exclamation-sign" style="color:blue;"></span>
                 </td>
                 <td ng-switch="competition.STATUS">{{competition.DATE | date:'yyyy-MM-dd'}}
-                    <span ng-switch-when="invalid"></span>
+                    <span ng-switch-when="INVALID"></span>
                     <span ng-switch-default></span>
                 </td>
                 <td><a ui-sref="app.competition({id: competition.ID})">{{competition.NAME }}</a></td>

@@ -19,7 +19,7 @@ angular.module('app', ['ui.router', 'ngResource'])
             },
             'content' :{
                 templateUrl : 'views/main.html',
-                controller: ''
+                controller: 'HomeController as homeCtrl'
             },
             'footer':{
                 templateUrl: 'views/footer.html'

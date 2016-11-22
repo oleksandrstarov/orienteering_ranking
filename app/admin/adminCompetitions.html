@@ -49,7 +49,7 @@
         <tbody>
             <tr ng-repeat="competition in AdminCompCtrl.info | orderBy:'DATE':true track by $index">
                 <td ng-switch="competition.STATUS">
-                    <span ng-switch-when="invalid">-</span>
+                    <span ng-switch-when="INVALID">-</span>
                     <span ng-switch-default>
                         <input type="checkbox" name="" ng-checked="competition.IS_ALLOWED === 'Y'" ng-model="competition.IS_ALLOWED_UPDATED" ng-true-value="'Y'" ng-false-value="'N'"/>
                     </span>

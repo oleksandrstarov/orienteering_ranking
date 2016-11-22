@@ -81,9 +81,9 @@ module.exports.manualImport = function (data, callback){
 function getNewCompetitionsResults(URLsArray, callback){
      var processedCompetitions = [];
      db.getImportedCompetitionsIDs(function(data){
-        //console.log(data);
+        ////console.log(data);
         processedCompetitions = data;
-        console.log('after get old ids');
+        //console.log('after get old ids');
         competitionsCollector.getAvailableResults(processedCompetitions, URLsArray, function(error, list){
             if(error){
                
@@ -94,7 +94,7 @@ function getNewCompetitionsResults(URLsArray, callback){
                     }
                 });
             }else{
-                console.log('new competitions = ' + list.length);
+                //console.log('new competitions = ' + list.length);
                 if(list.length > 0){
                     db.saveNewCompetitions(list.reverse(), function(error){
                         if(URLsArray){
@@ -103,7 +103,6 @@ function getNewCompetitionsResults(URLsArray, callback){
                         }
                         if(!error){
                             db.getReadyToImportCompetitions(function(error, competitions){
-                                console.log(competitions);
                                 if(competitions.length != 0){
                                     importResults(competitions);
                                 }
@@ -121,18 +120,19 @@ function getNewCompetitionsResults(URLsArray, callback){
 
 
 function importResults(list, callback, err){
-    
+    // drop to date before import
+    // check best points only for started runners
     var i = 0;
     
     processCompetition(list[i], processCompetitionCallback);
      
     function processCompetitionCallback(error){
         if(error){
-            console.error(error);
+            //console.error(error);
            
         }
         
-        //console.log(list[i].DATE);
+        ////console.log(list[i].DATE);
         if(++i <= list.length-1){
         // if(--i >= list.length-1){  
             
@@ -161,14 +161,14 @@ function processCompetition(competition, callback){
                 return;
             });
         }else{
-            console.log('COMPETITION ' + competitionData.DATE.toMysqlFormat());
+            //console.log('COMPETITION ' + competitionData.DATE.toMysqlFormat());
         
             db.updateRunnersPoints(competitionData.DATE, function(error){
-                
+                //console.log('after update');
                 pointsCalculator.processCompetitionResults(competitionData, function(competitionData){
-                
+                //console.log('before process');
                     db.processCompetition(competitionData, function(){
-                    
+                        //console.log('after process');
                         callback();
                         return;
                     });

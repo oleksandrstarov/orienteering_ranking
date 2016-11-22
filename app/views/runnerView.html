@@ -10,7 +10,7 @@
                 <h3 class="panel-title">{{runnerViewCtrl.info.details[0].FULLNAME}}</h3>
             </div>
             <div class="panel-body">
-                <dl class="dl-horizontal">
+                <dl class="dl-horizontal runner-info">
                     <dt>Текущий рейтинг</dt>
                     <dd>{{runnerViewCtrl.info.details[0].CUR_RANK  | number:2}}</dd>
                     <dt>Клуб</dt>
@@ -36,7 +36,7 @@
       
         </thead>
         <tbody>
-          <tr ng-repeat="entry in runnerViewCtrl.info.results | orderBy:'DATE':true" ng-class="{past: runnerViewCtrl.info.results[$index].ACT_RESULT !='C'}">
+          <tr ng-repeat="entry in runnerViewCtrl.info.results | filter: {ACT_RESULT:'C'} | orderBy:'DATE':true as current">
             <td class="date-field">{{entry.DATE | date:'yyyy-MM-dd'}}</td>
             <td><a ui-sref="app.competition({id: entry.COMPETITION})">{{entry.NAME}}</a></td>
             <td ng-switch="entry.PLACE">
@@ -49,6 +49,21 @@
             </td>
             <td>{{entry.POINTS | number:2}}</td>
             <td>{{entry.POINTS_RANK}}</td>
+          </tr>
+          <tr ng-if="current.length != runnerViewCtrl.info.results.length" class="blank-row"><td colspan="6"></td></tr>
+          <tr ng-repeat="entry in runnerViewCtrl.info.results | filter: {ACT_RESULT:'P'} | orderBy:'DATE':true" class="past">
+            <td class="date-field">{{entry.DATE | date:'yyyy-MM-dd'}}</td>
+            <td><a ui-sref="app.competition({id: entry.COMPETITION})">{{entry.NAME}}</a></td>
+            <td ng-switch="entry.PLACE">
+               <span ng-switch-when="-1">-</span>
+               <span ng-switch-default>{{entry.TIME | date:'HH:mm:ss' : 'UTC'}}</span>
+            </td>
+            <td ng-switch="entry.PLACE">
+              <span ng-switch-when="-1">-</span>
+              <span ng-switch-default>{{entry.PLACE}}</span>
+            </td>
+            <td>{{entry.POINTS | number:2}}</td>
+            <td></td>
           </tr>
         </tbody>
     </table>

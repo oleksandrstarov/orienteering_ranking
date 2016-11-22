@@ -1,6 +1,31 @@
 'use strict';
 
 angular.module('app')
+.controller('HomeController', ['$scope', 'statsService', function($scope, statsService) {
+    var self = this;
+    self.info=[];
+    $scope.isDataLoaded = false;
+    //$timeout(function(){ $scope.isDataLoaded = true;}, 1000);
+    $scope.isError = false;
+    $scope.message = '';
+    self.data ={};
+    
+    statsService.getStats().get().$promise.then(
+      function(response){
+        console.log(response);
+        self.data = response.stats;
+        $scope.isDataLoaded = true;
+        
+      },
+      function(error){
+        $scope.message = error.error;
+        $scope.isError = true;
+        $scope.isDataLoaded = true;
+      });
+  
+}])
+
+
 .controller('CompetitionsController', ['$scope', 'competitionsService', function($scope, competitionsService) {
     var self = this;
     self.info=[];
@@ -85,6 +110,13 @@ angular.module('app')
       console.log(place);
       return place;
     }
+    
+    self.isSubjective = function(subjective){
+      if(subjective === 'Y'){
+        return 'subjective-points';
+      }
+      else return '';
+    };
   
 }])
 
@@ -99,6 +131,7 @@ angular.module('app')
     runnerService.getRunner().get({id:parseInt($stateParams.id,10)})
     .$promise.then(
       function(response){
+        console.log(response);
         onSuccess(response, self, $scope);
       },
       function(response){
@@ -119,8 +152,9 @@ function onError(response, scope){
 }
 
 function setTopResults(data){
-     
+  console.log(data);
   for(var i = 0; i < data.results.length; i++){
+    
     if(data.results[i].ACT_RESULT === 'C' && i < 6){
       data.results[i].POINTS_RANK = i + 1;
     }
@@ -128,6 +162,5 @@ function setTopResults(data){
       break;
     }
   }
-  console.log(data);
   return data;
 };

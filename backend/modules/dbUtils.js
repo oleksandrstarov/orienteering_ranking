@@ -36,18 +36,19 @@ module.exports.getBestThreePoints = function(personsArray, callback){
 };
 
 module.exports.processCompetition = function(competition, callback){
-   
+   //console.log('before db process');
     db.processCompetition(competition, function(error){
-        if(competition.STATUS === 'invalid'){
+        //console.log('competition.STATUS', competition.STATUS);
+        if(competition.STATUS === 'INVALID'){
             callback();
             return;
         }
         
-        addCompetitionResult(competition, function(competition){
-            
+        addCompetitionResult(competition, function(error, competition){
+            //console.log('error', error);
             db.updateCurrentRanking(competition.DATE, function(){
                
-                console.log('UPDATED AFTER ' + competition.DATE.toMysqlFormat());
+                //console.log('UPDATED AFTER ' + competition.DATE.toMysqlFormat());
                 callback();
                 return;
             });
@@ -121,7 +122,7 @@ module.exports.getReadyToImportCompetitions = function(callback){
 };
 
 module.exports.rollBackToDate = function(date, callback){
-    console.log('rolling back to ' + date);
+    //console.log('rolling back to ' + date);
     db.rollBackToDate(date, function(error){
         callback(error);  
     });
@@ -133,7 +134,7 @@ module.exports.updateCompetitionsStatus = function(competitions, callback){
             callback(error);
             return;
         }
-        console.log(idArray);
+        //console.log(idArray);
         db.getDateToDropFrom(idArray, function(error, earliestDate){
             callback(error, earliestDate);  
         });
@@ -174,21 +175,27 @@ module.exports.getEarliestResultDate = function(runnersIDs, callback){
 
 
 function addCompetitionResult(competition, callback){
+    //console.log('add competition Result');
     db.setRunnersIDs(competition, function(error, competition){
+        //console.log('setRunnersIDs');
         if(!error){
             db.addResults(competition, function(error){
                 if(error){
-                    console.error(error);
+                    //console.error(error);
                 }
                 
-                callback(competition);
-               /* console.error(error);
+                callback(null, competition);
+               /* //console.error(error);
                 self.addResults();*/
             });
         }else{
-            callback(error);
+            callback(error, competition);
         }
         
     });
     
+};
+
+module.exports.getStatistics = function(){
+    return db.getStatistic();
 };

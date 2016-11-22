@@ -237,3 +237,12 @@ thead th, thead td {
   min-width: 90px;
 }
 
+tbody tr.blank-row{
+    height: 6px !important; /* Overwrite any previous rules */
+    background-color: #888;
+}
+
+.subjective-points{
+  color: red;
+}
+

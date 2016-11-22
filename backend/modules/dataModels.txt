@@ -93,3 +93,31 @@ in Admin view list of competitions:
        SEX: 'M',
        CUR_RANK: 300,
        isSelected: false } ] }
+       
+       
+Statistic:
+total unique runners
+total active runners (one start during past year)
+total active runners (6 or more starts during past year)
+leaders (top 3)
+last competitions (last 3)
+last rank update date
+
+some news
+
+
+implement statistic
+weekly best
+weekly last
+
+runner comparator:
+select 2 runners - show statistic when one beats other
+
+
+Runner statistic:
+total competition,
+avarage starts per year/last year
+avarage place
+weekly statistics (rank place and points)
+prediction for all competitions
+

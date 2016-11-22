@@ -9,7 +9,7 @@ angular.module('app')
     
     this.getCompetition = function() {
         return $resource('/competitions/:id');
-    }
+    };
 }])
 
 .service('runnerService',['$resource', function($resource){
@@ -19,5 +19,10 @@ angular.module('app')
     
     this.getRunner = function() {
         return $resource('/runners/:id');
+    };
+}])
+.service('statsService',['$resource', function($resource){
+    this.getStats = function() {
+        return $resource('/stats');
     };
 }]);

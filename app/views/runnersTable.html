@@ -19,7 +19,7 @@
               <td>{{runnersCtrl.getPlace(runner.CUR_RANK, 'M') + 1}}</td>     
               <td><a ui-sref="app.runner({id: runner.ID})">{{runner.FULLNAME}}</a></td>
               <td>{{runner.TEAM}}</td>
-              <td>{{runner.CUR_RANK | number:2}}</td>
+              <td ng-class="runnersCtrl.isSubjective(runner.SUBJECTIVE)">{{runner.CUR_RANK | number:2}}</td>
             </tr>
           </tbody>
       </table>
@@ -42,7 +42,7 @@
               <td>{{runnersCtrl.getPlace(runner.CUR_RANK, 'W') + 1}}</td>  
               <td><a ui-sref="app.runner({id: runner.ID})">{{runner.FULLNAME}}</a></td>
               <td>{{runner.TEAM}}</td>
-              <td>{{ runner.CUR_RANK | number:2}}</td>
+              <td ng-class="runnersCtrl.isSubjective(runner.SUBJECTIVE)">{{ runner.CUR_RANK | number:2}}</td>
             </tr>
           </tbody>
       </table>

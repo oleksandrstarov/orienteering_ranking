@@ -22,18 +22,18 @@ var db = require('./dbUtils.js'),
 
 
 module.exports.processCompetitionResults = function(resultsObject, callback){
-    //console.log(resultsObject);
+    ////console.log(resultsObject);
     checkGroups(resultsObject);
     var j = 0
-    //console.log(resultsObject.group[j]);
+    ////console.log(resultsObject.group[j]);
     //resultsObject.group[i].avgPoints = 10;
     getBestThreePoints(resultsObject.group[j], getBestThreePointsCallback);
     
     function getBestThreePointsCallback(error, bestPoints){
         if(error){
-            console.error(error);
+            //console.error(error);
         }
-        //console.log(j);
+        ////console.log(j);
         resultsObject.group[j].avgPoints = getAvgData(bestPoints);
         
         if(++j < resultsObject.group.length){
@@ -56,7 +56,7 @@ module.exports.processCompetitionResults = function(resultsObject, callback){
 
 function processGroup(group){
     group = setResultAndAvgTopTime(group);
-    console.log(group.name);
+    //console.log(group.name);
     for(var i=0; i<group.data.length; i++){
         var result = group.data[i].resultSeconds;
         if(result === -1){
@@ -65,7 +65,7 @@ function processGroup(group){
             group.data[i].points = null;
         }
         group.data[i].points = countPoints(result, group.avgTime, group.avgPoints);
-        /*console.log(group.data[i].lastName + " " +
+        /*//console.log(group.data[i].lastName + " " +
                     group.data[i].firstName + " " +
                     group.data[i].result + " " +
                     group.data[i].points + " ");*/
@@ -182,7 +182,7 @@ function processInvalidGroup(group){
             
         }
         group.data[i].points = settings.maxPoints;
-        /*console.log(group.data[i].lastName + " " +
+        /*//console.log(group.data[i].lastName + " " +
                     group.data[i].firstName + " " +
                     group.data[i].result + " " +
                     group.data[i].points + " ");*/

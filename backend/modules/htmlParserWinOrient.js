@@ -8,15 +8,15 @@ module.exports.processCompetition = function (competitionData, callback){
     var url = competitionData.URL;
     request({ encoding: null, method: "GET", url: url}, function (error, response, body) {
         if (!error) {
-            console.log(url);
+            //console.log(url);
             
             body = iconv.decode(new Buffer(body), "win1251");
             var $ = cheerio.load(body);
             
             competitionData.group = [{},{}];
             
-            //console.log($('h2:contains("М21Е"), h2:contains("M21E")').next().text());
-            //console.log($('h2:contains("Ж21Е"), h2:contains("W21E")').next().text());
+            ////console.log($('h2:contains("М21Е"), h2:contains("M21E")').next().text());
+            ////console.log($('h2:contains("Ж21Е"), h2:contains("W21E")').next().text());
             
             competitionData.group[0].name = 'M21E';
             competitionData.group[0].data = processResults('h2:contains("М21Е"), h2:contains("M21E")', $);
@@ -25,8 +25,8 @@ module.exports.processCompetition = function (competitionData, callback){
             
             if(competitionData.group[0].data.length === 0 && competitionData.group[1].data.length === 0){
                 competitionData.NAME += ' NO VALID GROUPS';
-                competitionData.STATUS = 'invalid';
-                //console.log(result.title);
+                competitionData.STATUS = 'INVALID';
+                ////console.log(result.title);
                 callback(competitionData.ID + ' NO VALID GROUPS', competitionData);
                 return; 
             }
@@ -37,7 +37,7 @@ module.exports.processCompetition = function (competitionData, callback){
            
         } else {
             
-            console.log('error: ' + error);
+            //console.log('error: ' + error);
             callback(error, null);
         }
         
@@ -120,7 +120,7 @@ function createEntryPattern(headerLine){
 function processResultLine(element, pattern){
     var resultLine = {};
     for(var i = 0; i<pattern[pattern.length-1].length-1; i++){
-        //console.log(pattern[i] + ' - ' +element.substring(pattern[pattern.length-1][i], pattern[pattern.length-1][i+1]).trim());
+        ////console.log(pattern[i] + ' - ' +element.substring(pattern[pattern.length-1][i], pattern[pattern.length-1][i+1]).trim());
         resultLine[pattern[i]] = element.substring(pattern[pattern.length-1][i], pattern[pattern.length-1][i+1]).trim();
     }
     resultLine = normalizeResultSet(resultLine);
@@ -181,7 +181,7 @@ function normalizeResultSet(resultSet){
     resultSet.team = normalizeClub(resultSet.team);
     
     resultSet.fullName = resultSet.lastName + ' ' + resultSet.firstName;
-    //console.log(resultSet);
+    ////console.log(resultSet);
     return resultSet;
     
 }

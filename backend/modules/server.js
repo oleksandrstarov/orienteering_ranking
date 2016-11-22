@@ -58,10 +58,10 @@ app.get('/competitions', function(req, res){
 
 app.get('/runners/:id', function(req, res){
     //res.send('Hello World!');
-    console.log('getData ' + req.params.id);
+    //console.log('getData ' + req.params.id);
     
     db.getRunnerResults(req.params.id, function(error, data){
-        console.log(data);
+        //console.log(data);
          res.end(data);
     });
     //res.sendFile('index.html');
@@ -137,6 +137,15 @@ app.put('/competitions/recalculate', function(req, res){
         }
     });
     //should be new comp list
+});
+
+app.get('/stats', function(req, res){
+    
+    db.getStatistics().then(function(stats){
+        res.end(JSON.stringify({stats:stats}));
+    }, function(error){
+        res.end(JSON.stringify({error:error}));
+    });
 });
 
 
