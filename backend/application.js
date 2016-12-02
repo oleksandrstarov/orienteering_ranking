@@ -12,8 +12,8 @@ var server = require('./modules/server.js'),
 
 var now = new Date();
     //console.log('This runs at 3:00AM every Saturday, Sunday and Monday.');
-    console.log('TEST');
-    console.log(now.getDate() + " " +now.getHours() +":" +now.getMinutes());
+    console.log('APPLICATION STARTED at');
+    console.log(now.getDate()+ "." +  1 +now.getMonth()  + " - " +now.getHours() +":" +now.getMinutes());
 
 var rule = new cron.RecurrenceRule();
 rule.dayOfWeek = [6,0,1];

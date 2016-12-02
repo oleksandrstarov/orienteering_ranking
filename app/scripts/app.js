@@ -68,7 +68,8 @@ angular.module('app', ['ui.router', 'ngResource'])
             url: 'about',
             views:{
                 'content@' :{
-                    templateUrl : 'views/about.html'
+                    templateUrl : 'views/about.html',
+                    controller: 'AboutController as aboutController'
                 }
             
         }

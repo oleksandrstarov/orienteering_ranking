@@ -98,7 +98,7 @@ function grabResults(callback){
 }
 
 function parseUrl(link){
-    if(/events\/\d+_/.test(link)){
+    if(/events\/\d{3,4}_/.test(link)){
         return {url: link, id: link.match(/events\/\d+_/)[0].match(/\d+/)[0]};
     }
     return {url: link, id: null};
@@ -136,6 +136,7 @@ function processCompetition(competitionData, callback){
             var type = getFileType($);
             //console.log(type);
             result.type = type;
+            result.notes = '';
             if(type === 'SFR'){
                 result.isValid = true;
                 result.title = $('h1').text().normalizeTitle();
@@ -145,16 +146,50 @@ function processCompetition(competitionData, callback){
             }else if(type === 'WINORIENT'){
                //parse data from winOrient file
                //possibly should be checked at webpade to get date?
-                result.title = $('h1').text().normalizeTitle();
-                result.date = toDate($('h1').text().match(/(\d{2}.){2}(\d{4}|\d{2})/)[0]).toMysqlFormat();
                 result.isValid = true;
-                callback(null, result);
+                if(/(\d{1,2}.){2}(\d{4}|\d{2})/.test($('h1').text())){
+                    result.title = $('h1').text().normalizeTitle();
+                    result.date = toDate($('h1').text().match(/(\d{1,2}.){2}(\d{4}|\d{2})/)[0]).toMysqlFormat();
+                    callback(null, result);
+                }else if(result.id !== null){
+                    getInfoFromWebPage(result, function(error, data){
+                        if(error){
+                            console.log(error);
+                        }
+                        result = data;
+                       
+                        callback(null, result);
+                    });
+                    
+                }else{
+                    result.title = $('h1').text().normalizeTitle();
+                    result.date = null;
+                    result.isValid = false;
+                    callback(competitionData.id + ' non-valid', result);
+                }
+               
+               
+                
             }else{
-                //possibly should be checked at webpade to get date?
-                result.title = 'Non-SFR';
-                result.date = null;
-                result.isValid = false;
-                callback(competitionData.id + ' non-SFR', result);
+                //possibly should be checked at webpage to get date?
+                if(result.id !== null){
+                    getInfoFromWebPage(result, function(error, data){
+                        if(error){
+                            console.log(error);
+                        }
+                        result = data;
+                        result.notes = 'Неизвестный формат данных';
+                        callback(competitionData.id + ' non-valid', result);
+                    });
+                    
+                }else{
+                    result.title = 'Неизвестные соревнования';
+                    result.date = null;
+                    result.isValid = false;
+                    result.notes = 'Неизвестный формат данных';
+                    callback(competitionData.id + ' non-valid', result);
+                }
+               
             }
         } else {
             
@@ -165,12 +200,31 @@ function processCompetition(competitionData, callback){
     });
 }
 
+function getInfoFromWebPage(competition, callback){
+    var url = 'http://orienteering.kh.ua/Event/Read/id/'+competition.id+'/';
+    request(url, function (error, response, body) {
+        if (!error) {
+            var $body = cheerio.load(body);
+            var title = $body('span.header-name-inner').text();
+            var date = $body('span.header-name-inner-date').text();
+            competition.title = title;
+            competition.date = toDate(date.match(/(\d{1,2}.){2}(\d{4}|\d{2})/)[0]).toMysqlFormat();
+            
+        } else {
+            console.log('error: ' + error);
+        }
+       
+        //console.log(availableCompetitions);
+        callback(null, competition);
+    });
+}
+
 
 function getFileType($){
     if(isValidSFR($('span.name').text())){
         return 'SFR';
     }
-    if(isValidWinOrient($('head title').text()) && /(\d{2}.){2}(\d{4}|\d{2})/.test($('h1').text())){
+    if(isValidWinOrient($('head title').text())){
         return 'WINORIENT';
     }
     return 'UNKNOWN';

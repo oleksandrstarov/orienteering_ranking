@@ -148,6 +148,7 @@ module.exports.updateCompetition = function(competition, callback){
 };
 
 module.exports.updateRunnerDetails = function(runner, callback){
+    runner.TEAM = runner.TEAM.toUpperCase();
     db.updateRunnerDetails(runner, function(error){
         callback(error);  
     });

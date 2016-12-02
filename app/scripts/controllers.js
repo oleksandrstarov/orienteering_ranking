@@ -138,6 +138,13 @@ angular.module('app')
         onError(response, $scope);
       });
 }])
+
+.controller('AboutController', ['$scope', function($scope) {
+   $scope.showInfo = false;
+   $scope.toggleInfo = function(){
+     $scope.showInfo = !$scope.showInfo;
+   }
+}])
 ;
 
 function onSuccess(response, self, scope){
@@ -152,7 +159,6 @@ function onError(response, scope){
 }
 
 function setTopResults(data){
-  console.log(data);
   for(var i = 0; i < data.results.length; i++){
     
     if(data.results[i].ACT_RESULT === 'C' && i < 6){

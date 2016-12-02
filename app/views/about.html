@@ -35,7 +35,8 @@ TM - среднее время трех лучших спортсменов (п�
   </p>
 </div>
 <div class="container">
-  <h2>Release progress</h2>
+  <h2 ng-click="toggleInfo()">Release progress <span ng-if="!showInfo" class="glyphicon glyphicon-chevron-up"></span> <span ng-if="showInfo" class="glyphicon glyphicon-chevron-down"></span></h2>
+  <span ng-if="showInfo">
   <h4>v.: 0.3.4 / 2016-11-22</h4>
   <p>
     -updated logic - competition results in priority against subjective, highlighted results with subjective values, added statistic screen, added static db for static values
@@ -93,4 +94,5 @@ TM - среднее время трех лучших спортсменов (п�
   <p>
     -initial commit, development start (env Cloud9 IDE, using AngularJS, Node and MySQL)
   </p>
+  </span>
 </div>

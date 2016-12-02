@@ -58,7 +58,7 @@ module.exports.processCompetition = function(competition, callback){
   //console.log(status);
   var allowed =(status ==='INVALID'?'N':'Y');
   
-  var query = 'UPDATE COMPETITIONS SET UPDATED_DATE = NOW(), STATUS = '+ "'"+status+"'" +  ',' + ' IS_ALLOWED = '+ "'"+allowed+"'" + ',  NAME ='+ "'" +competition.NAME+ "'"+' WHERE ID = ' + competition.ID + ';';
+  var query = 'UPDATE COMPETITIONS SET UPDATED_DATE = NOW(), STATUS = '+ "'"+status+"'" +  ',' + ' IS_ALLOWED = '+ "'"+allowed+"'" + ',  NAME ='+ "'" +competition.NAME+ "'" +',  NOTES ='+ "'" +competition.NOTES+ "'"+' WHERE ID = ' + competition.ID + ';';
   
  
   ////console.log(query);
@@ -77,7 +77,7 @@ module.exports.processCompetition = function(competition, callback){
 };
 
 module.exports.saveNewCompetitions = function(competitions, callback){
-  var query = 'INSERT INTO COMPETITIONS (DATE, URL, NAME, TYPE, STATUS, WEB_ID, CREATED_DATE, UPDATED_DATE) '
+  var query = 'INSERT INTO COMPETITIONS (DATE, URL, NAME, TYPE, STATUS, WEB_ID, NOTES, CREATED_DATE, UPDATED_DATE) '
   + 'VALUES';
   for(var i = 0; i < competitions.length; i++){
     query += '(' 
@@ -87,6 +87,7 @@ module.exports.saveNewCompetitions = function(competitions, callback){
     +"'" + competitions[i].type +"'"+ ', ' //SFR, WINORIENT, unknown
     +"'" +(competitions[i].isValid ? "VALID": "INVALID") +"'"+ ', '  //ready, VALID, INVALID
     + competitions[i].id + ', '//web id for competitions from federation web page
+    + "'" +competitions[i].notes +"'"  + ', '
     +'NOW(), NOW()'
     + ')';
     
@@ -113,7 +114,7 @@ module.exports.saveNewCompetitions = function(competitions, callback){
 };
 
 module.exports.getReadyToImportCompetitions = function(callback){
-  var query = 'SELECT ID, DATE, URL, NAME, TYPE, STATUS FROM COMPETITIONS WHERE STATUS = "VALID" AND (IS_ALLOWED = "Y" OR IS_ALLOWED IS NULL)'
+  var query = 'SELECT ID, DATE, URL, NAME, TYPE, STATUS, NOTES FROM COMPETITIONS WHERE STATUS = "VALID" AND (IS_ALLOWED = "Y" OR IS_ALLOWED IS NULL)'
     + ' ORDER BY DATE;';
   
   ////console.log(query);
@@ -145,7 +146,7 @@ module.exports.getImportedCompetitionsIDs = function(callback){
 };
 
 module.exports.getCompetitionsList = function(callback){
-  var query = 'SELECT C.ID AS ID, NAME, C.DATE AS DATE, COUNT(RUNNER) AS RUNNERS, C.STATUS AS STATUS, C.URL AS URL, C.IS_ALLOWED AS IS_ALLOWED '
+  var query = 'SELECT C.ID AS ID, NAME, C.DATE AS DATE, COUNT(RUNNER) AS RUNNERS, C.STATUS AS STATUS, C.URL AS URL, C.IS_ALLOWED AS IS_ALLOWED, C.NOTES '
   +'FROM COMPETITIONS C '
   +'LEFT JOIN RESULTS ON RESULTS.COMPETITION = C.ID '
   +'GROUP BY C.ID ;';
@@ -395,7 +396,7 @@ module.exports.updateCurrentRanking = function(date, callback){
     var dateParam = '"' + date.toMysqlFormat() + '"';
   }
   
-  var query = 'UPDATE RUNNERS SET CUR_RANK = NULL;';
+  var query = 'UPDATE RUNNERS SET CUR_RANK = NULL, SUBJECTIVE = "N";';
     // var query = 'SELECT 1;';
                 
     ////console.log(query);

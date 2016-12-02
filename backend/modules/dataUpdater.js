@@ -85,6 +85,7 @@ function getNewCompetitionsResults(URLsArray, callback){
         processedCompetitions = data;
         //console.log('after get old ids');
         competitionsCollector.getAvailableResults(processedCompetitions, URLsArray, function(error, list){
+            
             if(error){
                
                  db.getReadyToImportCompetitions(function(error, competitions){
@@ -94,7 +95,7 @@ function getNewCompetitionsResults(URLsArray, callback){
                     }
                 });
             }else{
-                //console.log('new competitions = ' + list.length);
+                //console.log('new competitions = ' , list[0]);
                 if(list.length > 0){
                     db.saveNewCompetitions(list.reverse(), function(error){
                         if(URLsArray){
@@ -103,6 +104,7 @@ function getNewCompetitionsResults(URLsArray, callback){
                         }
                         if(!error){
                             db.getReadyToImportCompetitions(function(error, competitions){
+                                //console.log(competitions);
                                 if(competitions.length != 0){
                                     importResults(competitions);
                                 }

@@ -24,7 +24,7 @@ module.exports.processCompetition = function (competitionData, callback){
             competitionData.group[1].data = processResults('h2:contains("Ж21Е"), h2:contains("W21E")', $);
             
             if(competitionData.group[0].data.length === 0 && competitionData.group[1].data.length === 0){
-                competitionData.NAME += ' NO VALID GROUPS';
+                competitionData.NOTES += ' Нет групп для рассчета';
                 competitionData.STATUS = 'INVALID';
                 ////console.log(result.title);
                 callback(competitionData.ID + ' NO VALID GROUPS', competitionData);
@@ -174,6 +174,7 @@ function normalizeResultSet(resultSet){
     if(resultSet.fullName.indexOf('В/К') != -1){
         return null;
     }
+    resultSet.fullName = resultSet.fullName.replace(/\s+/, ' ');
     resultSet.firstName = resultSet.fullName.split(' ')[1];
     resultSet.lastName = resultSet.fullName.split(' ')[0];
     resultSet.firstName = normalizeFullname(resultSet.firstName);

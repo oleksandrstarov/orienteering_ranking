@@ -24,7 +24,7 @@ module.exports.processCompetition = function(competitionData, callback){
             competitionData.group[1].data = processResults('Ж21Е', $);
             ////console.log(result.group[1].data);
             if(competitionData.group[0].data.length === 0 && competitionData.group[1].data.length === 0){
-                competitionData.NAME += ' NO VALID GROUPS';
+                competitionData.NOTES += ' Нет групп для рассчета';
                 competitionData.STATUS = 'INVALID';
                 ////console.log(result.title);
                 callback(competitionData.ID + ' NO VALID GROUPS', competitionData);
