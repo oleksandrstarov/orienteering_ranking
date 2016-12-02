@@ -10,6 +10,20 @@ git commit -m 'My changes'
 git push
 When you push changes the OpenShift server will report back its status on deploying your code. The server will run any of your configured deploy hooks and then restart the application.
 
+******************************************************************************
 ssh 5841a55c2d5271f49d0001be@ranking-oleksandrstarov.rhcloud.com
 
 The command below will open a Secure Shell (SSH) session to your application on most operating systems. See our SSH help page for information about connecting with Windows, Mac, and Linux computers.
+
+******************************************************************************
+
+MySQL 5.5 database added.  Please make note of these credentials:
+
+       Root User: adminFL8Dm1m
+   Root Password: 5wWNg1cqJ6y5
+   Database Name: ranking
+
+Connection URL: mysql://$OPENSHIFT_MYSQL_DB_HOST:$OPENSHIFT_MYSQL_DB_PORT/
+
+You can manage your new MySQL database by also embedding phpmyadmin.
+The phpmyadmin username and password will be the same as the MySQL credentials above.
