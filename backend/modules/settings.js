@@ -7,11 +7,20 @@ var settings = {
     maxPoints: 90,
 };
 
+
+
 var sqlSettings = {
-    host     : process.env.IP,
+    host     :  process.env.IP,
     user     : 'oleksandrstarov',
     password : '',
     database : 'mysql'
+};
+
+var sqlSettingsOS = {
+    host     :  process.env.OPENSHIFT_MYSQL_DB_HOST,
+    user     : 'adminFL8Dm1m',
+    password : '5wWNg1cqJ6y5',
+    database : 'ranking'
 };
 
 
@@ -21,6 +30,9 @@ module.exports.getSettings =function(){
 };
 
 module.exports.getSQLSettings =function(){
+    if(process.env.OPENSHIFT_MYSQL_DB_HOST){
+        return sqlSettingsOS;
+    }
     return sqlSettings;
 };
 
