@@ -1,0 +1,52 @@
+<div class="container">
+  <loader-template ng-hide="isDataLoaded"></loader-template>
+  
+  <div class="row" ng-show="isDataLoaded">
+    <div class="col-xs-12  col-sm-12 col-md-6 col-lg-6">
+      <h1 class="col-md-5">Мужчины</h1>
+      <span class="col-md-7" style="margin-top:20px;"><input type="text" class="form-control no-left-padding" placeholder="Поиск по имени или клубу" ng-model="runnersCtrl.manFilter"/></span>
+      <table class="fullWidth">
+          <thead>
+            <tr>
+                <th>№</th>
+                <th>Имя</th>
+                <th>Спортивное общество</th>
+                <th>Очки</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr ng-repeat="runner in runnersCtrl.info | orderBy: 'CUR_RANK' | filter: {'SEX':'M'} | filter: runnersCtrl.search">
+              <td>{{runnersCtrl.getPlace(runner.CUR_RANK, 'M') + 1}}</td>     
+              <td><a ui-sref="app.runner({id: runner.ID})">{{runner.FULLNAME}}</a></td>
+              <td>{{runner.TEAM}}</td>
+              <td ng-class="runnersCtrl.isSubjective(runner.SUBJECTIVE)">{{runner.CUR_RANK | number:2}}</td>
+            </tr>
+          </tbody>
+      </table>
+    </div>
+    <div class="col-xs-12  col-sm-12 col-md-6 col-lg-6">
+      <h1 class="col-md-5">Женщины</h1>
+       <span class="col-md-7" style="margin-top:20px;"><input type="text" class="form-control no-left-padding" placeholder="Поиск по имени или клубу" ng-model="runnersCtrl.womanFilter"/></span>
+      <table class="fullWidth">
+          <thead>
+            <tr>
+                <th>№</th>
+                <th>Имя</th>
+                <th>Спортивное общество</th>
+                <th>Очки</th>
+            </tr>
+        
+          </thead>
+          <tbody>
+            <tr ng-repeat="runner in runnersCtrl.info | orderBy: 'CUR_RANK' | filter: {'SEX':'W'} | filter: runnersCtrl.search">
+              <td>{{runnersCtrl.getPlace(runner.CUR_RANK, 'W') + 1}}</td>  
+              <td><a ui-sref="app.runner({id: runner.ID})">{{runner.FULLNAME}}</a></td>
+              <td>{{runner.TEAM}}</td>
+              <td ng-class="runnersCtrl.isSubjective(runner.SUBJECTIVE)">{{ runner.CUR_RANK | number:2}}</td>
+            </tr>
+          </tbody>
+      </table>
+      </div>
+  </div>
+  
+</div>

@@ -1,0 +1,67 @@
+<h1>COMPETITIONS</h1>
+<div class="container">
+  <div class="row bottom-margin">
+     <div class="col-lg-6">
+        <div class="input-group">
+          <input type="url" class="form-control no-left-padding" placeholder="New Competition" ng-model="newCompetition">
+          <span class="input-group-btn">
+            <button ng-click="addCompetition()" class="btn btn-default" type="button" ng-disabled='!newCompetition'>Add Url</button>
+          </span>
+        </div><!-- /input-group -->
+      </div><!-- /.col-lg-6 -->
+        <button type="button" class="btn btn-warning" ng-click="recalculate()">Recalculate</button>
+        <button type="button" class="btn btn-danger" id="drop">Total Drop</button>
+    </div><!-- /.row -->
+    <div class="row bottom-margin no-margin">
+        <div class="panel panel-primary" >
+            <div class="panel-heading">
+                <h3 class="panel-title">{{AdminCompCtrl.selectedCompetition.NAME}}</h3>
+            </div>
+            <div class="panel-body">
+                <dl class="dl-horizontal">
+                    <dt>ID</dt>
+                    <dd>{{AdminCompCtrl.selectedCompetition.ID}}</dd>
+                    <dt>Название</dt>
+                    <dd><input type="text" class="form-control" ng-model="AdminCompCtrl.selectedCompetition.NAME" ng-show="AdminCompCtrl.selectedCompetition.ID"></dd>
+                    <dt>Дата</dt>
+                    <dd>{{AdminCompCtrl.selectedCompetition.DATE | date:'dd-MM-yyyy'}}</dd>
+                    <dt>Статус</dt>
+                    <dd>{{AdminCompCtrl.selectedCompetition.STATUS}}</dd>
+               </dl>
+            </div>
+        </div>
+        <button type="button" class="btn btn-success" ng-click="updateCompetition()" ng-disabled="!AdminCompCtrl.selectedCompetition.ID">Save Competition</button>
+        <br>
+        {{message}}
+    </div>
+    <table class="fullWidth">
+        <thead>
+          <tr>
+             <th></th>
+             <th></th>
+             <th>Название</th>
+              <th>Дата проведения</th>
+              <th>Спортсмены</th>
+              <th>Статус</th>
+              <th>Link</th>
+          </tr>
+        </thead>
+        <tbody>
+            <tr ng-repeat="competition in AdminCompCtrl.info | orderBy:'DATE':true track by $index">
+                <td ng-switch="competition.STATUS">
+                    <span ng-switch-when="INVALID">-</span>
+                    <span ng-switch-default>
+                        <input type="checkbox" name="" ng-checked="competition.IS_ALLOWED === 'Y'" ng-model="competition.IS_ALLOWED_UPDATED" ng-true-value="'Y'" ng-false-value="'N'"/>
+                    </span>
+                </td>
+                <td><input type="radio" name="edit" ng-value="competition" ng-change="AdminCompCtrl.editSelectedCompetition(competition)" ng-model="AdminCompCtrl.selectedCompetition"/></td>
+                <td>{{competition.NAME }}</td>
+                <td>{{competition.DATE | date:'dd-MM-yyyy'}}</td>
+                <td>{{competition.RUNNERS}}</td>
+                <td>{{competition.STATUS}}</td>
+                <td><a href="{{competition.URL}}" target="_blank">Link</a></td>
+            </tr>
+        </tbody>
+    </table>
+  </div>
+</div>

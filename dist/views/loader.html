@@ -1,0 +1,10 @@
+<div class="row" ng-hide="isError">
+    <div class="col-xs-12 preloader">
+        <img src="../images/loader.gif"></img>
+    </div>
+</div>
+<div class="row" ng-show="isError">
+    <div class="col-xs-12">
+        <h2>Произошла ошибка на сервере: {{message}}</h2>
+    </div>
+</div>
