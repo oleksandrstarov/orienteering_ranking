@@ -27,3 +27,7 @@ Connection URL: mysql://$OPENSHIFT_MYSQL_DB_HOST:$OPENSHIFT_MYSQL_DB_PORT/
 
 You can manage your new MySQL database by also embedding phpmyadmin.
 The phpmyadmin username and password will be the same as the MySQL credentials above.
+
+oleksandrstarov:~/workspace (master) $ git remote add openshift  ssh://5841a55c2d5271f49d0001be@ranking-oleksandrstarov.rhcloud.com/~/git/ranking.git/
+oleksandrstarov:~/workspace (master) $ git push openshift master
+Counting objects: 3, done.

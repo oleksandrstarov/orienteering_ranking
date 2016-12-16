@@ -104,6 +104,7 @@ module.exports.getCompetitionResults = function(id, callback){
             var data = {};
             data.details = competitionDetails;
             data.results = competitionResults;
+            console.log(JSON.stringify(data));
             callback(error, JSON.stringify(data));
         });
     });
