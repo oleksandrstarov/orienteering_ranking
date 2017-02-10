@@ -8,7 +8,7 @@
  *
  * Main module of the application.
  */
-angular.module('app', ['ui.router', 'ngResource'])
+angular.module('app', ['ui.router', 'ngResource', 'ngMaterial'])
   .config(function ($stateProvider, $urlRouterProvider) {
     $stateProvider
       .state('app', {
@@ -73,6 +73,29 @@ angular.module('app', ['ui.router', 'ngResource'])
                 }
             
         }
+        
+      })
+      .state('app.adminRunners', {
+            url: 'admin/runners',
+            views:{
+                'content@' :{
+                    templateUrl : 'views/adminRunners.html',
+                    controller:  'AdminRunnersController as AdminRunnersCtrl'
+                }
+            
+        }
+        
+      })
+      .state('app.adminCompetitions', {
+            url: 'admin/competitions',
+            views:{
+                'content@' :{
+                    templateUrl : 'views/adminCompetitions.html',
+                    controller:  'AdminCompetitionsController as AdminCompCtrl'
+                }
+            
+        }
+        
       })
       ;
       

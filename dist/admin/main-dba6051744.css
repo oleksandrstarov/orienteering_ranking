@@ -235,7 +235,7 @@ thead th, thead td {
     position: relative;
 }
 .content{
-  padding-bottom: 200px;
+  padding-bottom: 240px;
 }
 .bottom-margin{
   margin-bottom: 20px;
@@ -274,4 +274,17 @@ tbody tr.blank-row{
 }
 .dl-horizontal dd {
   margin-left: 180px;
+}
+
+.dialogdemoBasicUsage #popupContainer {
+  position: relative;
+}
+
+#login-dialog {
+  max-width: 90%;
+  width: 500px;
+}
+
+.md-dialog-container{
+  z-index: 1000;
 }

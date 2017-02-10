@@ -25,4 +25,41 @@ angular.module('app')
     this.getStats = function() {
         return $resource('/stats');
     };
-}]);
+}])
+.service('adminCompetitionsService',['$resource', function($resource){
+    this.getCompetitions = function() {
+        return $resource('admin/competitions');
+    };
+    
+    this.addLink = function() {
+        return $resource('admin/competitions/addCompetition', null, {'update':{method: 'PUT'},'query': {method: 'GET', isArray: true }});
+    };
+    
+    this.recalculateCompetitions = function() {
+        return $resource('admin/competitions/recalculate', null, {'update':{method: 'PUT'},'query': {method: 'GET', isArray: true }});
+    };
+    
+    this.updateCompetition = function() {
+        return $resource('admin/competitions/updateCompetitionDetails', null, {'update':{method: 'PUT'},'query': {method: 'GET', isArray: false }});
+    };
+  }])
+  
+.service('adminRunnersService', ['$resource', function($resource){
+    this.getRunners = function() {
+        return $resource('admin/runners');
+    };
+    this.mergeDuplicates = function(){
+        return $resource('admin/runners/merge', null, {'update':{method:'PUT'},'query': {method: 'GET', isArray: false }});
+    };
+    this.updateRunner = function(){
+        return $resource('admin/runners/update', null, {'update':{method:'PUT'},'query': {method: 'GET', isArray: false }});
+    };
+    
+  }])
+  
+.service('loginService', ['$resource', function($resource){
+    this.adminLogin = function() {
+        return $resource('/adminLogin', null, {'check':{method:'PUT'}});
+    };
+  }])
+;

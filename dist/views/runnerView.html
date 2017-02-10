@@ -41,7 +41,7 @@
             <td><a ui-sref="app.competition({id: entry.COMPETITION})">{{entry.NAME}}</a></td>
             <td ng-switch="entry.PLACE">
                <span ng-switch-when="-1">-</span>
-               <span ng-switch-default>{{entry.TIME | date:'HH:mm:ss' : 'UTC'}}</span>
+               <span ng-switch-default>{{entry.TIME}}</span>
             </td>
             <td ng-switch="entry.PLACE">
               <span ng-switch-when="-1">-</span>
@@ -56,7 +56,7 @@
             <td><a ui-sref="app.competition({id: entry.COMPETITION})">{{entry.NAME}}</a></td>
             <td ng-switch="entry.PLACE">
                <span ng-switch-when="-1">-</span>
-               <span ng-switch-default>{{entry.TIME | date:'HH:mm:ss' : 'UTC'}}</span>
+               <span ng-switch-default>{{entry.TIME}}</span>
             </td>
             <td ng-switch="entry.PLACE">
               <span ng-switch-when="-1">-</span>

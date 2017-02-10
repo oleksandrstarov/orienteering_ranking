@@ -25,12 +25,15 @@
   },
   "description": "This project is generated with [yo angular generator](https://github.com/yeoman/generator-angular) version 0.15.1.",
   "version": "1.0.0",
-  "main": "gulpfile.js",
+  "main": "backend/application.js",
   "directories": {
     "test": "test"
   },
   "dependencies": {
-    "angular": "^1.5.7",
+    "angular": "^1.5.9",
+    "angular-animate": "1.5.11",
+    "angular-aria": "1.5.11",
+    "angular-material": "1.1.1",
     "angular-resource": "^1.5.7",
     "angular-route": "^1.5.7",
     "angular-ui-router": "^0.3.1",
@@ -40,23 +43,22 @@
     "cheerio": "^0.20.0",
     "del": "^2.2.0",
     "express": "^4.13.4",
-    "font-awesome": "^4.6.3",
+    "express-session": "^1.15.0",
     "http": "0.0.0",
     "iconv-lite": "^0.4.13",
     "jquery": "^1.9.1",
     "mongodb": "^2.1.21",
-    "mysql": "^2.11.1",
     "morgan": "^1.7.0",
+    "mysql": "^2.11.1",
     "node-schedule": "^1.1.0",
     "path": "^0.12.7",
-    "yo": "^1.8.3",
-     "request": "^2.72.0"
+    "request": "^2.72.0",
+    "yo": "^1.8.3"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node backend/application.js"
   },
-  "main":"backend/application.js",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/oleksandrstarov/orienteering_ranking.git"

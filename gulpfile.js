@@ -52,7 +52,9 @@ gulp.task('usemin',['jshint'], function () {
   return gulp.src(['./app/**/*.html', '!./app/admin/*.html'])
       .pipe(usemin({
         css:[minifycss(),rev()],
-        js: [ngannotate(),uglify(),rev()]
+        css_custom:[rev()],
+        js: [ngannotate(),rev()],
+        js_custom: [ngannotate(),uglify(),rev()]
       }))
       .pipe(gulp.dest('dist/'));
 });
