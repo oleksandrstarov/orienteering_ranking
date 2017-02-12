@@ -35,6 +35,7 @@ var auth = function(req, res, next) {
   }
 };
 
+
 /*app.get('/admin', function(req, res){
     //res.send('Hello World!');
     //console.log('admin');

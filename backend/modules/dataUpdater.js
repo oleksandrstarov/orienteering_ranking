@@ -111,6 +111,11 @@ function getNewCompetitionsResults(URLsArray, callback){
                             });
                         }
                     });
+                }else{
+                    //update statistics
+                    if(new Date().getDay() === 0){
+                        savePointsStatisticsOnSunday(new Date());
+                    }
                 }
                 
                 //save competitions
@@ -134,17 +139,41 @@ function importResults(list, callback, err){
            
         }
         
+        
+        var nextSunday = list[i].DATE.getDay() === 0 ? list[i].DATE : getNextSunday(list[i].DATE);
+        
+        
         ////console.log(list[i].DATE);
         if(++i <= list.length-1){
         // if(--i >= list.length-1){  
+            var nextCompetitionDate = list[i].DATE;
             
-            processCompetition(list[i], processCompetitionCallback);
+            
+            if(nextSunday < new Date() && nextSunday < nextCompetitionDate){
+                saveStatistics(nextSunday, nextCompetitionDate, function(){
+                    processCompetition(list[i], processCompetitionCallback);
+                })
+            }else{
+                processCompetition(list[i], processCompetitionCallback);
+            }
         }else{
             //exit here
-            console.log('DONE');
-            if(callback){
-                callback(err);
-                return;
+            if(nextSunday < new Date()){
+                saveStatistics(nextSunday, new Date(), function(){
+                    console.log('DONE');
+                    if(callback){
+                        
+                        callback(err);
+                        return;
+                    }
+                })
+            }else{
+                console.log('DONE');
+                if(callback){
+                    
+                    callback(err);
+                    return;
+                }
             }
         }
     }
@@ -197,4 +226,35 @@ function getResults(competition, callback){
         callback('UNKNOWN TYPE', competition);
     }
     
+}
+
+function savePointsStatisticsOnSunday(date, callback){
+   db.updateRunnersPoints(date, function(error){
+       db.setPointsStatistic(date).then(function(){
+          callback(true);
+       },
+       function(error){
+           callback(error);
+       });
+   }); 
+    
+};
+
+function getNextSunday(date){
+    var day = date.getDay();
+    var diff = 7 - day;
+    return date.addDays(diff);
+}
+
+function saveStatistics(date, nextCompetitionDate, callback){
+    savePointsStatisticsOnSunday(date, function(result){
+        
+        var nextDate = date.addDays(7);
+        if(nextCompetitionDate > nextDate){
+            saveStatistics(nextDate, nextCompetitionDate, callback);
+        }else{
+            callback();
+        }
+        
+    });
 }

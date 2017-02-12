@@ -23,6 +23,8 @@ var sqlSettingsOS = {
     database : 'ranking'
 };
 
+//var isMaintanance = false;
+
 
 
 module.exports.getSettings =function(){
@@ -40,6 +42,12 @@ module.exports.getSQLSettings =function(){
 
 Date.prototype.toMysqlFormat = function() {
     return this.getUTCFullYear() + "-" + twoDigits(1 + this.getUTCMonth()) + "-" + twoDigits(this.getUTCDate()) + " " + twoDigits(this.getUTCHours()) + ":" + twoDigits(this.getUTCMinutes()) + ":" + twoDigits(this.getUTCSeconds());
+};
+
+Date.prototype.addDays = function(days) {
+    var result = new Date(this);
+    result.setDate(result.getDate() + days);
+    return result; 
 };
 
 function twoDigits(d) {

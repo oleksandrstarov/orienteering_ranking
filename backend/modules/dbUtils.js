@@ -90,10 +90,20 @@ module.exports.getCompetitionsList = function(callback){
 module.exports.getRunnerResults = function(id, callback){
     db.getRunnerResults(id, function(error, runnerResults){
          db.getRunnerDetails(id, function(error, runnerDetails){
-            var data = {};
-            data.details = runnerDetails;
-            data.results = runnerResults;
-            callback(error, JSON.stringify(data));
+            db.getPointsStatistic(id).then(function(stats){
+                var data = {};
+                data.details = runnerDetails;
+                data.results = runnerResults;
+                data.stats = stats;
+                callback(error, JSON.stringify(data)); 
+            },
+            function(error){
+                var data = {};
+                data.details = runnerDetails;
+                data.results = runnerResults;
+                callback(error, JSON.stringify(data)); 
+            });
+           
         });
     });
 };
@@ -200,4 +210,8 @@ function addCompetitionResult(competition, callback){
 
 module.exports.getStatistics = function(){
     return db.getStatistic();
+};
+
+module.exports.setPointsStatistic = function(date){
+    return db.setPointsStatistic(date);
 };

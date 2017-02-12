@@ -11,14 +11,14 @@ var server = require('./modules/server.js'),
 
 
 var now = new Date();
-    //console.log('This runs at 3:00AM every Saturday, Sunday and Monday.');
-    console.log('APPLICATION STARTED at');
-    console.log(now.getDate()+ "." +  1 +now.getMonth()  + " - " +now.getHours() +":" +now.getMinutes());
+//console.log('This runs at 3:00AM every Saturday, Sunday and Monday.');
+console.log('APPLICATION STARTED at');
+console.log(now.getDate()+ "." +  1 +now.getMonth()  + " - " +now.getHours() +":" +now.getMinutes());
 
 var rule = new cron.RecurrenceRule();
 rule.dayOfWeek = [6,0,1];
-rule.hour = 3;
-rule.minute = 0;
+rule.hour = 23;
+rule.minute = 40;
 cron.scheduleJob(rule, function(){
     var now = new Date();
     console.log('AUTOUPDATE');
@@ -32,7 +32,7 @@ cron.scheduleJob(rule, function(){
     });
 });
 
-
+//manual start
 db.initDB(function(){
      //db.updateRunnersPoints(null, function(){
             updater.updateData();

@@ -672,7 +672,17 @@ module.exports.rollBackToDate = function(date, callback){
             connection.query(query, function(err, rows, fields) {
               if (!err){
                 ////console.log(query);
-                callback(null);
+              var query = 'DELETE FROM STATISTICS WHERE ENTRY_DATE >=  ' + date.toMysqlFormat() +';';
+              connection.query(query, function(err, rows, fields) {
+                if (!err){
+                  ////console.log(query);
+                  callback(null);
+                }else{
+                  ////console.log(err);
+                  callback(err);
+                }
+                  
+              });
               }else{
                 ////console.log(err);
                 callback(err);
@@ -766,8 +776,6 @@ module.exports.prepareDB = function(callback){
   connection.query('SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = "ORIENTEERING";', function(err, rows, fields) {
     if (!err){
       if(rows.length === 0){
-        
-        
         createDB(connection, function(){
           switchToDB(connection, function(){
             
@@ -787,6 +795,61 @@ module.exports.prepareDB = function(callback){
     }
   });
     
+};
+
+module.exports.setPointsStatistic = function(date){
+  
+  //TODO -- save statistics
+  return new Promise(function(resolve, reject){
+    var query = `
+    SET @placeM =0, @placeW =0;
+    `;
+    connection.query(query, function(err, rows, fields) {
+      if(err){
+        console.log(err);
+      }
+      var query = `
+      INSERT INTO STATISTICS (RUNNER_ID, ENTRY_DATE, POINTS, PLACE)
+      SELECT ID, '${date.toMysqlFormat()}', CUR_RANK,  @placeM:=@placeM+1 FROM RUNNERS WHERE SEX = 'M' ORDER BY CUR_RANK
+      `;
+      connection.query(query, function(err, rows, fields) {
+        if(err){
+          console.log(err);
+        }
+        var query = `
+        INSERT INTO STATISTICS (RUNNER_ID, ENTRY_DATE, POINTS, PLACE)
+        SELECT ID, '${date.toMysqlFormat()}', CUR_RANK,  @placeW:=@placeW+1 FROM RUNNERS WHERE SEX = 'W' ORDER BY CUR_RANK
+        `;
+        connection.query(query, function(err, rows, fields) {
+          
+          if (!err){
+            resolve();
+          }else{
+            reject(err);
+          }
+        });
+      });
+      
+    });
+  }) 
+};
+
+module.exports.getPointsStatistic = function(runnerID){
+  
+  //TODO -- save statistics
+  return new Promise(function(resolve, reject){
+    var query = `
+    SELECT ENTRY_DATE, POINTS, PLACE FROM STATISTICS WHERE RUNNER_ID = ${runnerID};
+    `;
+    connection.query(query, function(err, rows, fields) {
+      if (!err){
+        
+        resolve(rows);
+      }else{
+         reject(err);
+      }
+    });
+  }) 
 };
 
 function createTables(connection, callback){
@@ -842,13 +905,28 @@ function createTables(connection, callback){
         if (err){
           //console.log(err);
         }
-         var query = 'CREATE TABLE DATA.DUPLICATES (MAIN nvarchar(100) NOT NULL,' 
+        var query = 'CREATE TABLE DATA.DUPLICATES (MAIN nvarchar(100) NOT NULL,' 
           +'VARIANT nvarchar(100) NOT NULL, PRIMARY KEY(VARIANT));'; 
-          connection.query(query, function(err, rows, fields) {
+        connection.query(query, function(err, rows, fields) {
           if (err){
-            //console.log(err);
+             //console.log(err);
           }
-          callback();
+          
+          var query = `
+          CREATE TABLE STATISTICS (
+          ID INT unsigned NOT NULL AUTO_INCREMENT,
+          RUNNER_ID INT UNSIGNED NOT NULL,
+          ENTRY_DATE DATETIME NOT NULL,
+          POINTS DECIMAL(5,2),
+          PLACE DECIMAL(5,0),
+          PRIMARY KEY(ID));
+          `;
+          connection.query(query, function(err, rows, fields) {
+            if (err){
+              //console.log(err);
+            }
+            callback();
+          });
         });
       });
     });

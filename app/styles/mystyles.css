@@ -219,6 +219,7 @@ thead th, thead td {
 }
 .content{
   padding-bottom: 240px;
+  background-color: #fff;
 }
 .bottom-margin{
   margin-bottom: 20px;
@@ -271,3 +272,4 @@ tbody tr.blank-row{
 .md-dialog-container{
   z-index: 1000;
 }
+

@@ -8,10 +8,16 @@
  *
  * Main module of the application.
  */
-angular.module('app', ['ui.router', 'ngResource', 'ngMaterial'])
-  .config(function ($stateProvider, $urlRouterProvider) {
+angular.module('app', ['ui.router', 'ngResource', 'ngMaterial', 'chart.js'])
+  .config(function ($stateProvider, $urlRouterProvider, ChartJsProvider) {
+    
+    ChartJsProvider.setOptions({ chartColors : [ '#00ADF9', '#BD4C4C']});
+    Chart.defaults.global.elements.point.radius = 0;
+    Chart.defaults.global.elements.point.borderWidth = 0;
+    Chart.defaults.global.elements.point.hitRadius = 3;
+    
     $stateProvider
-      .state('app', {
+    .state('app', {
         url: '/',
         views:{
            'header': {
@@ -26,6 +32,7 @@ angular.module('app', ['ui.router', 'ngResource', 'ngMaterial'])
             }
         }
       })
+    
       .state('app.runners', {
         url: 'runners',
         views:{
@@ -100,6 +107,9 @@ angular.module('app', ['ui.router', 'ngResource', 'ngMaterial'])
       ;
       
       $urlRouterProvider.otherwise('/');
+      
+    
+   
   })
   .directive('loaderTemplate', function(){
        return{

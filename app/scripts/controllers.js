@@ -12,7 +12,7 @@ angular.module('app')
     
     statsService.getStats().get().$promise.then(
       function(response){
-        console.log(response);
+        
         self.data = response.stats;
         $scope.isDataLoaded = true;
         
@@ -87,14 +87,15 @@ angular.module('app')
         return runner.FULLNAME.toLowerCase().indexOf(normalizedFilter) != -1 ||  runner.TEAM.toLowerCase().indexOf(normalizedFilter) != -1;
       }
     };
-    
     runnerService.getRunners().query(
       function(response){
+        //console.log(response);
         $scope.isDataLoaded = true;
         self.info = response;
       
       },
       function(response){
+        //console.log(response);
         $scope.isDataLoaded = true;
         $scope.isError = true;
         $scope.message = response.status + '' + response.statusText;
@@ -102,12 +103,12 @@ angular.module('app')
       });
       
     self.getPlace = function(points, sex){
-      console.log();
+    
       var place = self.info.filter(function(runner){
         
         return runner.SEX === sex && runner.CUR_RANK < points;
       }).length;
-      console.log(place);
+      
       return place;
     }
     
@@ -131,12 +132,60 @@ angular.module('app')
     runnerService.getRunner().get({id:parseInt($stateParams.id,10)})
     .$promise.then(
       function(response){
-        console.log(response);
+        drawChart(response.stats, response.details[0].FULLNAME);
         onSuccess(response, self, $scope);
       },
       function(response){
         onError(response, $scope);
       });
+      
+      function drawChart(data, name){
+       //Chart.defaults.global.defaultFontSize = 12;
+       
+        var labels = data.map(function(entry){
+         
+          return entry.ENTRY_DATE.slice(0, entry.ENTRY_DATE.indexOf('T'));
+          
+        });
+        
+        var points = data.map(function(entry){
+          return entry.POINTS;
+        });
+        
+        var places = data.map(function(entry){
+          return entry.PLACE;
+        });
+        
+        //http://jtblin.github.io/angular-chart.js/
+        $scope.labels = labels;
+        $scope.series = ['очки', 'место'];
+        $scope.data = [points, places];
+        
+        $scope.datasetOverride = [{ yAxisID: 'y-axis-1' }, { yAxisID: 'y-axis-2' }];
+        
+        $scope.options = {
+          scales: {
+            yAxes: [
+              {
+                id: 'y-axis-1',
+                type: 'linear',
+                display: true,
+                position: 'left'
+              },
+              {
+                id: 'y-axis-2',
+                type: 'linear',
+                display: true,
+                position: 'right',
+                ticks: {
+                    min: 1,
+                    stepSize: 1
+                }
+              }
+            ]
+          }
+        };
+      }
 }])
 
 .controller('AboutController', ['$scope', function($scope) {
@@ -179,7 +228,7 @@ angular.module('app')
     
     $scope.addCompetition =  function(){
         $scope.message = 'Adding...';
-        console.log($scope.newCompetition);
+       
         if(!$scope.newCompetition){
             $scope.message = 'Empty link!';
             return;
@@ -221,8 +270,8 @@ angular.module('app')
     self.info=[];
     service.getCompetitions().query(
         function(response){
-          console.log(response, 1);
-            self.info = mapValue(response);
+          
+          self.info = mapValue(response);
         },
         function(response){
           if(response.status === 401){
@@ -345,9 +394,10 @@ function LoginDialogController($scope, $mdDialog, loginService){
 }
 
 function onSuccess(response, self, scope){
-  scope.isDataLoaded = true;
+  
   self.info = setTopResults(response);
-};
+  scope.isDataLoaded = true;
+}
 
 function onError(response, scope){
   scope.isDataLoaded = true;
@@ -366,4 +416,5 @@ function setTopResults(data){
     }
   }
   return data;
-};
+}
+

@@ -1,72 +1,85 @@
 <div class="container">
-  <loader-template ng-hide="isDataLoaded"></loader-template>
-  
-  <div class="row" ng-show="isDataLoaded">
+    <loader-template ng-hide="isDataLoaded"></loader-template>
+    <div class="row" ng-show="isDataLoaded">
     
-   <div class="col-xs-12 col-sm-6 info">
-
-        <div class="panel panel-primary">
-            <div class="panel-heading">
-                <h3 class="panel-title">{{runnerViewCtrl.info.details[0].FULLNAME}}</h3>
+       <div class="col-xs-12 col-sm-6 info">
+    
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <h3 class="panel-title">{{runnerViewCtrl.info.details[0].FULLNAME}}</h3>
+                </div>
+                <div class="panel-body">
+                    <dl class="dl-horizontal runner-info">
+                        <dt>Текущий рейтинг</dt>
+                        <dd>{{runnerViewCtrl.info.details[0].CUR_RANK  | number:2}}</dd>
+                        <dt>Клуб</dt>
+                        <dd>{{runnerViewCtrl.info.details[0].TEAM}}</dd>
+                        <dt>Год рождения</dt>
+                        <dd>{{runnerViewCtrl.info.details[0].BIRTH_DATE}}</dd>
+                         <dt>Всего стартов</dt>
+                        <dd>{{runnerViewCtrl.info.results.length - 6}}</dd>
+                   </dl>
+                </div>
             </div>
-            <div class="panel-body">
-                <dl class="dl-horizontal runner-info">
-                    <dt>Текущий рейтинг</dt>
-                    <dd>{{runnerViewCtrl.info.details[0].CUR_RANK  | number:2}}</dd>
-                    <dt>Клуб</dt>
-                    <dd>{{runnerViewCtrl.info.details[0].TEAM}}</dd>
-                    <dt>Год рождения</dt>
-                    <dd>{{runnerViewCtrl.info.details[0].BIRTH_DATE}}</dd>
-                     <dt>Всего стартов</dt>
-                    <dd>{{runnerViewCtrl.info.results.length - 6}}</dd>
-               </dl>
+        </div>
+        <table class="fullWidth">
+            <thead>
+              <tr>
+                  <th>Дата</th>
+                  <th>Соревнования</th>
+                  <th>Результат</th>
+                  <th>Место</th>
+                  <th>Очки</th>
+                  <th>Лучшие</th>
+              </tr>
+          
+            </thead>
+            <tbody>
+              <tr ng-repeat="entry in runnerViewCtrl.info.results | filter: {ACT_RESULT:'C'} | orderBy:'DATE':true as current">
+                <td class="date-field">{{entry.DATE | date:'yyyy-MM-dd'}}</td>
+                <td><a ui-sref="app.competition({id: entry.COMPETITION})">{{entry.NAME}}</a></td>
+                <td ng-switch="entry.PLACE">
+                   <span ng-switch-when="-1">-</span>
+                   <span ng-switch-default>{{entry.TIME}}</span>
+                </td>
+                <td ng-switch="entry.PLACE">
+                  <span ng-switch-when="-1">-</span>
+                  <span ng-switch-default>{{entry.PLACE}}</span>
+                </td>
+                <td>{{entry.POINTS | number:2}}</td>
+                <td>{{entry.POINTS_RANK}}</td>
+              </tr>
+              <tr ng-if="current.length != runnerViewCtrl.info.results.length" class="blank-row"><td colspan="6"></td></tr>
+              <tr ng-repeat="entry in runnerViewCtrl.info.results | filter: {ACT_RESULT:'P'} | orderBy:'DATE':true" class="past">
+                <td class="date-field">{{entry.DATE | date:'yyyy-MM-dd'}}</td>
+                <td><a ui-sref="app.competition({id: entry.COMPETITION})">{{entry.NAME}}</a></td>
+                <td ng-switch="entry.PLACE">
+                   <span ng-switch-when="-1">-</span>
+                   <span ng-switch-default>{{entry.TIME}}</span>
+                </td>
+                <td ng-switch="entry.PLACE">
+                  <span ng-switch-when="-1">-</span>
+                  <span ng-switch-default>{{entry.PLACE}}</span>
+                </td>
+                <td>{{entry.POINTS | number:2}}</td>
+                <td></td>
+              </tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="row" ng-show="isDataLoaded">
+        <div class="col-xs-12 col-md-12  info">
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <h3 class="panel-title">История изменения очков и мест </h3>
+                </div>
+                <div class="panel-body " >
+                    <canvas id="line" class="chart chart-line" chart-data="data"
+                    chart-labels="labels" chart-series="series" chart-options="options"
+                    chart-dataset-override="datasetOverride">
+                    </canvas>
+                </div>
             </div>
         </div>
     </div>
-    <table class="fullWidth">
-        <thead>
-          <tr>
-              <th>Дата</th>
-              <th>Соревнования</th>
-              <th>Результат</th>
-              <th>Место</th>
-              <th>Очки</th>
-              <th>Лучшие</th>
-          </tr>
-      
-        </thead>
-        <tbody>
-          <tr ng-repeat="entry in runnerViewCtrl.info.results | filter: {ACT_RESULT:'C'} | orderBy:'DATE':true as current">
-            <td class="date-field">{{entry.DATE | date:'yyyy-MM-dd'}}</td>
-            <td><a ui-sref="app.competition({id: entry.COMPETITION})">{{entry.NAME}}</a></td>
-            <td ng-switch="entry.PLACE">
-               <span ng-switch-when="-1">-</span>
-               <span ng-switch-default>{{entry.TIME}}</span>
-            </td>
-            <td ng-switch="entry.PLACE">
-              <span ng-switch-when="-1">-</span>
-              <span ng-switch-default>{{entry.PLACE}}</span>
-            </td>
-            <td>{{entry.POINTS | number:2}}</td>
-            <td>{{entry.POINTS_RANK}}</td>
-          </tr>
-          <tr ng-if="current.length != runnerViewCtrl.info.results.length" class="blank-row"><td colspan="6"></td></tr>
-          <tr ng-repeat="entry in runnerViewCtrl.info.results | filter: {ACT_RESULT:'P'} | orderBy:'DATE':true" class="past">
-            <td class="date-field">{{entry.DATE | date:'yyyy-MM-dd'}}</td>
-            <td><a ui-sref="app.competition({id: entry.COMPETITION})">{{entry.NAME}}</a></td>
-            <td ng-switch="entry.PLACE">
-               <span ng-switch-when="-1">-</span>
-               <span ng-switch-default>{{entry.TIME}}</span>
-            </td>
-            <td ng-switch="entry.PLACE">
-              <span ng-switch-when="-1">-</span>
-              <span ng-switch-default>{{entry.PLACE}}</span>
-            </td>
-            <td>{{entry.POINTS | number:2}}</td>
-            <td></td>
-          </tr>
-        </tbody>
-    </table>
-    
-  </div>
 </div>
