@@ -1,6 +1,7 @@
 var request = require('request'),
     cheerio = require('cheerio'),
     iconv  = require('iconv-lite'),
+    groupSettings = require('./settings.js').getGroupSettings(),
     Buffer = require('buffer').Buffer;
 
 
@@ -13,6 +14,21 @@ module.exports.processCompetition = function (competitionData, callback){
             body = iconv.decode(new Buffer(body), "win1251");
             var $ = cheerio.load(body);
             
+            
+            competitionData.group = JSON.parse(JSON.stringify(groupSettings));
+            var isEmpty = true;
+            for(var i=0; i<competitionData.group.length; i++){
+                competitionData.group[i].data = processResults(competitionData.group[i], $);
+            
+                if(competitionData.group[i].data.length === 0){
+                    competitionData.group.splice(i,1);
+                    i--;
+                }else if(isEmpty){
+                    isEmpty = false;
+                }
+            }
+            /*
+            
             competitionData.group = [{},{}];
             
             ////console.log($('h2:contains("М21Е"), h2:contains("M21E")').next().text());
@@ -21,9 +37,9 @@ module.exports.processCompetition = function (competitionData, callback){
             competitionData.group[0].name = 'M21E';
             competitionData.group[0].data = processResults('h2:contains("М21Е"), h2:contains("M21E")', $);
             competitionData.group[1].name = 'W21E';
-            competitionData.group[1].data = processResults('h2:contains("Ж21Е"), h2:contains("W21E")', $);
+            competitionData.group[1].data = processResults('h2:contains("Ж21Е"), h2:contains("W21E")', $);*/
             
-            if(competitionData.group[0].data.length === 0 && competitionData.group[1].data.length === 0){
+            if(isEmpty){
                 competitionData.NOTES += ' Нет групп для рассчета';
                 competitionData.STATUS = 'INVALID';
                 ////console.log(result.title);
@@ -65,6 +81,7 @@ function createEntryPattern(headerLine){
     var pattern = [];
     
     var headers = headerLine.split(' ');
+    
     headers = headers.filter(function(item){
         return item !== '' && item !== 'имя';
     });
@@ -95,7 +112,8 @@ function createEntryPattern(headerLine){
                 pattern[header] = 'team';
             break;
            
-            case 'Результат':  
+            case 'Результат':
+            case 'РезультатОтставан':
                 pattern[header] = 'result';
             break;
             
@@ -120,7 +138,6 @@ function createEntryPattern(headerLine){
 function processResultLine(element, pattern){
     var resultLine = {};
     for(var i = 0; i<pattern[pattern.length-1].length-1; i++){
-        ////console.log(pattern[i] + ' - ' +element.substring(pattern[pattern.length-1][i], pattern[pattern.length-1][i+1]).trim());
         resultLine[pattern[i]] = element.substring(pattern[pattern.length-1][i], pattern[pattern.length-1][i+1]).trim();
     }
     resultLine = normalizeResultSet(resultLine);
@@ -133,8 +150,7 @@ function processResultLine(element, pattern){
 function processResults(group, $){
     var groupResult = [];
     var pattern = [];
-    var sex = (group.indexOf('М') >= 0)? 'M':'W';
-    var dataArray = $(group).next().text().split('\r\n');
+    var dataArray = $(getHeaderSerachPattern(group.variants)).next().text().split('\r\n');
     
     if(dataArray.length === 0){
         return null;
@@ -150,7 +166,7 @@ function processResults(group, $){
             
             var result = processResultLine(element,pattern);
             if(result != null){
-                result.sex = sex;
+                result.sex = group.sex;
                 groupResult.push(result);
             }
             
@@ -159,8 +175,19 @@ function processResults(group, $){
     return groupResult;
 }
 
+function getHeaderSerachPattern(variants){
+    var searchPattern = ' ';
+    variants.forEach(function(variant){
+       searchPattern += 'h2:contains("'+variant+'"),';
+    });
+    return searchPattern.substring(0, searchPattern.lastIndexOf(','));
+}
+
 function normalizeFullname(name){
-    name = name.toLowerCase();
+    if(!name){
+        return;
+    }
+    name = name.toLowerCase().replace(/\(\d+\)?/, '').trim();
     return name.charAt(0).toUpperCase() + name.slice(1);
 }
 
@@ -171,18 +198,22 @@ function normalizeClub(club){
 
 function normalizeResultSet(resultSet){
     
-    if(resultSet.fullName.indexOf('В/К') != -1){
+    if(resultSet.fullName.indexOf('В/К') != -1 || resultSet.fullName.indexOf(' вк')!= -1){
         return null;
     }
-    resultSet.fullName = resultSet.fullName.replace(/\s+/, ' ');
+    resultSet.fullName = resultSet.fullName.replace(/\(\d+\)?/, '').replace(/\d+\)?/, ' ').replace(/\s+/, ' ').trim();
     resultSet.firstName = resultSet.fullName.split(' ')[1];
     resultSet.lastName = resultSet.fullName.split(' ')[0];
     resultSet.firstName = normalizeFullname(resultSet.firstName);
     resultSet.lastName = normalizeFullname(resultSet.lastName);
     resultSet.team = normalizeClub(resultSet.team);
+    resultSet.place = resultSet.place.replace(/\D+/g, '').trim();
+    resultSet.place = resultSet.place?resultSet.place:-1;
+    resultSet.birthDate = resultSet.birthDate && resultSet.birthDate.trim().length > 3?resultSet.birthDate.trim().split(" ")[0]:null;
+    resultSet.result = resultSet.result.indexOf(':') === 2?resultSet.result:'0'+resultSet.result;
     
     resultSet.fullName = resultSet.lastName + ' ' + resultSet.firstName;
-    ////console.log(resultSet);
+    //console.log(resultSet);
     return resultSet;
     
 }

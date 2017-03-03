@@ -1,90 +1,114 @@
 <div class="container">
   <loader-template ng-hide="isDataLoaded"></loader-template>
   <div ng-show="isDataLoaded">
-  <div class="row">
-   <div class="col-xs-12 col-md-6  info-competitions">
+    <div class="row">
+    <div class="col-xs-12 col-md-6  info-competitions">
 
-        <div class="panel panel-primary">
-            <div class="panel-heading">
-                <h3 class="panel-title">{{competitionViewCtrl.info.details[0].NAME}}</h3>
-            </div>
-            <div class="panel-body">
-                <dl class="dl-horizontal">
-                    <dt>Дата проведения</dt>
-                    <dd>{{competitionViewCtrl.info.details[0].DATE | date:'dd-MM-yyyy'}}</dd>
-                    <dt>Участников</dt>
-                    <dd>{{competitionViewCtrl.info.results.length}}</dd>
-                     <dt>Ссылка</dt>
-                    <dd><a href="{{competitionViewCtrl.info.details[0].URL}}" target="_blank">Результаты</a></dd>
-               </dl>
-            </div>
-        </div>
+      <div class="panel panel-primary">
+          <div class="panel-heading">
+              <h3 class="panel-title">{{competitionViewCtrl.info.details[0].NAME}}</h3>
+          </div>
+          <div class="panel-body">
+              <dl class="dl-horizontal">
+                  <dt>Дата проведения</dt>
+                  <dd>{{competitionViewCtrl.info.details[0].DATE | date:'dd-MM-yyyy'}}</dd>
+                  <dt>Участников</dt>
+                  <dd>{{competitionViewCtrl.info.details[0].runners}}</dd>
+                   <dt>Ссылка</dt>
+                  <dd><a href="{{competitionViewCtrl.info.details[0].URL}}" target="_blank">Результаты</a></dd>
+             </dl>
+          </div>
+      </div>
     </div>
     </div>
     <div class="row"  ng-show="competitionViewCtrl.info.results.length > 0">
-    <div class="col-xs-12  col-sm-12 col-md-6 col-lg-6">
-    <h1>М21Е</h1>
-    <table class="fullWidth">
-        <thead>
-          <tr>
-              <th>Место</th>
-              <th>Имя</th>
-              <th>Результат</th>
-              <th>Отставание</th>
-              <th>Очки</th>
-              <th>Группа</th>
-          </tr>
-        </thead>
-        <tbody>
-            <tr ng-repeat="result in competitionViewCtrl.info.results |  filter: {'COMP_GROUP':'M21E'}">
-          <td ng-switch="result.PLACE">
-            <span ng-switch-when="-1">-</span>
-            <span ng-switch-default>{{result.PLACE}}</span>
-          </td>
-          <td><a ui-sref="app.runner({id: result.RUNNER})">{{result.NAME}}</a></td>
-          <td ng-switch="result.PLACE">
-             <span ng-switch-when="-1">-</span>
-             <span ng-switch-default>{{result.TIME | date:'HH:mm:ss' : 'UTC'}}</span>
-          </td>
-          <td>{{result.TIME_BEHIND}}</td>
-          <td>{{result.POINTS | number:2}}</td>
-          <td>{{result.COMP_GROUP}}</td>
-          </tr>
-        </tbody>
-    </table>
-    </div>
-    <div class="col-xs-12  col-sm-12 col-md-6 col-lg-6">
-    <h1>Ж21Е</h1>
-    <table class="fullWidth">
-        <thead>
-          <tr>
-              <th>Место</th>
-              <th>Имя</th>
-              <th>Результат</th>
-              <th>Отставание</th>
-              <th>Очки</th>
-              <th>Группа</th>
-          </tr>
-      
-        </thead>
-        <tbody>
-          <tr ng-repeat="result in competitionViewCtrl.info.results |  filter: {'COMP_GROUP':'W21E'}">
-            <td ng-switch="result.PLACE">
-              <span ng-switch-when="-1">-</span>
-              <span ng-switch-default>{{result.PLACE}}</span>
-            </td>
-            <td><a ui-sref="app.runner({id: result.RUNNER})">{{result.NAME}}</a></td>
-            <td ng-switch="result.PLACE">
-               <span ng-switch-when="-1">-</span>
-               <span ng-switch-default>{{result.TIME | date:'HH:mm:ss' : 'UTC'}}</span>
-            </td>
-            <td>{{result.TIME_BEHIND}}</td>
-            <td>{{result.POINTS | number:2}}</td>
-            <td>{{result.COMP_GROUP}}</td>
-          </tr>
-        </tbody>
-    </table>
-    </div>
-    </div>
+      <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
+          <div class="panel-group" id="accordion1" role="tablist" aria-multiselectable="true">
+            <div class="panel panel-default" ng-repeat="group in competitionViewCtrl.info.results | filter: {'COMP_GROUP':'M'}">
+              <div class="panel-heading" role="tab" id="heading{{$index}}">
+                <h4 class="panel-title">
+                  <a role="button" data-toggle="collapse" data-parent="#accordion1" data-target="#collapse{{$index}}" 
+                      aria-expanded="false" aria-controls="collapse{{$index}}">
+                    {{group[0].COMP_GROUP}}
+                  </a>
+                </h4>
+              </div>
+              <div id="collapse{{$index}}" class="panel-collapse collapse" ng-class="{in: {{$first}} }" role="tabpanel" aria-labelledby="heading{{$index}}">
+                <div class="panel-body">
+                 <table class="fullWidth">
+                      <thead>
+                        <tr>
+                          <th>Место</th>
+                          <th>Имя</th>
+                          <th>Результат</th>
+                          <th>Отставание</th>
+                          <th>Очки</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr ng-repeat="result in group">
+                          <td ng-switch="result.PLACE">
+                            <span ng-switch-when="-1">-</span>
+                            <span ng-switch-default>{{result.PLACE}}</span>
+                          </td>
+                          <td><a ui-sref="app.runner({id: result.RUNNER})">{{result.NAME}}</a></td>
+                          <td ng-switch="result.PLACE">
+                             <span ng-switch-when="-1">-</span>
+                             <span ng-switch-default>{{result.TIME | date:'HH:mm:ss' : 'UTC'}}</span>
+                          </td>
+                          <td>{{result.TIME_BEHIND}}</td>
+                          <td>{{result.POINTS | number:2}}</td>
+                        </tr>
+                      </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+      </div>
+      <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
+        <div class="panel-group" id="accordion2" role="tablist" aria-multiselectable="true">
+          <div class="panel panel-default" ng-repeat="group in competitionViewCtrl.info.results | filter: {'COMP_GROUP':'Ж'}">
+            <div class="panel-heading" role="tab" id="heading{{$index}}">
+              <h4 class="panel-title">
+                <a role="button" data-toggle="collapse" data-parent="#accordion2" data-target="#collapse2{{$index}}" 
+                    aria-expanded="false" aria-controls="collapse2{{$index}}">
+                  {{group[0].COMP_GROUP}}
+                </a>
+              </h4>
+            </div>
+            <div id="collapse2{{$index}}" class="panel-collapse collapse" ng-class="{in: {{$first}} }"  role="tabpanel" aria-labelledby="heading{{$index}}">
+              <div class="panel-body">
+                 <table class="fullWidth">
+                  <thead>
+                    <tr>
+                      <th>Место</th>
+                      <th>Имя</th>
+                      <th>Результат</th>
+                      <th>Отставание</th>
+                      <th>Очки</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr ng-repeat="result in group">
+                      <td ng-switch="result.PLACE">
+                        <span ng-switch-when="-1">-</span>
+                        <span ng-switch-default>{{result.PLACE}}</span>
+                      </td>
+                      <td><a ui-sref="app.runner({id: result.RUNNER})">{{result.NAME}}</a></td>
+                      <td ng-switch="result.PLACE">
+                         <span ng-switch-when="-1">-</span>
+                         <span ng-switch-default>{{result.TIME | date:'HH:mm:ss' : 'UTC'}}</span>
+                      </td>
+                      <td>{{result.TIME_BEHIND}}</td>
+                      <td>{{result.POINTS | number:2}}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>            
+      </div>
   </div>
 </div>

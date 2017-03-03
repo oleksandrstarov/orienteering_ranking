@@ -76,7 +76,7 @@ angular.module('app', ['ui.router', 'ngResource', 'ngMaterial', 'chart.js'])
             views:{
                 'content@' :{
                     templateUrl : 'views/about.html',
-                    controller: 'AboutController as aboutController'
+                    controller: 'AboutController as ctrl'
                 }
             
         }
@@ -111,12 +111,6 @@ angular.module('app', ['ui.router', 'ngResource', 'ngMaterial', 'chart.js'])
     
    
   })
-  .directive('loaderTemplate', function(){
-       return{
-          restrict: 'E',
-          
-          templateUrl : 'views/loader.html'
-       };
-   })
+ 
  ;
-  
+ 

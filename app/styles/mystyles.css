@@ -273,3 +273,7 @@ tbody tr.blank-row{
   z-index: 1000;
 }
 
+.columns {
+  columns: 4;
+}
+

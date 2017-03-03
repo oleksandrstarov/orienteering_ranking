@@ -2,7 +2,7 @@ var request = require('request'),
     cheerio = require('cheerio'),
     iconv  = require('iconv-lite'),
     Buffer = require('buffer').Buffer,
-    SFRparser= require('./htmlParserSFR.js'),
+    groupSettings = require('./settings.js').getGroupSettings(),
     url = 'http://orienteering.kh.ua/Result/';
 
 
@@ -16,21 +16,27 @@ module.exports.processCompetition = function(competitionData, callback){
            
             var $ = cheerio.load(body);
             
-            competitionData.group = [{},{}];
+            competitionData.group = JSON.parse(JSON.stringify(groupSettings));
+            var isEmpty = true;
+            for(var i=0; i<competitionData.group.length; i++){
+                competitionData.group[i].data = processResults(competitionData.group[i], $);
+                if(competitionData.group[i].data.length === 0){
+                    
+                   competitionData.group.splice(i,1);
+                   i--;
+                }else if(isEmpty){
+                    isEmpty = false;
+                }
+            }
             
-            competitionData.group[0].name = 'M21E';
-            competitionData.group[0].data = processResults('М21Е', $);
-            competitionData.group[1].name = 'W21E';
-            competitionData.group[1].data = processResults('Ж21Е', $);
-            ////console.log(result.group[1].data);
-            if(competitionData.group[0].data.length === 0 && competitionData.group[1].data.length === 0){
+            if(isEmpty){
                 competitionData.NOTES += ' Нет групп для рассчета';
                 competitionData.STATUS = 'INVALID';
                 ////console.log(result.title);
                 callback(competitionData.ID + ' NO VALID GROUPS', competitionData);
                 return; 
             }
-            
+            //console.log(competitionData);
             callback(null, competitionData);
         } else {
             
@@ -86,6 +92,9 @@ function createEntryPattern(headers){
             case 'Отставание ':
                 pattern[header] = 'timeBehind';
             break;
+            
+            default:
+                pattern[header] = 'notes';
         }
         
     }
@@ -112,8 +121,8 @@ function processResultLine(data, pattern){
 function processResults(group, $){
     var groupResult = [];
     var pattern = [];
-    var sex = (group == 'М21Е')? 'M':'W';
-     $('h2:contains('+group+')').next().find('tr').each(function(index, element){
+
+     $(getHeaderSerachPattern(group.variants)).next().find('tr').each(function(index, element){
         if(index === 0){
             var data = []; 
             $(element).find('th').each(function(i, el){
@@ -129,7 +138,7 @@ function processResults(group, $){
             var result = processResultLine(data, pattern);
             
             if(result != null){
-                result.sex = sex;
+                result.sex = group.sex;
                 groupResult.push(result);
             }
         }
@@ -139,8 +148,19 @@ function processResults(group, $){
     return groupResult;
 }
 
+function getHeaderSerachPattern(variants){
+    var searchPattern = ' ';
+    variants.forEach(function(variant){
+       searchPattern += 'h2:contains("'+variant+'"),';
+    });
+    return searchPattern.substring(0, searchPattern.lastIndexOf(','));
+}
+
 function normalizeFullname(name){
-    name = name.toLowerCase();
+    if(!name){
+        return;
+    }
+    name = name.toLowerCase().replace(/\(\d+\)?/, '').trim();
     return name.charAt(0).toUpperCase() + name.slice(1);
 }
 
@@ -150,13 +170,18 @@ function normalizeClub(club){
 }
 
 function normalizeResultSet(resultSet){
-    if(resultSet.firstName.indexOf('В/К') != -1){
+    if(resultSet.firstName.indexOf('В/К') != -1 
+    || resultSet.firstName.indexOf(' вк')!= -1
+    || (resultSet.notes && resultSet.notes.indexOf('в/к')!= -1)){
         return null;
     }
     
     resultSet.firstName = normalizeFullname(resultSet.firstName);
-    resultSet.lastName = normalizeFullname(resultSet.lastName);
+    resultSet.lastName = normalizeFullname(resultSet.lastName.split(' ')[0]);
     resultSet.team = normalizeClub(resultSet.team);
+    resultSet.place = resultSet.place.replace(/\D+/g, '').trim();
+    resultSet.place = resultSet.place?resultSet.place:-1;
+    resultSet.birthDate = resultSet.birthDate && resultSet.birthDate.trim().length > 3?resultSet.birthDate.trim().split(" ")[0]:null;
     
     resultSet.fullName = resultSet.lastName + ' ' + resultSet.firstName;
     ////console.log(resultSet);

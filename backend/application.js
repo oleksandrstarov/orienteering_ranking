@@ -11,12 +11,10 @@ var server = require('./modules/server.js'),
 
 
 var now = new Date();
-//console.log('This runs at 3:00AM every Saturday, Sunday and Monday.');
-console.log('APPLICATION STARTED at');
-console.log(now.getDate()+ "." +  1 +now.getMonth()  + " - " +now.getHours() +":" +now.getMinutes());
+console.log('APPLICATION STARTED at : ' +now.getDate()+ "." +  (now.getMonth()+1)  + " - " +now.getHours() +":" +now.getMinutes());
 
 var rule = new cron.RecurrenceRule();
-rule.dayOfWeek = [6,0,1];
+rule.dayOfWeek = [6,0,1,2,3,4,5];
 rule.hour = 23;
 rule.minute = 40;
 cron.scheduleJob(rule, function(){

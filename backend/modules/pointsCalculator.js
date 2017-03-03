@@ -76,7 +76,7 @@ function processGroup(group){
 
 function countPoints(time, avgTime, avgPoints, constant){
     if(constant === undefined){
-        constant = settings.defaultPoints;
+        constant = settings.defaultTime;
     }
     if(time === -1){
         return settings.maxPoints;
@@ -108,7 +108,7 @@ function getAvgData(threeTopData){
 //from db
 function getBestThreePoints(group, callback){
     if(!group.isValid){
-        callback('INVALID GROUP - NO POINTS', [settings.defaultPoints,settings.defaultPoints,settings.defaultPoints]);
+        callback('INVALID GROUP - NO POINTS', [group.shift,group.shift,group.shift]);
         return;
     }
     
@@ -120,8 +120,14 @@ function getBestThreePoints(group, callback){
     
     db.getBestThreePoints(personsArray, function(error, bestPoints){
         if(error){
-            callback(error, [settings.defaultPoints,settings.defaultPoints,settings.defaultPoints]);
+            callback(error, [group.shift,group.shift,group.shift]);
         }else{
+            for(var i = 0; i < 3; i++){
+                if(!bestPoints[i]){
+                    bestPoints[i] = group.shift;
+                }
+             }
+            
             callback(null, bestPoints);
         }
         
@@ -141,6 +147,9 @@ function setResultAndAvgTopTime(group){
     }
     
     group.avgTime = getAvgData(topTime);
+    if(group.avgTime > topTime[0] *1.1){
+       group.avgTime = topTime[0] *1.1; 
+    }
     return group;
 }
 
@@ -155,8 +164,11 @@ function convertResultToSeconds(resultString){
 }
 
 function checkGroups(resultsObject){
+    //console.log(resultsObject.group);
     for(var i=0; i<resultsObject.group.length; i++){
         resultsObject.group[i].isValid = true;
+        
+        //console.log(resultsObject.group[i]);
         if(resultsObject.group[i].data.length < 3){
             resultsObject.group[i].isValid = false;
             continue;

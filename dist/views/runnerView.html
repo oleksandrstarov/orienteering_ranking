@@ -27,21 +27,23 @@
               <tr>
                   <th>Дата</th>
                   <th>Соревнования</th>
+                  <th>Группа</th>
                   <th>Результат</th>
                   <th>Место</th>
                   <th>Очки</th>
                   <th>Лучшие</th>
               </tr>
-          
             </thead>
             <tbody>
               <tr ng-repeat="entry in runnerViewCtrl.info.results | filter: {ACT_RESULT:'C'} | orderBy:'DATE':true as current">
                 <td class="date-field">{{entry.DATE | date:'yyyy-MM-dd'}}</td>
                 <td><a ui-sref="app.competition({id: entry.COMPETITION})">{{entry.NAME}}</a></td>
+                <td>{{entry.GROUP}}</td>
                 <td ng-switch="entry.PLACE">
                    <span ng-switch-when="-1">-</span>
                    <span ng-switch-default>{{entry.TIME}}</span>
                 </td>
+                
                 <td ng-switch="entry.PLACE">
                   <span ng-switch-when="-1">-</span>
                   <span ng-switch-default>{{entry.PLACE}}</span>
@@ -49,10 +51,11 @@
                 <td>{{entry.POINTS | number:2}}</td>
                 <td>{{entry.POINTS_RANK}}</td>
               </tr>
-              <tr ng-if="current.length != runnerViewCtrl.info.results.length" class="blank-row"><td colspan="6"></td></tr>
+              <tr ng-if="current.length != runnerViewCtrl.info.results.length" class="blank-row"><td colspan="7"></td></tr>
               <tr ng-repeat="entry in runnerViewCtrl.info.results | filter: {ACT_RESULT:'P'} | orderBy:'DATE':true" class="past">
                 <td class="date-field">{{entry.DATE | date:'yyyy-MM-dd'}}</td>
                 <td><a ui-sref="app.competition({id: entry.COMPETITION})">{{entry.NAME}}</a></td>
+                <td>{{entry.GROUP}}</td>
                 <td ng-switch="entry.PLACE">
                    <span ng-switch-when="-1">-</span>
                    <span ng-switch-default>{{entry.TIME}}</span>

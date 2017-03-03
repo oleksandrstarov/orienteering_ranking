@@ -15,51 +15,13 @@
                      <a ui-sref="mailto:test@test.com">
                      oleksandr.starov[at]gmail.com</a>
             </div>
-            <div class="col-xs-12 col-sm-4" ng-controller="LogintController">
-                <script type="text/ng-template" id="loginTemplate.html">
-                  <md-dialog id="login-dialog" aria-label="Login" ng-cloak>
-                      <form name="loginForm" ng-submit="login()">
-                        <md-toolbar>
-                          <div class="md-toolbar-tools">
-                            <h2>Log In</h2>
-                            <span flex></span>
-                            <md-button class="md-icon-button" ng-click="close()">
-                              <md-icon class="glyphicon glyphicon-remove" style="color:white;" aria-label="Close dialog"></md-icon>
-                            </md-button>
-                          </div>
-                        </md-toolbar>
-                
-                        <md-dialog-content>
-                          <div class="md-dialog-content">
-                            <md-input-container class="md-block">
-                              <label>Username</label>
-                              <input name="username" value='admin' md-autofocus required disabled/>
-                            </md-input-container>
-                            <md-input-container class="md-block">
-                              <label>Password</label>
-                              <input type="password" name="password" ng-model="password" required />
-                            </md-input-container>
-                            <div ng-if="loading" class="center-block label label-info">Вход...</div>
-                            <div ng-if="wrongPass" class="center-block label label-danger">Неправильный пароль</div>
-                          </div>
-                          
-                        </md-dialog-content>
-                
-                        <md-dialog-actions layout="row">
-                          <span flex></span>
-                          <md-button type="submit" ng-disabled="loginForm.$invalid" class="md-raised md-primary">Login</md-button>
-                        </md-dialog-actions>
-                      </form>
-                    </md-dialog>
-                </script>
-	            <div id="popupContainer" ng-click="showPrompt($event)">
-	                <i class="glyphicon glyphicon-wrench"></i> Admin login
-	            </div>
+            <div class="col-xs-12 col-sm-4">
+              <login-component></login-component>
             </div>
           </div> 
          <div class="row">
             <div class="col-xs-12">
-                <p align=center>© 2016-2017 Oleksandr Starov | v.: 0.3.6 / 2017-02-12</p>
+                <p align=center>© 2016-2017 Oleksandr Starov | v.: 0.4.0 / 2017-03-01</p>
             </div>
         </div>
     </div>

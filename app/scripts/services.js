@@ -62,4 +62,10 @@ angular.module('app')
         return $resource('/adminLogin', null, {'check':{method:'PUT'}});
     };
   }])
+  
+.service('aboutService',['$resource', function($resource){
+    this.getGoupsData = function() {
+        return $resource('/about');
+    };
+}])
 ;

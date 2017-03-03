@@ -129,8 +129,8 @@ function getNewCompetitionsResults(URLsArray, callback){
 function importResults(list, callback, err){
     // drop to date before import
     // check best points only for started runners
+    var startImport = new Date();
     var i = 0;
-    
     processCompetition(list[i], processCompetitionCallback);
      
     function processCompetitionCallback(error){
@@ -139,13 +139,12 @@ function importResults(list, callback, err){
            
         }
         
-        
         var nextSunday = list[i].DATE.getDay() === 0 ? list[i].DATE : getNextSunday(list[i].DATE);
         
         
         ////console.log(list[i].DATE);
         if(++i <= list.length-1){
-        // if(--i >= list.length-1){  
+            process.stdout.write("\r" +`Importing progress ${Math.round((i+1)/list.length * 100)} % `);
             var nextCompetitionDate = list[i].DATE;
             
             
@@ -161,6 +160,7 @@ function importResults(list, callback, err){
             if(nextSunday < new Date()){
                 saveStatistics(nextSunday, new Date(), function(){
                     console.log('DONE');
+                    console.log(`Import took ${(new Date() - startImport)/1000}  sec.`);
                     if(callback){
                         
                         callback(err);
@@ -169,6 +169,7 @@ function importResults(list, callback, err){
                 })
             }else{
                 console.log('DONE');
+                console.log(`Import took ${(new Date() - startImport)/1000}  sec.`);
                 if(callback){
                     
                     callback(err);
@@ -185,7 +186,6 @@ function processCompetition(competition, callback){
     
     getResults(competition, function(error, competitionData){
         if(error){
-            
             db.processCompetition(competitionData, function(){
                 
                 callback();
@@ -195,7 +195,6 @@ function processCompetition(competition, callback){
             //console.log('COMPETITION ' + competitionData.DATE.toMysqlFormat());
         
             db.updateRunnersPoints(competitionData.DATE, function(error){
-                //console.log('after update');
                 pointsCalculator.processCompetitionResults(competitionData, function(competitionData){
                 //console.log('before process');
                     db.processCompetition(competitionData, function(){

@@ -2,8 +2,8 @@
 
 var sql = require('mysql'),
     settings = require('./settings.js').getSQLSettings(),
-    globalSettings = require('./settings.js').getSettings(),
-    defaultSettings = require('./settings.js').getSettings();
+    globalSettings = require('./settings.js').getSettings();
+    //defaultSettings = require('./settings.js').getSettings();
 
 //var connection = sql.createConnection(settings);
 
@@ -264,7 +264,7 @@ module.exports.updateCompetitionsStatus = function(competitions, callback){
 };
 
 //RUNNERS
-module.exports.getPersonID = function(runner, callback){
+module.exports.getPersonID = function(runner, points, callback){
   if(!runner){
     callback('NO VALID RUNNER DATA');
     return;
@@ -284,7 +284,7 @@ module.exports.getPersonID = function(runner, callback){
             runner.active = rows[0].ACTIVE;
           }
           //console.log('add new');
-          addNewRunner(runner, function(error, runnerID){
+          addNewRunner(runner, points, function(error, runnerID){
             if(!error){
               //console.log(runnerID);
               id = runnerID;
@@ -320,46 +320,47 @@ module.exports.setRunnersIDs = function(competition, callback){
   }
   
   //console.log(competition.group.length);
-  this.getPersonID(competition.group[i].data[j], getPersonIDcallback);
+  this.getPersonID(competition.group[i].data[j],competition.group[i].shift, getPersonIDcallback);
   var self = this;
   function getPersonIDcallback(error, id){
-    /*//console.log(i + " " + j);
-    //console.log(id);
+    /*console.log(i + " " + j);
+    console.log(id);
     //console.log(competition.group[i].data[j].date);
-    //console.log(competition.group[i].data[j].fullName);
+    console.log(competition.group[i].data[j].fullName);
     */
     
     //console.log('SETTING RUNNER ID ' + id);
     if(error){
-      //console.error(error);
+      console.log(error);
     }
-    
     if(id){
       ////console.log(competition.group[i].data[j]);
       competition.group[i].data[j].id = id;
     }
-    
+    //console.log('test', j +1, competition.group[i].data.length);
     if(++j === competition.group[i].data.length){
       j = 0;
       i++;
     }
-    ////console.log(competition.group[i].data.length);
-    //console.log(i + " " + j);
+    //console.log(competition.group[i].data.length);
+    //console.log(i + " " + j,competition.group.length);
     if(i < competition.group.length && j < competition.group[i].data.length){
       //console.log(i + " " + j + " New entry");
       if(competition.group[i].data[j]){
         competition.group[i].data[j].date = competition.DATE;
       }
-      
-      self.getPersonID(competition.group[i].data[j], getPersonIDcallback);
+      //console.log('getId');
+      self.getPersonID(competition.group[i].data[j],competition.group[i].shift, getPersonIDcallback);
     }else{
+      //console.log('else');
+      //console.log(competition.group.length,competition.group[i].data.length, i, j);
       callback(null, competition);
     }
   }
 
 };
 
-module.exports.getBestThreePoints = function(persons, callback){
+module.exports.getBestThreePoints = function(persons,  callback){
   var query = 'SELECT CUR_RANK FROM RUNNERS INNER JOIN DATA.DUPLICATES ON MAIN = FULLNAME WHERE ACTIVE = 1 AND VARIANT IN ('+ persons + ') ORDER BY CUR_RANK LIMIT 3;'
   
   connection.query(query, function(err, rows, fields) {
@@ -372,16 +373,12 @@ module.exports.getBestThreePoints = function(persons, callback){
      });
      
      ////console.log(points);
-     for(var i = 0; i < 3; i++){
-      if(!points[i]){
-        points[i] = defaultSettings.defaultPoints;
-      }
-     }
+     
      callback(null, points);
       
     }else{
       //console.log(err);
-      callback(err, [defaultSettings.defaultPoints, defaultSettings.defaultPoints, defaultSettings.defaultPoints]);
+      callback(err);
     }
   });
 };
@@ -390,10 +387,10 @@ module.exports.updateCurrentRanking = function(date, callback){
   //console.log('current Update ' + (date?date.toMysqlFormat():' now'));
   
   if(!date){
-    var dateParam = 'NOW()';
+    var dateParam = 'DATE(NOW())';
   }else{
     date =new Date(date);
-    var dateParam = '"' + date.toMysqlFormat() + '"';
+    var dateParam = "'" + date.toMysqlFormat()+"'";
   }
   
   var query = 'UPDATE RUNNERS SET CUR_RANK = NULL, SUBJECTIVE = "N";';
@@ -411,30 +408,34 @@ module.exports.updateCurrentRanking = function(date, callback){
       }
       
       ////console.log(dateParam);
-      var query = 'UPDATE RUNNERS,(SELECT RUNNER_ID, NAME, '
-                + '((IF(6 - COUNT(PTS)<=SUBJ,(6 - COUNT(PTS)), SUBJ)*'+globalSettings.defaultPoints+'  + IF((6 - COUNT(PTS) - SUBJ)>0,(6 - COUNT(PTS) - SUBJ)* '+globalSettings.maxPoints+', 0)  + SUM(PTS))/6) AS CUR_POINTS, '
-                + 'COUNT(PTS)AS RESULT_COUNT, SUBJ '
-                + 'FROM ' 
-                + '(SELECT RUNNERS.ID RUNNER_ID, FULLNAME NAME, CUR_RANK CUR_POINTS, POINTS PTS, RESULTS.ID AS RESULT_ID, '
-                + '(SELECT COUNT(*) FROM RESULTS WHERE RUNNER = RUNNERS.ID AND COMPETITION = 0 AND DATE > DATE_SUB('+dateParam+', INTERVAL 1 YEAR)) AS SUBJ '
-                + 'FROM RUNNERS '
-                + 'INNER JOIN RESULTS ON RESULTS.RUNNER = RUNNERS.ID '
-                + 'WHERE DATE > DATE_SUB('+dateParam+', INTERVAL 1 YEAR) AND COMPETITION <> 0'
-                + ') AS OUTER_PROP '
-                + 'WHERE ( '
-                + 'SELECT COUNT(*) FROM (SELECT RUNNERS.ID RUNNER_ID, FULLNAME NAME, CUR_RANK CUR_POINTS, POINTS PTS , RESULTS.ID AS RESULT_ID '
-                + 'FROM RUNNERS '
-                + 'INNER JOIN RESULTS ON RESULTS.RUNNER = RUNNERS.ID '
-                + 'WHERE DATE > DATE_SUB('+dateParam+', INTERVAL 1 YEAR) AND COMPETITION <> 0'
-                + ') AS INNER_PROP '
-                + 'WHERE INNER_PROP.RUNNER_ID = OUTER_PROP.RUNNER_ID AND '
-                + '(CASE WHEN INNER_PROP.PTS <> OUTER_PROP.PTS THEN INNER_PROP.PTS < OUTER_PROP.PTS ELSE INNER_PROP.RESULT_ID < OUTER_PROP.RESULT_ID END) '
-                + ') < 6 '
-                + 'GROUP BY RUNNER_ID ORDER BY RUNNER_ID) AS TEMP_PROP '
-                + 'SET RUNNERS.CUR_RANK = TEMP_PROP.CUR_POINTS, UPDATED_DATE = NOW(), RUNNERS.SUBJECTIVE = (CASE WHEN (6 - RESULT_COUNT > 0) AND (SUBJ > 0) THEN "Y" ELSE "N" END) '
-                + 'WHERE RUNNERS.ID = TEMP_PROP.RUNNER_ID;';
-               
-      //console.log(query);
+      var query = `
+                UPDATE RUNNERS,(SELECT RUNNER_ID, NAME, 
+                ((IF(${globalSettings.startsAmount} - COUNT(PTS)<=SUBJ,(${globalSettings.startsAmount} - COUNT(PTS)), SUBJ)* SUBJ_VAL  
+                + IF((${globalSettings.startsAmount} - COUNT(PTS) - SUBJ)>0,(${globalSettings.startsAmount} - COUNT(PTS) - SUBJ)* ${globalSettings.maxPoints}, 0)  
+                + SUM(PTS))/${globalSettings.startsAmount}) AS CUR_POINTS, 
+                COUNT(PTS)AS RESULT_COUNT, SUBJ 
+                FROM 
+                (SELECT RUNNERS.ID RUNNER_ID, FULLNAME NAME, CUR_RANK CUR_POINTS, POINTS PTS, RESULTS.ID AS RESULT_ID, 
+                (SELECT COUNT(*) FROM RESULTS WHERE RUNNER = RUNNERS.ID AND COMPETITION = 0 AND DATE > DATE_SUB(${dateParam}, INTERVAL 1 YEAR)) AS SUBJ,
+                (SELECT DISTINCT POINTS FROM RESULTS WHERE RUNNER = RUNNERS.ID AND COMPETITION = 0) AS SUBJ_VAL 
+                FROM RUNNERS 
+                INNER JOIN RESULTS ON RESULTS.RUNNER = RUNNERS.ID 
+                WHERE DATE > DATE_SUB(${dateParam}, INTERVAL 1 YEAR) AND COMPETITION <> 0
+                ) AS OUTER_PROP 
+                WHERE ( 
+                SELECT COUNT(*) FROM (SELECT RUNNERS.ID RUNNER_ID, FULLNAME NAME, CUR_RANK CUR_POINTS, POINTS PTS , RESULTS.ID AS RESULT_ID 
+                FROM RUNNERS 
+                INNER JOIN RESULTS ON RESULTS.RUNNER = RUNNERS.ID 
+                WHERE DATE > DATE_SUB(${dateParam}, INTERVAL 1 YEAR) AND COMPETITION <> 0
+                ) AS INNER_PROP 
+                WHERE INNER_PROP.RUNNER_ID = OUTER_PROP.RUNNER_ID AND 
+                (CASE WHEN INNER_PROP.PTS <> OUTER_PROP.PTS THEN INNER_PROP.PTS < OUTER_PROP.PTS ELSE INNER_PROP.RESULT_ID < OUTER_PROP.RESULT_ID END) 
+                ) < ${globalSettings.startsAmount}
+                GROUP BY RUNNER_ID ORDER BY RUNNER_ID) AS TEMP_PROP 
+                SET RUNNERS.CUR_RANK = TEMP_PROP.CUR_POINTS, UPDATED_DATE = NOW(), RUNNERS.SUBJECTIVE = (CASE WHEN (${globalSettings.startsAmount} - RESULT_COUNT > 0) AND (SUBJ > 0) THEN "Y" ELSE "N" END) 
+                WHERE RUNNERS.ID = TEMP_PROP.RUNNER_ID;
+                `;
+               ;
       connection.query(query, function(err, rows, fields) {
         
         if (!err){
@@ -445,7 +446,9 @@ module.exports.updateCurrentRanking = function(date, callback){
           //callback(err);
         }
         
-        var query = 'UPDATE RUNNERS SET CUR_RANK = '+globalSettings.maxPoints+' WHERE CUR_RANK IS NULL;';
+        var query = `
+          UPDATE RUNNERS SET CUR_RANK = ${globalSettings.maxPoints} WHERE CUR_RANK IS NULL;
+        `;
         // var query = 'SELECT 1;';
                     
         ////console.log(query);
@@ -480,19 +483,18 @@ module.exports.getRunnersList = function(callback){
 };
 
 module.exports.getRunnerResults = function(runnerID, callback){
-  var query = 'SELECT R.ID AS ID, COMPETITION, NAME, RUNNER, R.DATE AS DATE, TIME, PLACE, POINTS, COMP_GROUP, DISTANCE, TIME_BEHIND, '
-  +' CASE WHEN R.DATE > DATE_SUB(NOW(), INTERVAL 1 YEAR) THEN "C" ELSE "P" END AS ACT_RESULT, CASE WHEN COMPETITION <> 0 THEN 1 ELSE 0 END AS COMP_RESULT'
-  +' FROM RESULTS R'
-  +' LEFT JOIN COMPETITIONS C ON C.ID = COMPETITION'
-  +' WHERE RUNNER = '+runnerID+' ORDER BY ACT_RESULT ASC, COMP_RESULT DESC, POINTS;';
+  var query = `
+    SELECT R.ID AS ID, COMPETITION, NAME, RUNNER, R.DATE AS DATE, TIME, PLACE, POINTS, COMP_GROUP AS 'GROUP', DISTANCE, TIME_BEHIND,
+    CASE WHEN R.DATE > DATE_SUB(DATE(NOW()), INTERVAL 1 YEAR) THEN "C" ELSE "P" END AS ACT_RESULT, CASE WHEN COMPETITION <> 0 THEN 1 ELSE 0 END AS COMP_RESULT
+    FROM RESULTS R
+    LEFT JOIN COMPETITIONS C ON C.ID = COMPETITION
+    WHERE RUNNER = ${runnerID} ORDER BY ACT_RESULT ASC, COMP_RESULT DESC, POINTS;
+  `;
   
-  //  CASE WHEN R.DATE > DATE_SUB(NOW(), INTERVAL 1 YEAR) THEN CASE WHEN (SELECT COUNT(POINTS) + 1 FROM RESULTS WHERE RUNNER = 1001 AND POINTS < R.POINTS AND DATE > DATE_SUB(NOW(), INTERVAL 1 YEAR)) END AS ORDER_PTS FROM RESULTS R LEFT JOIN COMPETITIONS C ON C.ID = R.COMPETITION WHERE RUNNER = 1001 ORDER BY POINTS;
-  ////console.log(query);
   connection.query(query, function(err, rows, fields) {
     if (!err){
       callback(null, rows);
     }else{
-      //console.log(err);
       callback(err);
     }
       
@@ -565,25 +567,17 @@ module.exports.setDuplicates = function(mainName, duplicatesNames, callback){
 };
 
 //RESULTS
+
+//?????????????????????
 module.exports.addResults = function(competition, callback){
-  /*ID MEDIUMINT NOT NULL AUTO_INCREMENT,' 
-      +'COMPETITION INT NOT NULL, '
-      +'RUNNER INT NOT NULL, '
-      +'DATE DATETIME, '
-      +'TIME DATETIME, '
-      +'PLACE SMALLINT, '
-      +'POINTS DECIMAL(5,2), '
-      +'COMP_GROUP nvarchar(10), '
-      +'DISTANCE nvarchar(1), ' //L,M,S,N...
-      +'TIME_BEHIND nvarchar(15)*/
-  ////console.log(competition);
+  
   if(competition.STATUS !== 'VALID'){
     callback('INVALID STATUS');
     return;
   }
   
   var query = 'INSERT INTO RESULTS '
-  +'(COMPETITION, RUNNER, DATE, TIME, PLACE, POINTS, COMP_GROUP, DISTANCE, TIME_BEHIND, CREATED_DATE) '
+  +'(COMPETITION, RUNNER, DATE, TIME, PLACE, POINTS, DISTANCE, TIME_BEHIND, COMP_GROUP, CREATED_DATE) '
   + 'VALUES ';
   
   for(var i=0; i<competition.group.length; i++){
@@ -597,21 +591,16 @@ module.exports.addResults = function(competition, callback){
       + "'" + group.data[j].result + "'" + ', '
       +  group.data[j].place + ', '
       +  group.data[j].points + ', '
-      +  "'" + group.name + "'" + ', '
       + "'" +  'L' + "'" + ', '
       +  "'" + group.data[j].timeBehind + "', "
+      +  "'" + group.name + "'" + ', '
       + 'NOW()'
       + '), ';
-      
-      /*if(j!= group.data.length -1 && i != competition.group.length -1){
-        query += ', ';
-      }else{
-        query += ';';
-      }*/
     }
   }
   query = query.replace(/\,.$/, ';');
-  ////console.log(query);
+  //console.log(query.length);
+  //console.log(query);
   
   connection.query(query, function(err, rows, fields) {
     if (!err){
@@ -621,7 +610,7 @@ module.exports.addResults = function(competition, callback){
     else{
       /*//console.log(competition.group[0].data);
       //console.log(competition.group[1].data);*/
-      //console.log(query);
+      console.log(query);
       //console.log(err);
       callback(err);
     }
@@ -663,7 +652,9 @@ module.exports.rollBackToDate = function(date, callback){
       connection.query(query, function(err, rows, fields) {
       if (!err){
         
-         var query = 'UPDATE RUNNERS SET ACTIVE = 0, UPDATED_DATE = NOW() WHERE ID IN (SELECT RUNNER FROM RESULTS GROUP BY RUNNER HAVING COUNT(RUNNER)=6);';
+         var query = `
+          UPDATE RUNNERS SET ACTIVE = 0, UPDATED_DATE = NOW() WHERE ID IN (SELECT RUNNER FROM RESULTS GROUP BY RUNNER HAVING COUNT(RUNNER)=${globalSettings.startsAmount});
+         `;
          ////console.log(query);
          connection.query(query, function(err, rows, fields) {
           if (!err){
@@ -672,7 +663,9 @@ module.exports.rollBackToDate = function(date, callback){
             connection.query(query, function(err, rows, fields) {
               if (!err){
                 ////console.log(query);
-              var query = 'DELETE FROM STATISTICS WHERE ENTRY_DATE >=  ' + date.toMysqlFormat() +';';
+              var query = `
+              DELETE FROM STATISTICS WHERE ENTRY_DATE >= ${date.toMysqlFormat()};
+              `;
               connection.query(query, function(err, rows, fields) {
                 if (!err){
                   ////console.log(query);
@@ -718,27 +711,27 @@ module.exports.getStatistic = function(){
   //params total, active, superactive, competitions, activecomps, mostfreq, starts,  mostfreq year, starts year, latest comp, latest update
   return new Promise(function(resolve, reject){
     var stats = {};
-    var query = 'SELECT COUNT(*) AS DATA FROM RUNNERS WHERE ACTIVE =1 '
-        +' UNION ALL'
-        +' SELECT COUNT(*) FROM RUNNERS WHERE ID IN (SELECT DISTINCT RUNNER FROM RESULTS WHERE DATE > DATE_SUB(NOW(), INTERVAL 1 YEAR) AND COMPETITION != 0) AND ACTIVE =1 '
-        +' UNION ALL'
-        +' SELECT COUNT(*) FROM RUNNERS WHERE ID IN (SELECT DISTINCT RUNNER FROM RESULTS WHERE DATE > DATE_SUB(NOW(), INTERVAL 1 YEAR) AND COMPETITION != 0 GROUP BY RUNNER HAVING COUNT(RUNNER)>5) AND ACTIVE =1 '
-        +' UNION ALL'
-        +' SELECT COUNT(ID) FROM COMPETITIONS'
-        +' UNION ALL'
-        +' SELECT COUNT(ID) FROM COMPETITIONS WHERE DATE > DATE_SUB(NOW(), INTERVAL 1 YEAR)'
-        +' UNION ALL'
-        +' (SELECT (SELECT FULLNAME FROM RUNNERS WHERE ID = RUNNER) FROM RESULTS GROUP BY RUNNER ORDER BY COUNT(RUNNER) DESC LIMIT 1)'
-        +' UNION ALL'
-        +' (SELECT COUNT(RUNNER) FROM RESULTS WHERE COMPETITION != 0 GROUP BY RUNNER ORDER BY COUNT(RUNNER) DESC LIMIT 1)'
-        +' UNION ALL'
-        +' (SELECT (SELECT FULLNAME FROM RUNNERS WHERE ID = RUNNER) FROM RESULTS WHERE DATE > DATE_SUB(NOW(), INTERVAL 1 YEAR) GROUP BY RUNNER ORDER BY COUNT(RUNNER) DESC LIMIT 1)'
-        +' UNION ALL'
-        +' (SELECT COUNT(RUNNER) FROM RESULTS WHERE COMPETITION != 0 AND DATE > DATE_SUB(NOW(), INTERVAL 1 YEAR) GROUP BY RUNNER ORDER BY COUNT(RUNNER) DESC LIMIT 1)'
-        +' UNION ALL'
-        +' (SELECT DATE_FORMAT(MAX(DATE),"%d-%m-%Y") FROM COMPETITIONS)'
-        +' UNION ALL'
-        +' SELECT DATE_FORMAT(MAX(UPDATED_DATE),"%d-%m-%Y") FROM RUNNERS;';
+    var query =  `SELECT COUNT(*) AS DATA FROM RUNNERS WHERE ACTIVE =1  
+          UNION ALL 
+          SELECT COUNT(*) FROM RUNNERS WHERE ID IN (SELECT DISTINCT RUNNER FROM RESULTS WHERE DATE > DATE_SUB(NOW(), INTERVAL 1 YEAR) AND COMPETITION != 0) AND ACTIVE =1  
+          UNION ALL 
+          SELECT COUNT(*) FROM RUNNERS WHERE ID IN (SELECT DISTINCT RUNNER FROM RESULTS WHERE DATE > DATE_SUB(NOW(), INTERVAL 1 YEAR) AND COMPETITION != 0 GROUP BY RUNNER HAVING COUNT(RUNNER)>=${globalSettings.startsAmount}) AND ACTIVE =1  
+          UNION ALL 
+          SELECT COUNT(ID) FROM COMPETITIONS 
+          UNION ALL 
+          SELECT COUNT(ID) FROM COMPETITIONS WHERE DATE > DATE_SUB(NOW(), INTERVAL 1 YEAR) 
+          UNION ALL 
+          (SELECT (SELECT FULLNAME FROM RUNNERS WHERE ID = RUNNER) FROM RESULTS GROUP BY RUNNER ORDER BY COUNT(RUNNER) DESC LIMIT 1) 
+          UNION ALL 
+          (SELECT COUNT(RUNNER) FROM RESULTS WHERE COMPETITION != 0 GROUP BY RUNNER ORDER BY COUNT(RUNNER) DESC LIMIT 1) 
+          UNION ALL 
+          (SELECT (SELECT FULLNAME FROM RUNNERS WHERE ID = RUNNER) FROM RESULTS WHERE DATE > DATE_SUB(NOW(), INTERVAL 1 YEAR) GROUP BY RUNNER ORDER BY COUNT(RUNNER) DESC LIMIT 1) 
+          UNION ALL 
+          (SELECT COUNT(RUNNER) FROM RESULTS WHERE COMPETITION != 0 AND DATE > DATE_SUB(NOW(), INTERVAL 1 YEAR) GROUP BY RUNNER ORDER BY COUNT(RUNNER) DESC LIMIT 1) 
+          UNION ALL 
+          (SELECT DATE_FORMAT(MAX(DATE),"%d-%m-%Y") FROM COMPETITIONS) 
+          UNION ALL 
+          SELECT DATE_FORMAT(MAX(UPDATED_DATE),"%d-%m-%Y") FROM RUNNERS;`;
     
     connection.query(query, function(err, rows, fields) {
       if (!err){
@@ -889,17 +882,19 @@ function createTables(connection, callback){
       if (err){
         //console.log(err);
       }
-      var query = 'CREATE TABLE RESULTS (ID MEDIUMINT NOT NULL AUTO_INCREMENT,' 
-      +'COMPETITION INT NOT NULL, '
-      +'RUNNER INT NOT NULL, '
-      +'DATE DATETIME, '
-      +'TIME NVARCHAR(10), '
-      +'PLACE SMALLINT, '
-      +'POINTS DECIMAL(5,2), '
-      +'COMP_GROUP nvarchar(10), '
-      +'DISTANCE ENUM("LONG", "MIDDLE", "SPRINT", "NIGHT"), ' //L,M,S,N...
-      +'CREATED_DATE DATETIME, '
-      +'TIME_BEHIND nvarchar(15), PRIMARY KEY (ID)) AUTO_INCREMENT=1001;';
+      var query = `CREATE TABLE RESULTS (ID MEDIUMINT NOT NULL AUTO_INCREMENT, 
+      COMPETITION INT NOT NULL, 
+      RUNNER INT NOT NULL, 
+      DATE DATETIME, 
+      TIME NVARCHAR(10), 
+      PLACE SMALLINT, 
+      POINTS DECIMAL(5,2),
+      DISTANCE ENUM("LONG", "MIDDLE", "SPRINT", "NIGHT"), 
+      COMP_GROUP nvarchar(10),
+      TIME_BEHIND nvarchar(15),
+      CREATED_DATE DATETIME, 
+      PRIMARY KEY (ID)) AUTO_INCREMENT=1001;
+      `;
       
       connection.query(query, function(err, rows, fields) {
         if (err){
@@ -969,7 +964,7 @@ function switchToDB(connection, callback){
 }
 
 //with duplicates save
-function addNewRunner(runner, callback){
+function addNewRunner(runner, points, callback){
   
   if(!runner.active){
     var query = 'INSERT INTO RUNNERS (FULLNAME, BIRTH_DATE, TEAM, SEX, ACTIVE, CREATED_DATE, UPDATED_DATE) '
@@ -985,11 +980,11 @@ function addNewRunner(runner, callback){
     //console.log(query);
     connection.query(query, function(err, rows, fields) {
       if(err){
-        console.log(err);
+        console.log(err. query);
       }
       var runnerID = rows.insertId;
       var date = new Date(runner.date);
-      setDefaultPoints(runnerID, date).then(function(){
+      setDefaultPoints(runnerID, date, points).then(function(){
         callback(null, runnerID);
       });
      
@@ -997,22 +992,20 @@ function addNewRunner(runner, callback){
   }else{
     var runnerID = runner.id;
     var date = new Date(runner.date);
-    setDefaultPoints(runnerID, date).then(function(){
+    setDefaultPoints(runnerID, date, points).then(function(){
       callback(null, runnerID);
     });
   }
   
 }
 
-function setDefaultPoints (runnerID, date){
+function setDefaultPoints (runnerID, date, points){
   return new Promise(function(resolve, reject){
-    var points = defaultSettings.defaultPoints;
-  
     var query = 'INSERT INTO RESULTS '
     +'(COMPETITION, RUNNER, DATE, POINTS, CREATED_DATE) '
     + 'VALUES ';
     
-    for(var j=1; j<=6; j++){
+    for(var j=1; j<=globalSettings.startsAmount; j++){
       
       var targDate = new Date(date);
       targDate.setMonth(targDate.getMonth()-j);
@@ -1025,7 +1018,7 @@ function setDefaultPoints (runnerID, date){
       + 'NOW()'
       + ')';
       
-      if(j!= 6){
+      if(j!= globalSettings.startsAmount){
         query = query+ ',';
       }
     }
@@ -1044,6 +1037,7 @@ function setDefaultPoints (runnerID, date){
           }
         });
       }else{
+        console.log(query);
         reject(err);
       }
       

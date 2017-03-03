@@ -57,6 +57,8 @@ angular.module('app')
     competitionsService.getCompetition().get({id:parseInt($stateParams.id,10)})
     .$promise.then(
       function(response){
+        response.details[0].runners = response.results.length;
+        response.results = groupResults(response.results);
         self.info = response;
         $scope.isDataLoaded = true;
       },
@@ -66,9 +68,25 @@ angular.module('app')
         $scope.message = response.status + '' + response.statusText;
       });
    
+    function groupResults(resultsList){
+      if(resultsList.length === 0){
+        return null;
+      }
+      var groups = [[]];
+      var group = resultsList[0].COMP_GROUP;
+      
+      for(var i=0; i<resultsList.length; i++){
+        if(resultsList[i].COMP_GROUP === group){
+          groups[groups.length-1].push(resultsList[i]);
+        }else{
+          groups.push([resultsList[i]]);
+          group = resultsList[i].COMP_GROUP;
+        }
+      }
+      return groups;
+    };
   
 }])
-
 
 .controller('RunnersController', ['$scope', 'runnerService', function($scope, runnerService) {
     var self = this;
@@ -120,7 +138,6 @@ angular.module('app')
     };
   
 }])
-
 
 .controller('RunnerViewController', ['$scope', '$stateParams', 'runnerService', function($scope, $stateParams, runnerService) {
     var self = this;
@@ -178,8 +195,7 @@ angular.module('app')
                 display: true,
                 position: 'right',
                 ticks: {
-                    min: 1,
-                    stepSize: 1
+                    min: 1
                 }
               }
             ]
@@ -188,34 +204,48 @@ angular.module('app')
       }
 }])
 
-.controller('AboutController', ['$scope', function($scope) {
-   $scope.showInfo = false;
-   $scope.toggleInfo = function(){
-     $scope.showInfo = !$scope.showInfo;
-   }
+.controller('AboutController', ['aboutService', '$scope', function(aboutService, $scope) {
+  var self = this;
+  self.groups = '(Загрузка..)';
+  $scope.isDataLoaded = false;
+  
+  $scope.showInfo = false;
+  $scope.toggleInfo = function(){
+    $scope.showInfo = !$scope.showInfo;
+  };
+   
+  aboutService.getGoupsData().query(
+    function(response){
+      self.groups = response.map(function(item){
+        return item.name;
+      }).join(', ');
+      self.points = response;
+      $scope.isDataLoaded = true;
+    },
+    function(response){
+      $scope.isDataLoaded = true;
+      $scope.isError = true;
+      $scope.message = response.status + '' + response.statusText;
+    });
 }])
 
-.controller('LogintController', ['$scope', '$mdDialog', '$mdMedia', '$mdToast','$state', function($scope, $mdDialog, $mdMedia, $mdToast, $state) {
-  $scope.status = '  ';
-  $scope.customFullscreen = false;
+.controller('LoginController', ['$mdDialog', '$mdMedia', '$mdToast','$state', function($mdDialog, $mdMedia, $mdToast, $state) {
+   var customFullscreen = false;
 
-  $scope.showPrompt = function(event) {
+   this.showPrompt = function(event) {
     // Appending dialog to document.body to cover sidenav in docs app
     
     $mdDialog.show({
         clickOutsideToClose:true,
-        controller: LoginDialogController,
-        templateUrl:'loginTemplate.html',
+        controller: 'LoginDialogController as ctrl',
+        templateUrl:'views/templates/loginPopup.html',
         parent: angular.element(document.body),
         targetEvent: event,
-        fullscreen: $scope.customFullscreen
+        fullscreen: customFullscreen
     }).then(function(result) {
         $state.go(result.adminPanel);
-        
-      //$scope.status = 'You decided to name your dog ' + result + '.';
     }, function() {
       console.log('cancel');
-      //$scope.status = 'You didn\'t name your dog.';
     });
   }
 }])
@@ -367,31 +397,30 @@ angular.module('app')
         }
     );
   }])
-
-;
-
-LoginDialogController.$inject = ['$scope', '$mdDialog','loginService'];
-function LoginDialogController($scope, $mdDialog, loginService){
-  $scope.password = '';
-  $scope.username = 'admin01';
-   $scope.close = function() {
-     $scope.wrongPass = false;
+.controller('LoginDialogController', ['$mdDialog','loginService', function ($mdDialog, loginService){
+  var self = this;
+  
+  self.password = '';
+  self.username = 'admin01';
+  
+  self.close = function() {
+     self.wrongPass = false;
       $mdDialog.cancel();
     };
-    $scope.login = function() {
-      $scope.wrongPass = false;
-      $scope.loading = true;
+    self.login = function() {
+      self.wrongPass = false;
+      self.loading = true;
       
-      loginService.adminLogin().check({user: $scope.username, password: $scope.password}, function(response){
-        $scope.loading = false;
+      loginService.adminLogin().check({user: self.username, password: self.password}, function(response){
+        self.loading = false;
           if(response.error){
-            $scope.wrongPass = true;
+            self.wrongPass = true;
             return;
           }
           $mdDialog.hide(response);
         });
     };
-}
+}]);
 
 function onSuccess(response, self, scope){
   

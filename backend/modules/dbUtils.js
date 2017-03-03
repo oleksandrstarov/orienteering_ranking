@@ -1,7 +1,7 @@
 'use strict';
 
 var db = require('./dataBase.js'),
-    settings = require('./settings.js').getSettings();
+    settings = require('./settings.js').getGroupSettings();
 
 //ready
 module.exports.getImportedCompetitionsIDs = function(callback){
@@ -64,6 +64,7 @@ module.exports.processCompetition = function(competition, callback){
 
 module.exports.updateRunnersPoints = function(date, callback){
     db.updateCurrentRanking(date, function(error){
+        //console.log(error);
         callback(error);
         
     });
@@ -114,7 +115,7 @@ module.exports.getCompetitionResults = function(id, callback){
             var data = {};
             data.details = competitionDetails;
             data.results = competitionResults;
-            console.log(JSON.stringify(data));
+            //console.log(JSON.stringify(data));
             callback(error, JSON.stringify(data));
         });
     });
@@ -193,7 +194,7 @@ function addCompetitionResult(competition, callback){
         if(!error){
             db.addResults(competition, function(error){
                 if(error){
-                    //console.error(error);
+                    console.error(error);
                 }
                 
                 callback(null, competition);
@@ -214,4 +215,11 @@ module.exports.getStatistics = function(){
 
 module.exports.setPointsStatistic = function(date){
     return db.setPointsStatistic(date);
+};
+
+module.exports.getGroupSettings = function(){
+    
+    return settings.map(function(group){
+        return {name: group.name, points: group.shift};
+    });
 };
