@@ -181,7 +181,7 @@ function normalizeResultSet(resultSet){
     resultSet.team = normalizeClub(resultSet.team);
     resultSet.place = resultSet.place.replace(/\D+/g, '').trim();
     resultSet.place = resultSet.place?resultSet.place:-1;
-    resultSet.birthDate = resultSet.birthDate && resultSet.birthDate.trim().length > 3?resultSet.birthDate.trim().split(" ")[0]:null;
+    resultSet.birthDate = resultSet.birthDate && resultSet.birthDate.trim().length > 3?resultSet.birthDate.trim().split(" ")[0]:'';
     
     resultSet.fullName = resultSet.lastName + ' ' + resultSet.firstName;
     ////console.log(resultSet);

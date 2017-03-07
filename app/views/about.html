@@ -40,8 +40,16 @@ TM - среднее время трех лучших спортсменов (п�
   </p>
 </div>
 <div class="container">
-  <h2 ng-click="toggleInfo()">Release progress <span ng-if="!showInfo" class="glyphicon glyphicon-chevron-up"></span> <span ng-if="showInfo" class="glyphicon glyphicon-chevron-down"></span></h2>
+  <h2 ng-click="toggleInfo()">Release progress <span ng-if="!showInfo" class="glyphicon glyphicon-chevron-down"></span> <span ng-if="showInfo" class="glyphicon glyphicon-chevron-up"></span></h2>
   <span ng-if="showInfo">
+  <h4>v.: 0.4.2 / 2017-03-07</h4>
+  <p>
+    -Added filter for subjective ranking in runners view, added correction points to keep list started from 0.00 for best runner in each gender, added tracking on sex update for girls who initially ran in man classes 
+  </p>  
+  <h4>v.: 0.4.1 / 2017-03-05</h4>
+  <p>
+    -keep the latest team name for runners, fill birth date for runners with first non-empty value 
+  </p>    
   <h4>v.: 0.4.0 / 2017-03-01</h4>
   <p>
     -major update, added support for groups 16-65, changed default points logic (separate for each group). Updated Competition results view (added accordion for multiple groups). Formula update - the avg time of 3 best runners is limited to be not more than best time x 1.1 (i.e. best time plus 10%) - to avoid unreal hight points for small groups 

@@ -264,33 +264,28 @@ module.exports.updateCompetitionsStatus = function(competitions, callback){
 };
 
 //RUNNERS
-module.exports.getPersonID = function(runner, points, callback){
+function getPersonID(runner, points, callback){
   if(!runner){
     callback('NO VALID RUNNER DATA');
     return;
   }
+  
   var query = 'SELECT ID, ACTIVE FROM RUNNERS INNER JOIN DATA.DUPLICATES ON FULLNAME = MAIN WHERE VARIANT = '+ '"' + runner.fullName+'"'+ ' LIMIT 1;'
-  ////console.log(query);
   connection.query(query, function(err, rows, fields) {
-    ////console.log(rows);
     if (!err){
-      //console.log('RUNNER ' + runner.fullName+' ID IS ' + rows);
       var id = null;
-      //console.log(rows);
       if(rows.length === 0 || rows[0].ACTIVE == 0){
         checkMainName(runner.fullName, function(error, fullname){
           if(rows.length != 0){
             runner.id = rows[0].ID;
             runner.active = rows[0].ACTIVE;
           }
-          //console.log('add new');
           addNewRunner(runner, points, function(error, runnerID){
             if(!error){
-              //console.log(runnerID);
               id = runnerID;
               callback(null, id);
             }else{
-              //console.log(error);
+              console.log(error);
               callback(error);
             }
           
@@ -298,13 +293,10 @@ module.exports.getPersonID = function(runner, points, callback){
         });
         
       }else{
-        //console.log('Old Used');
         id = rows[0].ID;
         callback(null, id);
       }
-      
     }else{
-      //console.log(err);
       callback(err);
     }
       
@@ -320,16 +312,11 @@ module.exports.setRunnersIDs = function(competition, callback){
   }
   
   //console.log(competition.group.length);
-  this.getPersonID(competition.group[i].data[j],competition.group[i].shift, getPersonIDcallback);
+  getPersonID(competition.group[i].data[j],competition.group[i].shift, getPersonIDcallback);
+  
   var self = this;
   function getPersonIDcallback(error, id){
-    /*console.log(i + " " + j);
-    console.log(id);
-    //console.log(competition.group[i].data[j].date);
-    console.log(competition.group[i].data[j].fullName);
-    */
     
-    //console.log('SETTING RUNNER ID ' + id);
     if(error){
       console.log(error);
     }
@@ -350,14 +337,13 @@ module.exports.setRunnersIDs = function(competition, callback){
         competition.group[i].data[j].date = competition.DATE;
       }
       //console.log('getId');
-      self.getPersonID(competition.group[i].data[j],competition.group[i].shift, getPersonIDcallback);
+      getPersonID(competition.group[i].data[j],competition.group[i].shift, getPersonIDcallback);
     }else{
       //console.log('else');
       //console.log(competition.group.length,competition.group[i].data.length, i, j);
       callback(null, competition);
     }
   }
-
 };
 
 module.exports.getBestThreePoints = function(persons,  callback){
@@ -580,6 +566,8 @@ module.exports.addResults = function(competition, callback){
   +'(COMPETITION, RUNNER, DATE, TIME, PLACE, POINTS, DISTANCE, TIME_BEHIND, COMP_GROUP, CREATED_DATE) '
   + 'VALUES ';
   
+  var runners = [];
+  
   for(var i=0; i<competition.group.length; i++){
     var group = competition.group[i];
     for(var j=0; j<group.data.length; j++){
@@ -596,6 +584,8 @@ module.exports.addResults = function(competition, callback){
       +  "'" + group.name + "'" + ', '
       + 'NOW()'
       + '), ';
+      
+      runners.push(group.data[j]);
     }
   }
   query = query.replace(/\,.$/, ';');
@@ -604,17 +594,13 @@ module.exports.addResults = function(competition, callback){
   
   connection.query(query, function(err, rows, fields) {
     if (!err){
-      ////console.log('RESULTS ADDED');
-      callback();
-    }
-    else{
-      /*//console.log(competition.group[0].data);
-      //console.log(competition.group[1].data);*/
+      updateRunnersDetails(runners, function(){
+         callback();
+      });
+    }else{
       console.log(query);
-      //console.log(err);
       callback(err);
     }
-      
   });
 };
 
@@ -970,7 +956,7 @@ function addNewRunner(runner, points, callback){
     var query = 'INSERT INTO RUNNERS (FULLNAME, BIRTH_DATE, TEAM, SEX, ACTIVE, CREATED_DATE, UPDATED_DATE) '
     + 'VALUES('
     +'"'+ runner.fullName+'",' 
-    +'"'+ (runner.birthDate?runner.birthDate:'')+'",'
+    +'"'+ runner.birthDate+'",'
     +'"'+ runner.team+'",'
     +'"'+ runner.sex+'",'
     +'"'+ 1 +'",'
@@ -1069,43 +1055,28 @@ function checkMainName(runnerName, callback){
   });
 }
 
+function updateRunnersDetails(runners, callback){
+  if(runners.length === 0){
+    callback();
+    return;
+  }
+  
+  var query =`
+  UPDATE RUNNERS
+  SET 
+   BIRTH_DATE = IF(LENGTH('${runners[0].birthDate}') > 0 AND LENGTH(BIRTH_DATE) = 0, '${runners[0].birthDate}', BIRTH_DATE),
+   TEAM = IF(LENGTH('${runners[0].team}') > 0, '${runners[0].team}', TEAM),
+   SEX = IF(SEX = 'M'  AND '${runners[0].sex}' = 'W', 'W', SEX),
+   UPDATED_DATE = NOW()
+   WHERE ID = ${runners[0].id};
+  `;
+  runners.shift();
+  connection.query(query, function(err, rows, fields) {
+    if (err){
+      console.log(err);
+    }
+    updateRunnersDetails(runners, callback);
+    
+  });
+}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*orderNumber: '1',
-    numberBib: '363',
-    lastName: 'Дьяченко',
-    firstName: 'Вадим',
-    team: 'КСО КОМПАС',
-    result: '00:40:23',
-    place: '1',
-    timeBehind: '',
-    fullName: 'Дьяченко Вадим' }
-*/

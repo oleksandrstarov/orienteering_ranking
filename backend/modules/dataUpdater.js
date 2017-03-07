@@ -135,8 +135,7 @@ function importResults(list, callback, err){
      
     function processCompetitionCallback(error){
         if(error){
-            //console.error(error);
-           
+            console.error(error);
         }
         
         var nextSunday = list[i].DATE.getDay() === 0 ? list[i].DATE : getNextSunday(list[i].DATE);

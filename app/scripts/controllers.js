@@ -96,6 +96,9 @@ angular.module('app')
     $scope.message = '';
     self.manFilter = '';
     self.womanFilter = '';
+    self.manShift = null;
+    self.womanShift = null;
+    
     self.search = function(runner){
       if(runner.SEX === 'M'){
         var normalizedFilter = self.manFilter.toLowerCase();
@@ -105,10 +108,20 @@ angular.module('app')
         return runner.FULLNAME.toLowerCase().indexOf(normalizedFilter) != -1 ||  runner.TEAM.toLowerCase().indexOf(normalizedFilter) != -1;
       }
     };
+    
+    self.subjectiveFilter = function(runner){
+      if(runner.SEX === 'M'){
+        return self.noSubjectiveMan? runner.SUBJECTIVE !=='Y': true;
+      }else{
+        return self.noSubjectiveWoman? runner.SUBJECTIVE !=='Y': true;
+      }
+    };
+    
     runnerService.getRunners().query(
       function(response){
         //console.log(response);
         $scope.isDataLoaded = true;
+        setShift(response);
         self.info = response;
       
       },
@@ -117,7 +130,6 @@ angular.module('app')
         $scope.isDataLoaded = true;
         $scope.isError = true;
         $scope.message = response.status + '' + response.statusText;
-        
       });
       
     self.getPlace = function(points, sex){
@@ -136,6 +148,19 @@ angular.module('app')
       }
       else return '';
     };
+    
+    function setShift(runners){
+      var index = 0;
+      while(self.manShift === null || self.womanShift === null){
+        if(runners[index].SEX === 'M' && self.manShift === null ){
+          self.manShift = -runners[index].CUR_RANK;
+        }
+        if(runners[index].SEX === 'W' && self.womanShift === null ){
+          self.womanShift = -runners[index].CUR_RANK;
+        }
+        index++;
+      }
+    }
   
 }])
 
