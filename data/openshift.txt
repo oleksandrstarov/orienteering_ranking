@@ -8,12 +8,14 @@ This will create a folder with the source code of your application. After making
 git add .
 git commit -m 'My changes'
 git push
-When you push changes the OpenShift server will report back its status on deploying your code. The server will run any of your configured deploy hooks and then restart the application.
+When you push changes the OpenShift server will report back its status on deploying your code. 
+The server will run any of your configured deploy hooks and then restart the application.
 
 ******************************************************************************
 ssh 5841a55c2d5271f49d0001be@ranking-oleksandrstarov.rhcloud.com
 
-The command below will open a Secure Shell (SSH) session to your application on most operating systems. See our SSH help page for information about connecting with Windows, Mac, and Linux computers.
+The command below will open a Secure Shell (SSH) session to your application on most operating systems. 
+See our SSH help page for information about connecting with Windows, Mac, and Linux computers.
 
 ******************************************************************************
 
@@ -31,3 +33,17 @@ The phpmyadmin username and password will be the same as the MySQL credentials a
 oleksandrstarov:~/workspace (master) $ git remote add openshift  ssh://5841a55c2d5271f49d0001be@ranking-oleksandrstarov.rhcloud.com/~/git/ranking.git/
 oleksandrstarov:~/workspace (master) $ git push openshift master
 Counting objects: 3, done.
+
+
+###########################33
+
+LOGS:
+[ranking-oleksandrstarov.rhcloud.com 5841a55c2d5271f49d0001be]\> cd app-root
+[ranking-oleksandrstarov.rhcloud.com app-root]\> ls
+build-dependencies  data  dependencies  logs  repo  runtime
+[ranking-oleksandrstarov.rhcloud.com app-root]\> cd logs
+[ranking-oleksandrstarov.rhcloud.com logs]\> ls
+mysql.log  nodejs.log
+[ranking-oleksandrstarov.rhcloud.com logs]\> nodejs.log
+bash: nodejs.log: command not found
+[ranking-oleksandrstarov.rhcloud.com logs]\> tail -f -n 100 nodejs.log

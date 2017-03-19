@@ -25,8 +25,9 @@ module.exports.getAvailableResults = function(competitionsInDB, customURL, callb
     }
     
     function importCompetitions(data){
+        //console.log('t ', data);
         var newResults = filterNewResults(data, competitionsInDB);
-        //console.log(newResults.length);
+        //console.log(newResults);
         //
         if(newResults.length === 0){
             callback('No new Results', []);
@@ -34,7 +35,7 @@ module.exports.getAvailableResults = function(competitionsInDB, customURL, callb
         }
         var newCompetitionsData = [];
         var i = 0;
-       // console.log(newResults);
+        //console.log(newResults);
         processCompetition(newResults[i], processCompetitionCallback);
          
         function processCompetitionCallback(error, result){
@@ -104,17 +105,20 @@ function parseUrl(link){
 }
 
 function filterNewResults(allResults, existingResults){
-    
     return allResults.filter(function(item){
-        var result = existingResults.indexOf(item.id) < 0;
+        var result = existingResults.indexOf(item.id) < 0 && !(/svodniy/i.test(item.url));
         //console.log(result);
-        existingResults.push(item.id);
+        if(!(/svodniy/i.test(item.url))){
+            existingResults.push(item.id);
+        }
+        
         return result;
     });
 };
 
 
 function processCompetition(competitionData, callback){
+    //console.log(competitionData);
     var url = competitionData.url;
     request({ encoding: null, method: "GET", url: url}, function (error, response, body) {
         if (!error) {

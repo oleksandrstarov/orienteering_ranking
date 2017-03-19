@@ -18,6 +18,9 @@ angular.module('app')
         
       },
       function(error){
+        if(error.status === 434){
+          handleMaintanance();
+        }
         $scope.message = error.error;
         $scope.isError = true;
         $scope.isDataLoaded = true;
@@ -39,6 +42,9 @@ angular.module('app')
         $scope.isDataLoaded = true;
       },
       function(response){
+        if(response.status === 434){
+          handleMaintanance();
+        }
         $scope.isDataLoaded = true;
         $scope.isError = true;
         $scope.message = response.status + '' + response.statusText;
@@ -63,6 +69,9 @@ angular.module('app')
         $scope.isDataLoaded = true;
       },
       function(response){
+        if(response.status === 434){
+          handleMaintanance();
+        }
         $scope.isDataLoaded = true;
         $scope.isError = true;
         $scope.message = response.status + '' + response.statusText;
@@ -126,6 +135,9 @@ angular.module('app')
       
       },
       function(response){
+        if(response.status === 434){
+          handleMaintanance();
+        }
         //console.log(response);
         $scope.isDataLoaded = true;
         $scope.isError = true;
@@ -178,6 +190,9 @@ angular.module('app')
         onSuccess(response, self, $scope);
       },
       function(response){
+        if(response.status === 434){
+          handleMaintanance();
+        }
         onError(response, $scope);
       });
       
@@ -248,6 +263,9 @@ angular.module('app')
       $scope.isDataLoaded = true;
     },
     function(response){
+      if(response.status === 434){
+          handleMaintanance();
+        }
       $scope.isDataLoaded = true;
       $scope.isError = true;
       $scope.message = response.status + '' + response.statusText;
@@ -503,5 +521,9 @@ function setTopResults(data){
     }
   }
   return data;
+}
+
+function handleMaintanance(){
+  window.location = '404.html';
 }
 

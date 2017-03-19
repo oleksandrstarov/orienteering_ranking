@@ -19,7 +19,7 @@ app.use(session({
     secret: '2C41-4D24-WppQ38S',
     resave: true,
     saveUninitialized: true
-}))
+}));
 app.use(morgan('dev'));
 app.use(express.static(__dirname + "./../../dist"));
 app.use(bodyParser.json());
@@ -28,9 +28,20 @@ var auth = function(req, res, next) {
   if (!process.env.OPENSHIFT_NODEJS_IP || req.session && req.session.user === "admin01" && req.session.admin){
     return next();  
   }else{
-   return res.sendStatus(401);  
+    return res.sendStatus(401);  
   }
 };
+var recalculating = dataUpdater.isUpdating;
+
+app.use(function (req, res, next) {
+  //console.log('Time: %d', Date.now());
+  //console.log(recalculating());
+  if(recalculating()){
+    res.sendStatus(434);
+    return;   
+  }
+  next();
+});
 
 app.get('/runners', function(req, res){
     db.getRunnersList(function(error, data){
@@ -111,7 +122,7 @@ app.put('/admin/competitions/recalculate',auth, function(req, res){
             res.end(JSON.stringify({error:error}));
         }else{
              db.getCompetitionsList(function(error, data){
-                 res.end(JSON.stringify({data:data, error:null}));
+                res.end(JSON.stringify({data:data, error:null}));
             });
         }
     });

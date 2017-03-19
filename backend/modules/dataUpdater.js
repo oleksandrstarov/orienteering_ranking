@@ -6,7 +6,7 @@ var competitionsCollector = require('./dataCollector.js'),
     WOparser= require('./htmlParserWinOrient.js'),
     db = require('./dbUtils.js');
 
-
+var isDataUpdating;
 //updateData();
 
 module.exports.updateData = function (){
@@ -147,6 +147,7 @@ function getNewCompetitionsResults(URLsArray, callback){
 
 
 function importResults(list, callback, err){
+    isDataUpdating = true;
     // drop to date before import
     // check best points only for started runners
     var startImport = new Date();
@@ -163,7 +164,7 @@ function importResults(list, callback, err){
         
         ////console.log(list[i].DATE);
         if(++i <= list.length-1){
-            process.stdout.write("\r" +`Importing progress ${Math.round((i+1)/list.length * 100)} % `);
+            process.stdout.write("\r" +`Importing progress ${Math.round((i+1)/list.length * 100)} %`);
             var nextCompetitionDate = list[i].DATE;
             
             
@@ -180,6 +181,7 @@ function importResults(list, callback, err){
                 saveStatistics(nextSunday, new Date(), function(){
                     console.log('DONE');
                     console.log(`Import took ${(new Date() - startImport)/1000}  sec.`);
+                    isDataUpdating = false;
                     if(callback){
                         
                         callback(err);
@@ -189,6 +191,7 @@ function importResults(list, callback, err){
             }else{
                 console.log('DONE');
                 console.log(`Import took ${(new Date() - startImport)/1000}  sec.`);
+                isDataUpdating = false;
                 if(callback){
                     
                     callback(err);
@@ -276,4 +279,8 @@ function saveStatistics(date, nextCompetitionDate, callback){
         }
         
     });
+}
+
+module.exports.isUpdating = function(){
+    return isDataUpdating === true;
 }

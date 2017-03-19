@@ -68,7 +68,6 @@ angular.module('app', ['ui.router', 'ngResource', 'ngMaterial', 'chart.js'])
                 templateUrl : 'views/competitionView.html',
                 controller: 'CompetitionViewController as competitionViewCtrl'
             }
-            
         }
       })
        .state('app.about', {
