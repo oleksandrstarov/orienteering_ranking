@@ -136,6 +136,7 @@ module.exports.getReadyToImportCompetitions = function(callback){
 module.exports.rollBackToDate = function(date, callback){
     //console.log('rolling back to ' + date);
     db.rollBackToDate(date, function(error){
+        console.log(error);
         callback(error);  
     });
 };

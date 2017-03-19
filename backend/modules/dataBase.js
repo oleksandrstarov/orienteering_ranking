@@ -635,10 +635,12 @@ module.exports.rollBackToDate = function(date, callback){
   var query = 'UPDATE COMPETITIONS SET STATUS = "' + 'VALID' + '", UPDATED_DATE = NOW() WHERE STATUS <> "INVALID" AND DATE >= "'+date.toMysqlFormat() + '";';
   ////console.log(query);
   connection.query(query, function(err, rows, fields) {
+   
     if (!err){
       var query = 'DELETE FROM RESULTS WHERE COMPETITION IN (SELECT ID FROM COMPETITIONS WHERE STATUS = "VALID");';
       ////console.log(query);
       connection.query(query, function(err, rows, fields) {
+      
       if (!err){
         
          var query = `
@@ -646,25 +648,26 @@ module.exports.rollBackToDate = function(date, callback){
          `;
          ////console.log(query);
          connection.query(query, function(err, rows, fields) {
+          
           if (!err){
             ////console.log(query);
             var query = 'DELETE FROM RESULTS WHERE RUNNER NOT IN (SELECT DISTINCT ID FROM RUNNERS WHERE ACTIVE = 1);';
             connection.query(query, function(err, rows, fields) {
+              
               if (!err){
                 ////console.log(query);
-              var query = `
-              DELETE FROM STATISTICS WHERE ENTRY_DATE >= ${date.toMysqlFormat()};
-              `;
-              connection.query(query, function(err, rows, fields) {
-                if (!err){
-                  ////console.log(query);
-                  callback(null);
-                }else{
-                  ////console.log(err);
-                  callback(err);
-                }
-                  
-              });
+                var query = `DELETE FROM STATISTICS WHERE ENTRY_DATE >= '${date.toMysqlFormat()}';`;
+                connection.query(query, function(err, rows, fields) {
+                 
+                  if (!err){
+                    ////console.log(query);
+                    callback(null);
+                  }else{
+                    ////console.log(err);
+                    callback(err);
+                  }
+                    
+                });
               }else{
                 ////console.log(err);
                 callback(err);
