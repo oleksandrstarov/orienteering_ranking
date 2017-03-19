@@ -345,14 +345,28 @@ angular.module('app')
     };
     
   }])
-.controller('AdminRunnersController',  ['$scope', 'adminRunnersService','$state', function($scope, service,$state){
+.controller('AdminRunnersController',  ['$scope', 'adminRunnersService','$state', function($scope, service, $state){
     var self = this;
     $scope.info=[];
     self.selectedRunner = {};
     $scope.show = false;
     $scope.selectedRunners =[];
+    $scope.mergedRunners = [];
     $scope.isMerge = false;
     $scope.message = '';
+    
+    var processedRunnersIds = [];
+    
+    $scope.filterInfo = function(runners){
+      if(processedRunnersIds.length === 0){
+        return runners;
+      }
+      
+      return $scope.info.filter(function (runner) {
+        return processedRunnersIds.indexOf(runner.ID) === -1;
+      });
+    }
+    
     
     $scope.$watch('selectedRunners', function(){
         
@@ -360,27 +374,46 @@ angular.module('app')
     });
     
     $scope.merge =  function(){
-        $scope.message = 'Merging...';
-        
-        service.mergeDuplicates().update({data:{main:self.selectedRunner, duplicates:$scope.selectedRunners}}, function(response){
-            
-            if(!response.error){
-                console.log($scope.info);
-                $scope.info = JSON.parse(response.data);
-                console.log($scope.info);
-                
-            }
-            $scope.message = response.error || 'Runners updated';
-        });
-        
-        self.selectedRunner = {};
-        $scope.show = false;
-        
-        for(var i =0; i < $scope.selectedRunners.length; i++){
-            $scope.selectedRunners[i].isSelected = false;
-        }
-        
+      
+      $scope.mergedRunners.push({main:self.selectedRunner, duplicates:$scope.selectedRunners});
+      
+      
+      self.selectedRunner = {};
+      $scope.show = false;
+      
+      for(var i =0; i < $scope.selectedRunners.length; i++){
+          $scope.selectedRunners[i].isSelected = false;
+          processedRunnersIds.push($scope.selectedRunners[i].ID);
+      }
+      $scope.selectedRunners =[];
     };
+    
+    $scope.cancel =  function(){
+      processedRunnersIds = [];
+      $scope.mergedRunners = [];
+      $scope.selectedRunners =[];
+      self.selectedRunner = {};
+      $scope.show = false;
+      for(var i =0; i < $scope.selectedRunners.length; i++){
+          $scope.selectedRunners[i].isSelected = false;
+      }
+    };
+    
+    $scope.updateMergedData =  function(){
+      $scope.message = 'Merging...';
+      
+      service.mergeDuplicates().update($scope.mergedRunners, function(response){
+          if(!response.error){
+            $scope.info = JSON.parse(response.data);
+          }
+          $scope.message = response.error || 'Runners updated';
+          processedRunnersIds = [];
+      });
+      
+    };
+    
+    
+    
     
     $scope.update =  function(){
         $scope.message = 'Updating...';

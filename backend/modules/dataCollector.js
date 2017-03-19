@@ -6,14 +6,13 @@ var request = require('request'),
     cheerio = require('cheerio'),
     iconv  = require('iconv-lite'),
     Buffer = require('buffer').Buffer,
-    SFRparser= require('./htmlParserSFR.js'),
+    //SFRparser= require('./htmlParserSFR.js'),
     url = 'http://orienteering.kh.ua/Result/Index/tag/1/';
 
 
 
 module.exports.getAvailableResults = function(competitionsInDB, customURL, callback){
     if(!customURL){
-        
         grabResults(function(error, data){
             //console.log(data.length);
            importCompetitions(data);
@@ -115,8 +114,6 @@ function filterNewResults(allResults, existingResults){
 };
 
 
-
-//ONLY M21/W21
 function processCompetition(competitionData, callback){
     var url = competitionData.url;
     request({ encoding: null, method: "GET", url: url}, function (error, response, body) {
@@ -130,7 +127,7 @@ function processCompetition(competitionData, callback){
             result.url = url;
             var $ = cheerio.load(body);
             
-            //get type, use corret module to parse
+            //get type, use correct module to parse
             //(ID, DATE, URL, NAME, TYPE, STATUS, VALID, WEB_ID)
             
             var type = getFileType($);

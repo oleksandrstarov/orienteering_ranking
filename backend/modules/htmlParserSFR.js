@@ -179,6 +179,8 @@ function normalizeResultSet(resultSet){
     resultSet.firstName = normalizeFullname(resultSet.firstName);
     resultSet.lastName = normalizeFullname(resultSet.lastName.split(' ')[0]);
     resultSet.team = normalizeClub(resultSet.team);
+    
+    resultSet.place = resultSet.place?resultSet.place:'';
     resultSet.place = resultSet.place.replace(/\D+/g, '').trim();
     resultSet.place = resultSet.place?resultSet.place:-1;
     resultSet.birthDate = resultSet.birthDate && resultSet.birthDate.trim().length > 3?resultSet.birthDate.trim().split(" ")[0]:'';

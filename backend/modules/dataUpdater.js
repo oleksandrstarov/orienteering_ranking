@@ -47,22 +47,41 @@ function rollBackDB(date, callback){
    });
 }
 
-module.exports.mergeDuplicates = function (main, duplicates, callback){
-    //*TODO 
-    db.setDuplicates(main, duplicates, function(error){
+module.exports.mergeDuplicates = function (runners, callback){
+    var index = 0;
+    var idArray = [];
+    
+    idArray.push(runners[index].main.ID);
+            
+    runners[index].duplicates.forEach(function(runner){
+        idArray.push(runner.ID);
+    });
+    
+    db.setDuplicates(runners[index].main, runners[index].duplicates, setDuplicatesCallback);
+    
+    function setDuplicatesCallback(error){
         if(error){
             callback('Error setting duplicates: ' + error);
             return;
         }
-        var idArray = [main.ID];
-        duplicates.forEach(function(runner){
-            idArray.push(runner.ID);
-        });
-        //*TODO 
-        db.getEarliestResultDate(idArray, function(error, earliestResultDate){
-            rollBackDB(earliestResultDate, callback);
-       });
-    });
+        
+        index++;
+        if(index < runners.length){
+            idArray.push(runners[index].main.ID);
+            
+            runners[index].duplicates.forEach(function(runner){
+                idArray.push(runner.ID);
+            });
+            
+            db.setDuplicates(runners[index].main, runners[index].duplicates, setDuplicatesCallback);
+        }else{
+            db.getEarliestResultDate(idArray, function(error, earliestResultDate){
+                rollBackDB(earliestResultDate, callback);
+           });
+        }
+        
+        
+    }
 };
 
 module.exports.manualImport = function (data, callback){
@@ -77,18 +96,18 @@ module.exports.manualImport = function (data, callback){
     }
 };
 
-
 function getNewCompetitionsResults(URLsArray, callback){
+
      var processedCompetitions = [];
      db.getImportedCompetitionsIDs(function(data){
         ////console.log(data);
         processedCompetitions = data;
         //console.log('after get old ids');
         competitionsCollector.getAvailableResults(processedCompetitions, URLsArray, function(error, list){
-            
+           
             if(error){
                
-                 db.getReadyToImportCompetitions(function(error, competitions){
+                db.getReadyToImportCompetitions(function(error, competitions){
                     
                     if(competitions.length != 0){
                         importResults(competitions);
@@ -97,6 +116,7 @@ function getNewCompetitionsResults(URLsArray, callback){
             }else{
                 //console.log('new competitions = ' , list[0]);
                 if(list.length > 0){
+
                     db.saveNewCompetitions(list.reverse(), function(error){
                         if(URLsArray){
                             callback();
@@ -184,6 +204,7 @@ function importResults(list, callback, err){
 function processCompetition(competition, callback){
     
     getResults(competition, function(error, competitionData){
+        
         if(error){
             db.processCompetition(competitionData, function(){
                 

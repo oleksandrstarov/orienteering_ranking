@@ -25,7 +25,7 @@ app.use(express.static(__dirname + "./../../dist"));
 app.use(bodyParser.json());
 
 var auth = function(req, res, next) {
-  if (req.session && req.session.user === "admin01" && req.session.admin){
+  if (!process.env.OPENSHIFT_NODEJS_IP || req.session && req.session.user === "admin01" && req.session.admin){
     return next();  
   }else{
    return res.sendStatus(401);  
@@ -74,17 +74,11 @@ app.get('/about', function(req, res){
 /////////////////////////////////////////////Admin///////////////////////////////////////////////
 
 app.put('/admin/runners/merge',auth, function(req, res){
-    dataUpdater.mergeDuplicates(req.body.data.main, req.body.data.duplicates, function(error){
+    dataUpdater.mergeDuplicates(req.body, function(error){
         db.getRunnersList(function(err, data){
              res.end(JSON.stringify({error:error+err, data:data}));
         });
     });
-    // gets runner main and array of duplicates
-    // should update duplicates prop
-    // get earliest result of all merged runners
-    // drop data from this result 
-    //recalculate 
-    // send back result with all runners
 });
 
 app.put('/admin/runners/update',auth, function(req, res){
@@ -141,7 +135,7 @@ app.put('/adminLogin', function(req, res){
         req.session.admin = true;
         setTimeout(function(){
             req.session.destroy();
-        }, 600000); // 10 minutes
+        }, 1800000); // 10 minutes
         res.end(JSON.stringify({adminPanel:'app.adminCompetitions'}));
     }
     res.end(JSON.stringify({error:'invalid password'}));

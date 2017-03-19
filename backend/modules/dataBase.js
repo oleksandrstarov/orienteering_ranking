@@ -5,6 +5,8 @@ var sql = require('mysql'),
     globalSettings = require('./settings.js').getSettings();
     //defaultSettings = require('./settings.js').getSettings();
 
+
+
 //var connection = sql.createConnection(settings);
 
 ////console.log(settings);
@@ -375,7 +377,7 @@ module.exports.updateCurrentRanking = function(date, callback){
   if(!date){
     var dateParam = 'DATE(NOW())';
   }else{
-    date =new Date(date);
+    date = new Date(date);
     var dateParam = "'" + date.toMysqlFormat()+"'";
   }
   
@@ -384,44 +386,41 @@ module.exports.updateCurrentRanking = function(date, callback){
                 
     ////console.log(query);
     connection.query(query, function(err, rows, fields) {
-      ////console.log('selected');
-      if (!err){
-        ////console.log('DB UPDATE - DROPPED MAX POINTS');
-        //callback();
-      }else{
-        //console.log(err);
-        //callback(err);
+      if(err){
+        console.log(err);
       }
-      
       ////console.log(dateParam);
-      var query = `
-                UPDATE RUNNERS,(SELECT RUNNER_ID, NAME, 
-                ((IF(${globalSettings.startsAmount} - COUNT(PTS)<=SUBJ,(${globalSettings.startsAmount} - COUNT(PTS)), SUBJ)* SUBJ_VAL  
+      var query =  `
+        UPDATE RUNNERS,
+        (SELECT RUNNER_ID, 
+                NAME, 
+                (
+                  (IF(${globalSettings.startsAmount} - COUNT(PTS)<=SUBJ,(${globalSettings.startsAmount} - COUNT(PTS)), SUBJ)* SUBJ_VAL  
                 + IF((${globalSettings.startsAmount} - COUNT(PTS) - SUBJ)>0,(${globalSettings.startsAmount} - COUNT(PTS) - SUBJ)* ${globalSettings.maxPoints}, 0)  
                 + SUM(PTS))/${globalSettings.startsAmount}) AS CUR_POINTS, 
-                COUNT(PTS)AS RESULT_COUNT, SUBJ 
-                FROM 
-                (SELECT RUNNERS.ID RUNNER_ID, FULLNAME NAME, CUR_RANK CUR_POINTS, POINTS PTS, RESULTS.ID AS RESULT_ID, 
-                (SELECT COUNT(*) FROM RESULTS WHERE RUNNER = RUNNERS.ID AND COMPETITION = 0 AND DATE > DATE_SUB(${dateParam}, INTERVAL 1 YEAR)) AS SUBJ,
-                (SELECT DISTINCT POINTS FROM RESULTS WHERE RUNNER = RUNNERS.ID AND COMPETITION = 0) AS SUBJ_VAL 
-                FROM RUNNERS 
-                INNER JOIN RESULTS ON RESULTS.RUNNER = RUNNERS.ID 
-                WHERE DATE > DATE_SUB(${dateParam}, INTERVAL 1 YEAR) AND COMPETITION <> 0
-                ) AS OUTER_PROP 
-                WHERE ( 
-                SELECT COUNT(*) FROM (SELECT RUNNERS.ID RUNNER_ID, FULLNAME NAME, CUR_RANK CUR_POINTS, POINTS PTS , RESULTS.ID AS RESULT_ID 
-                FROM RUNNERS 
-                INNER JOIN RESULTS ON RESULTS.RUNNER = RUNNERS.ID 
-                WHERE DATE > DATE_SUB(${dateParam}, INTERVAL 1 YEAR) AND COMPETITION <> 0
-                ) AS INNER_PROP 
-                WHERE INNER_PROP.RUNNER_ID = OUTER_PROP.RUNNER_ID AND 
-                (CASE WHEN INNER_PROP.PTS <> OUTER_PROP.PTS THEN INNER_PROP.PTS < OUTER_PROP.PTS ELSE INNER_PROP.RESULT_ID < OUTER_PROP.RESULT_ID END) 
-                ) < ${globalSettings.startsAmount}
-                GROUP BY RUNNER_ID ORDER BY RUNNER_ID) AS TEMP_PROP 
-                SET RUNNERS.CUR_RANK = TEMP_PROP.CUR_POINTS, UPDATED_DATE = NOW(), RUNNERS.SUBJECTIVE = (CASE WHEN (${globalSettings.startsAmount} - RESULT_COUNT > 0) AND (SUBJ > 0) THEN "Y" ELSE "N" END) 
-                WHERE RUNNERS.ID = TEMP_PROP.RUNNER_ID;
-                `;
-               ;
+                COUNT(PTS) AS RESULT_COUNT, 
+                SUBJ 
+        FROM 
+          (SELECT RUNNERS.ID RUNNER_ID, FULLNAME NAME, CUR_RANK CUR_POINTS, POINTS PTS, RESULTS.ID AS RESULT_ID, 
+            (SELECT COUNT(*) FROM RESULTS WHERE RUNNER = RUNNERS.ID AND COMPETITION = 0 AND DATE > DATE_SUB(${dateParam}, INTERVAL 1 YEAR)) AS SUBJ,
+            (SELECT DISTINCT POINTS FROM RESULTS WHERE RUNNER = RUNNERS.ID AND COMPETITION = 0) AS SUBJ_VAL 
+             FROM RUNNERS 
+            INNER JOIN RESULTS ON RESULTS.RUNNER = RUNNERS.ID 
+            WHERE DATE > DATE_SUB(${dateParam}, INTERVAL 1 YEAR) AND COMPETITION <> 0
+            ) AS OUTER_PROP 
+          WHERE ( 
+          SELECT COUNT(*) FROM (SELECT RUNNERS.ID RUNNER_ID, FULLNAME NAME, CUR_RANK CUR_POINTS, POINTS PTS , RESULTS.ID AS RESULT_ID 
+          FROM RUNNERS 
+          INNER JOIN RESULTS ON RESULTS.RUNNER = RUNNERS.ID 
+          WHERE DATE > DATE_SUB(${dateParam}, INTERVAL 1 YEAR) AND COMPETITION <> 0
+          ) AS INNER_PROP 
+          WHERE INNER_PROP.RUNNER_ID = OUTER_PROP.RUNNER_ID AND 
+          (CASE WHEN INNER_PROP.PTS <> OUTER_PROP.PTS THEN INNER_PROP.PTS < OUTER_PROP.PTS ELSE INNER_PROP.RESULT_ID < OUTER_PROP.RESULT_ID END) 
+          ) < ${globalSettings.startsAmount}
+          GROUP BY RUNNER_ID ORDER BY RUNNER_ID) AS TEMP_PROP 
+        SET RUNNERS.CUR_RANK = TEMP_PROP.CUR_POINTS, UPDATED_DATE = NOW(), RUNNERS.SUBJECTIVE = (CASE WHEN (${globalSettings.startsAmount} - RESULT_COUNT > 0) AND (SUBJ > 0) THEN "Y" ELSE "N" END)
+        WHERE RUNNERS.ID = TEMP_PROP.RUNNER_ID;
+        `;
       connection.query(query, function(err, rows, fields) {
         
         if (!err){
@@ -431,7 +430,6 @@ module.exports.updateCurrentRanking = function(date, callback){
           console.log('update err', query, err);
           //callback(err);
         }
-        
         var query = `
           UPDATE RUNNERS SET CUR_RANK = ${globalSettings.maxPoints} WHERE CUR_RANK IS NULL;
         `;
@@ -502,8 +500,12 @@ module.exports.getRunnerDetails = function(runnerID, callback){
 };
 
 module.exports.updateRunnerDetails = function(runner, callback){
-  var query = 'UPDATE RUNNERS SET UPDATED_DATE = NOW(), TEAM   = '+ "'"+ runner.TEAM +"'"
-  +' WHERE ID = ' + runner.ID;
+  var query = `
+      UPDATE RUNNERS SET UPDATED_DATE = NOW(), 
+      TEAM   = '${runner.TEAM}',
+      SEX   = '${runner.SEX}'
+      WHERE ID = ${runner.ID};
+  `;
  
   connection.query(query, function(err, rows, fields) {
     
@@ -518,6 +520,7 @@ module.exports.updateRunnerDetails = function(runner, callback){
 };
 
 module.exports.setDuplicates = function(mainName, duplicatesNames, callback){
+  console.log(mainName, duplicatesNames);
   var query = 'UPDATE DATA.DUPLICATES SET MAIN = "' + mainName +'" WHERE VARIANT IN (';
   for(var i =0; i< duplicatesNames.length; i++){
     query += '"' +duplicatesNames[i]+ '"';
@@ -744,9 +747,6 @@ module.exports.getStatistic = function(){
   });
 };
 
-
-
-
 //DB
 module.exports.prepareDB = function(callback){
   
@@ -852,18 +852,20 @@ function createTables(connection, callback){
     if (err){
       //console.log(err);
     }
-    var query = 'CREATE TABLE COMPETITIONS (ID MEDIUMINT NOT NULL AUTO_INCREMENT,' 
-  +'DATE DATETIME NOT NULL, '
-  +'NAME nvarchar(300), '
-  +'URL nvarchar(1000), '
-  +'TYPE nvarchar(20), '
-  +'WEB_ID MEDIUMINT, '
-  +'NOTES nvarchar(1000), '
-  +'IS_ALLOWED ENUM("Y", "N"), ' //Y, N
-  +'STATUS ENUM("VALID", "INVALID", "IMPORTED"), '
-  +'CREATED_DATE DATETIME, '
-  +'UPDATED_DATE DATETIME, '
-  +'PRIMARY KEY (ID)) AUTO_INCREMENT=1001;'; // VALID, INVALID, IMPORTED
+    var query = `CREATE TABLE COMPETITIONS (
+    ID MEDIUMINT NOT NULL AUTO_INCREMENT,
+    DATE DATETIME NOT NULL, 
+    NAME nvarchar(300), 
+    URL nvarchar(1000), 
+    TYPE nvarchar(20), 
+    WEB_ID MEDIUMINT, 
+    NOTES nvarchar(1000), 
+    IS_ALLOWED ENUM("Y", "N"), 
+    STATUS ENUM("VALID", "INVALID", "IMPORTED"), 
+    CREATED_DATE DATETIME, 
+    UPDATED_DATE DATETIME, 
+    PRIMARY KEY (ID)) AUTO_INCREMENT=1001;`
+    ; 
     connection.query(query, function(err, rows, fields) {
       if (err){
         //console.log(err);

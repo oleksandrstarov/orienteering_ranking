@@ -161,7 +161,7 @@ module.exports.updateCompetition = function(competition, callback){
 
 module.exports.updateRunnerDetails = function(runner, callback){
     runner.TEAM = runner.TEAM.toUpperCase();
-    db.updateRunnerDetails(runner.id, runner.BIRTH_DATE, runner.TEAM, function(error){
+    db.updateRunnerDetails(runner, function(error){
         callback(error);  
     });
 };
@@ -174,8 +174,8 @@ module.exports.setDuplicates = function(main, duplicates, callback){
         duplicatesNames.push(runner.FULLNAME);
     });
     
-    db.setDuplicates(mainName, duplicatesNames, function(error, date){
-        callback(error, date);  
+    db.setDuplicates(mainName, duplicatesNames, function(error){
+        callback(error);  
     });
 };
 

@@ -17,7 +17,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr ng-repeat="runner in info | orderBy: 'FULLNAME'">
+            <tr ng-repeat="runner in filterInfo(info) |orderBy: 'FULLNAME'">
             <td><input type="checkbox" name="" ng-change="AdminRunnersCtrl.selected(runner)" ng-model="runner.isSelected"/></td>
             <td>{{runner.FULLNAME}}</a></td>
             <td>{{runner.TEAM}}</td>
@@ -56,12 +56,26 @@
                     <dt>Клуб</dt>
                     <dd><input type="text" class="input-medium form-control" ng-model="AdminRunnersCtrl.selectedRunner.TEAM" ng-disabled="selectedRunners.length>1"></dd>
                     <dt>Пол</dt>
-                    <dd>{{AdminRunnersCtrl.selectedRunner.SEX}}</dd>
+                    <dd>
+                        <select class="input-medium form-control" ng-model="AdminRunnersCtrl.selectedRunner.SEX" ng-disabled="selectedRunners.length>1">
+                            <option value="W">Women</option>
+                            <option value="M">Man</option>
+                        </select>
+                    </dd>
                </dl>
             </div>
             </div>
             <button ng-show="selectedRunners.length>1" type="button" class="btn btn-danger" ng-click="merge()">Merge</button>
             <button ng-hide="selectedRunners.length>1" type="button" class="btn btn-danger" ng-click="update()">Update</button>
+        </div>
+        <div ng-show="mergedRunners.length>0">
+            </br>
+            <h2>Спортсмены для обработки:</h2>
+            <div ng-repeat="runner in mergedRunners">
+               {{$index+1}} - {{runner.main.FULLNAME}}
+            </div>
+            <button ng-show="mergedRunners.length>0" type="button" class="btn btn-success" ng-click="updateMergedData()">Save</button>
+            <button ng-show="mergedRunners.length>0" type="button" class="btn btn-info" ng-click="cancel()">Cancel</button>
         </div>
   </div>
 </div>
