@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('app')
-.controller('HomeController', ['$scope', 'statsService', function($scope, statsService) {
+.controller('HomeController', ['$scope', 'statsService', '$state', function($scope, statsService, $state) {
     var self = this;
     self.info=[];
     $scope.isDataLoaded = false;
@@ -19,7 +19,7 @@ angular.module('app')
       },
       function(error){
         if(error.status === 434){
-          handleMaintanance();
+          handleMaintanance($state);
         }
         $scope.message = error.error;
         $scope.isError = true;
@@ -29,7 +29,7 @@ angular.module('app')
 }])
 
 
-.controller('CompetitionsController', ['$scope', 'competitionsService', function($scope, competitionsService) {
+.controller('CompetitionsController', ['$scope', 'competitionsService', '$state', function($scope, competitionsService, $state) {
     var self = this;
     self.info=[];
     $scope.isDataLoaded = false;
@@ -43,7 +43,7 @@ angular.module('app')
       },
       function(response){
         if(response.status === 434){
-          handleMaintanance();
+          handleMaintanance($state);
         }
         $scope.isDataLoaded = true;
         $scope.isError = true;
@@ -53,7 +53,7 @@ angular.module('app')
   
 }])
 
-.controller('CompetitionViewController', ['$scope', '$stateParams', 'competitionsService', function($scope, $stateParams, competitionsService) {
+.controller('CompetitionViewController', ['$scope', '$stateParams', 'competitionsService', '$state', function($scope, $stateParams, competitionsService, $state) {
     var self = this;
     self.info=[];
     $scope.isDataLoaded = false;
@@ -70,7 +70,7 @@ angular.module('app')
       },
       function(response){
         if(response.status === 434){
-          handleMaintanance();
+          handleMaintanance($state);
         }
         $scope.isDataLoaded = true;
         $scope.isError = true;
@@ -97,7 +97,7 @@ angular.module('app')
   
 }])
 
-.controller('RunnersController', ['$scope', 'runnerService', function($scope, runnerService) {
+.controller('RunnersController', ['$scope', 'runnerService', '$state', function($scope, runnerService, $state) {
     var self = this;
     self.info=[];
     $scope.isDataLoaded = false;
@@ -107,6 +107,8 @@ angular.module('app')
     self.womanFilter = '';
     self.manShift = null;
     self.womanShift = null;
+    self.manData = [];
+    self.womanData = [];
     
     self.search = function(runner){
       if(runner.SEX === 'M'){
@@ -130,30 +132,34 @@ angular.module('app')
       function(response){
         //console.log(response);
         $scope.isDataLoaded = true;
-        setShift(response);
-        self.info = response;
+        var indexManEnds = getFirstElementIndex(response, 'SEX', 'W');
+        self.manData = response.slice(0, indexManEnds-1);
+        self.womanData = response.slice(indexManEnds);
+        
+        self.manShift = -self.manData[0].CUR_RANK;
+        self.womanShift = -self.womanData[0].CUR_RANK;
       
+        self.info = response;
       },
       function(response){
         if(response.status === 434){
-          handleMaintanance();
+          handleMaintanance($state);
         }
         //console.log(response);
         $scope.isDataLoaded = true;
         $scope.isError = true;
         $scope.message = response.status + '' + response.statusText;
       });
-      
-    self.getPlace = function(points, sex){
     
-      var place = self.info.filter(function(runner){
-        
-        return runner.SEX === sex && runner.CUR_RANK < points;
-      }).length;
-      
-      return place;
+    function getFirstElementIndex(array, attr, value){
+      for(var i = 0; i < array.length; i += 1) {
+        if(array[i][attr] === value) {
+            return i;
+        }
+      }
+      return -1;
     }
-    
+      
     self.isSubjective = function(subjective){
       if(subjective === 'Y'){
         return 'subjective-points';
@@ -161,22 +167,18 @@ angular.module('app')
       else return '';
     };
     
-    function setShift(runners){
-      var index = 0;
-      while(self.manShift === null || self.womanShift === null){
-        if(runners[index].SEX === 'M' && self.manShift === null ){
-          self.manShift = -runners[index].CUR_RANK;
-        }
-        if(runners[index].SEX === 'W' && self.womanShift === null ){
-          self.womanShift = -runners[index].CUR_RANK;
-        }
-        index++;
+    self.checkPlace = function(runner){
+      if(runner.PLACE_DIFF > 0){
+        return "glyphicon-circle-arrow-up coror-green"
       }
-    }
-  
+      if(runner.PLACE_DIFF < 0){
+        return "glyphicon-circle-arrow-down coror-red"
+      }
+      return "glyphicon-circle-arrow-right coror-grey";
+    };
 }])
 
-.controller('RunnerViewController', ['$scope', '$stateParams', 'runnerService', function($scope, $stateParams, runnerService) {
+.controller('RunnerViewController', ['$scope', '$stateParams', 'runnerService', '$state', function($scope, $stateParams, runnerService, $state) {
     var self = this;
     self.info=[];
     $scope.isDataLoaded = false;
@@ -191,7 +193,7 @@ angular.module('app')
       },
       function(response){
         if(response.status === 434){
-          handleMaintanance();
+          handleMaintanance($state);
         }
         onError(response, $scope);
       });
@@ -244,7 +246,7 @@ angular.module('app')
       }
 }])
 
-.controller('AboutController', ['aboutService', '$scope', function(aboutService, $scope) {
+.controller('AboutController', ['aboutService', '$scope', '$state', function(aboutService, $scope, $state) {
   var self = this;
   self.groups = '(Загрузка..)';
   $scope.isDataLoaded = false;
@@ -264,7 +266,7 @@ angular.module('app')
     },
     function(response){
       if(response.status === 434){
-          handleMaintanance();
+          handleMaintanance($state);
         }
       $scope.isDataLoaded = true;
       $scope.isError = true;
@@ -469,11 +471,10 @@ angular.module('app')
           if(response.status === 401){
             $state.go('app');
           }
-          console.log(response.status + '' + response.statusText);
         }
     );
   }])
-.controller('LoginDialogController', ['$mdDialog','loginService', function ($mdDialog, loginService){
+.controller('LoginDialogController', ['$mdDialog','loginService', '$state', function ($mdDialog, loginService, $state){
   var self = this;
   
   self.password = '';
@@ -487,14 +488,19 @@ angular.module('app')
       self.wrongPass = false;
       self.loading = true;
       
-      loginService.adminLogin().check({user: self.username, password: self.password}, function(response){
-        self.loading = false;
-          if(response.error){
-            self.wrongPass = true;
-            return;
-          }
-          $mdDialog.hide(response);
-        });
+      loginService.adminLogin().check({user: self.username, password: self.password}, 
+        function(response){
+          self.loading = false;
+          
+            if(response.error){
+              self.wrongPass = true;
+              return;
+            }
+            $mdDialog.hide(response);
+          }, function(response){
+              self.loading = false;
+              self.service = true;
+          });
     };
 }]);
 
@@ -523,7 +529,7 @@ function setTopResults(data){
   return data;
 }
 
-function handleMaintanance(){
-  window.location = '404.html';
+function handleMaintanance($state){
+  $state.go('app.service');
 }
 

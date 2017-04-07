@@ -34,8 +34,6 @@ var auth = function(req, res, next) {
 var recalculating = dataUpdater.isUpdating;
 
 app.use(function (req, res, next) {
-  //console.log('Time: %d', Date.now());
-  //console.log(recalculating());
   if(recalculating()){
     res.sendStatus(434);
     return;   
@@ -44,9 +42,8 @@ app.use(function (req, res, next) {
 });
 
 app.get('/runners', function(req, res){
-    db.getRunnersList(function(error, data){
-        res.end(data);
-    });
+    var runners =  JSON.stringify(db.getDataFromCache('runners'));
+    res.end(runners);
 });
 
 app.get('/runners/:id', function(req, res){
@@ -56,9 +53,8 @@ app.get('/runners/:id', function(req, res){
 });
 
 app.get('/competitions', function(req, res){
-    db.getCompetitionsList(function(error, data){
-         res.end(data);
-    });
+    var competitions =  JSON.stringify(db.getDataFromCache('competitions'));
+    res.end(competitions);
 });
 
 app.get('/competitions/:id', function(req, res){
@@ -69,11 +65,8 @@ app.get('/competitions/:id', function(req, res){
 
 
 app.get('/stats', function(req, res){
-    db.getStatistics().then(function(stats){
-        res.end(JSON.stringify({stats:stats}));
-    }, function(error){
-        res.end(JSON.stringify({error:error}));
-    });
+    var statistics =  JSON.stringify({stats:db.getDataFromCache('statistics')});
+    res.end(statistics);
 });
 
 
@@ -86,33 +79,42 @@ app.get('/about', function(req, res){
 
 app.put('/admin/runners/merge',auth, function(req, res){
     dataUpdater.mergeDuplicates(req.body, function(error){
-        db.getRunnersList(function(err, data){
-             res.end(JSON.stringify({error:error+err, data:data}));
-        });
+        db.fillCache(function(){
+            db.getRunnersList(function(err, data){
+                res.end(JSON.stringify({error:error+err, data:data}));
+            });
+        })
+       
     });
 });
 
 app.put('/admin/runners/update',auth, function(req, res){
     db.updateRunnerDetails(req.body.data, function(error){
-        res.end(JSON.stringify({error:error}));
+        db.fillCache(function(){
+            res.end(JSON.stringify({error:error}));
+        });
     });
 });
 
 app.put('/admin/competitions/addCompetition',auth, function(req, res){
     dataUpdater.manualImport(req.body.data, function(error){
-        if(error){
-            res.end(JSON.stringify({error:error}));
-        }else{
-             db.getCompetitionsList(function(error, data){
-                 res.end(JSON.stringify({data:data, error:null}));
-            });
-        }
+        db.fillCache(function(){
+            if(error){
+                res.end(JSON.stringify({error:error}));
+            }else{
+                 db.getCompetitionsList(function(error, data){
+                     res.end(JSON.stringify({data:data, error:null}));
+                });
+            }
+        });
     });
 });
 
 app.put('/admin/competitions/updateCompetitionDetails',auth, function(req, res){
     db.updateCompetition(req.body.data, function(error){
-        res.end(JSON.stringify({data:error}));
+        db.fillCache(function(){
+            res.end(JSON.stringify({data:error}));
+        });
     });
 });
 

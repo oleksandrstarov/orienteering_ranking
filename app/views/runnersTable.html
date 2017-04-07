@@ -14,18 +14,20 @@
       <table class="fullWidth">
           <thead>
             <tr>
-              <th>№</th>
-              <th>Имя</th>
-              <th>Клуб</th>
-              <th>Очки</th>
+              <th style="text-align:center">№</th>
+              <th style="text-align:center">Имя</th>
+              <th style="text-align:center">Клуб</th>
+              <th style="text-align:center" colspan="2">Очки</th>
             </tr>
           </thead>
           <tbody>
-            <tr ng-repeat="runner in runnersCtrl.info | filter: {'SEX':'M'} | filter: runnersCtrl.search | filter: runnersCtrl.subjectiveFilter">
-              <td>{{runnersCtrl.getPlace(runner.CUR_RANK, 'M') + 1}}</td>     
+            <tr ng-repeat="runner in runnersCtrl.manData | filter: runnersCtrl.search | filter: runnersCtrl.subjectiveFilter">
+              <td>{{runner.CUR_PLACE}}</td>     
               <td><a ui-sref="app.runner({id: runner.ID})">{{runner.FULLNAME}}</a></td>
               <td>{{runner.TEAM}}</td>
               <td ng-class="runnersCtrl.isSubjective(runner.SUBJECTIVE)">{{(runner.CUR_RANK +  runnersCtrl.manShift)| number:2}}</td>
+              <td><span ng-class="runnersCtrl.checkPlace(runner)" class="glyphicon" title="Место {{runner.PLACE_DIFF}}
+Очки {{runner.POINTS_DIFF}}"></span></td>
             </tr>
           </tbody>
       </table>
@@ -43,22 +45,23 @@
       <table class="fullWidth">
           <thead>
             <tr>
-              <th>№</th>
-              <th>Имя</th>
-              <th>Клуб</th>
-              <th>Очки</th>
+              <th style="text-align:center">№</th>
+              <th style="text-align:center">Имя</th>
+              <th style="text-align:center">Клуб</th>
+              <th style="text-align:center" colspan="2">Очки</th>
             </tr>
           </thead>
           <tbody>
-            <tr ng-repeat="runner in runnersCtrl.info | filter: {'SEX':'W'} | filter: runnersCtrl.search | filter: runnersCtrl.subjectiveFilter">
-              <td>{{runnersCtrl.getPlace(runner.CUR_RANK, 'W') + 1}}</td>  
+            <tr ng-repeat="runner in runnersCtrl.womanData | filter: runnersCtrl.search | filter: runnersCtrl.subjectiveFilter">
+              <td>{{runner.CUR_PLACE}}</td>  
               <td><a ui-sref="app.runner({id: runner.ID})">{{runner.FULLNAME}}</a></td>
               <td>{{runner.TEAM}}</td>
               <td ng-class="runnersCtrl.isSubjective(runner.SUBJECTIVE)">{{ (runner.CUR_RANK +  runnersCtrl.womanShift) | number:2}}</td>
+              <td><span ng-class="runnersCtrl.checkPlace(runner)" class="glyphicon" title="Место {{runner.PLACE_DIFF}}
+Очки {{runner.POINTS_DIFF}}"></span></td>
             </tr>
           </tbody>
       </table>
       </div>
   </div>
-  
 </div>

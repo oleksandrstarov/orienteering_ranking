@@ -103,6 +103,16 @@ angular.module('app', ['ui.router', 'ngResource', 'ngMaterial', 'chart.js'])
         }
         
       })
+      .state('app.service', {
+            url: 'ooops',
+            views:{
+                'content@' :{
+                    templateUrl : 'views/service.html'
+                }
+            
+        }
+        
+      })
       ;
       
       $urlRouterProvider.otherwise('/');

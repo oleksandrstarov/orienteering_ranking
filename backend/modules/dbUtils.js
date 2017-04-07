@@ -1,6 +1,7 @@
 'use strict';
 
 var db = require('./dataBase.js'),
+    cache = require('./serverCache.js'),
     settings = require('./settings.js').getGroupSettings();
 
 //ready
@@ -77,14 +78,18 @@ module.exports.initDB = function(callback){
 };
 
 module.exports.getRunnersList = function(callback){
-  db.getRunnersList(function(error, runners){
-      callback(error, JSON.stringify(runners));
+  db.getRunnersList().then(function(data){
+      callback(null, JSON.stringify(data[1]));
+  },function(error){
+      callback(error, null);
   });
 };
 
 module.exports.getCompetitionsList = function(callback){
-  db.getCompetitionsList(function(error, competitions){
-      callback(error, JSON.stringify(competitions));
+  db.getCompetitionsList().then(function(data){
+      callback(null, JSON.stringify(data[1]));
+  },function(error){
+      callback(error, null);
   });
 };
 
@@ -219,8 +224,27 @@ module.exports.setPointsStatistic = function(date){
 };
 
 module.exports.getGroupSettings = function(){
-    
     return settings.map(function(group){
         return {name: group.name, points: group.shift};
     });
+};
+
+module.exports.fillCache = function(callback){
+    var runners = db.getRunnersList();
+    var competitions = db.getCompetitionsList();
+    var statistics = db.getStatistic();
+    Promise.all([runners, competitions, statistics]).then(function(data){
+        data.forEach(function(value){
+            cache.setData(value[0], value[1]);
+        });
+        callback();
+    }).catch(function(error){
+        callback(error);
+    });
+};
+var self =this;
+setTimeout(function(){self.fillCache(function(){})}, 1000);
+
+module.exports.getDataFromCache = function(prop){
+   return cache.getData(prop);
 };

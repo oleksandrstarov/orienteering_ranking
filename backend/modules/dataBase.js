@@ -148,23 +148,25 @@ module.exports.getImportedCompetitionsIDs = function(callback){
 };
 
 module.exports.getCompetitionsList = function(callback){
-  var query = 'SELECT C.ID AS ID, NAME, C.DATE AS DATE, COUNT(RUNNER) AS RUNNERS, C.STATUS AS STATUS, C.URL AS URL, C.IS_ALLOWED AS IS_ALLOWED, C.NOTES '
-  +'FROM COMPETITIONS C '
-  +'LEFT JOIN RESULTS ON RESULTS.COMPETITION = C.ID '
-  +'GROUP BY C.ID ;';
-  
-  //SELECT  NAME, COUNT(RESULTS.ID) AS RUNNERS  FROM COMPETITIONS INNER JOIN RESULTS ON RESULTS.COMPETITION = COMPETITIONS.ID WHERE STATUS = 'SFR' GROUP BY COMPETITIONS.ID;
-  
-  ////console.log(query);
-  connection.query(query, function(err, rows, fields) {
-    if (!err){
-      ////console.log(rows);
-      callback(null, rows);
-    }else{
-      //console.log(err);
-      callback(err);
-    }
-      
+  return new Promise(function(resolve, reject){
+    var query = 'SELECT C.ID AS ID, NAME, C.DATE AS DATE, COUNT(RUNNER) AS RUNNERS, C.STATUS AS STATUS, C.URL AS URL, C.IS_ALLOWED AS IS_ALLOWED, C.NOTES '
+    +'FROM COMPETITIONS C '
+    +'LEFT JOIN RESULTS ON RESULTS.COMPETITION = C.ID '
+    +'GROUP BY C.ID ;';
+    
+    //SELECT  NAME, COUNT(RESULTS.ID) AS RUNNERS  FROM COMPETITIONS INNER JOIN RESULTS ON RESULTS.COMPETITION = COMPETITIONS.ID WHERE STATUS = 'SFR' GROUP BY COMPETITIONS.ID;
+    
+    ////console.log(query);
+    connection.query(query, function(err, rows, fields) {
+      if (!err){
+        ////console.log(rows);
+        resolve(['competitions', rows]);
+      }else{
+        //console.log(err);
+        reject(err);
+      }
+        
+    });
   });
 };
 
@@ -277,11 +279,12 @@ function getPersonID(runner, points, callback){
     if (!err){
       var id = null;
       if(rows.length === 0 || rows[0].ACTIVE == 0){
+        if(rows.length != 0){
+          runner.id = rows[0].ID;
+          runner.active = rows[0].ACTIVE;
+        }
         checkMainName(runner.fullName, function(error, fullname){
-          if(rows.length != 0){
-            runner.id = rows[0].ID;
-            runner.active = rows[0].ACTIVE;
-          }
+          runner.fullName = fullname;
           addNewRunner(runner, points, function(error, runnerID){
             if(!error){
               id = runnerID;
@@ -451,25 +454,32 @@ module.exports.updateCurrentRanking = function(date, callback){
     });
 };
 
-module.exports.getRunnersList = function(callback){
-  var query = 'SELECT ID, FULLNAME, TEAM, SEX, CUR_RANK, SUBJECTIVE '
-  +' FROM RUNNERS R WHERE ACTIVE = 1 ORDER BY CUR_RANK;';
-  ////console.log(query);
-  connection.query(query, function(err, rows, fields) {
-    if (!err){
-      callback(null, rows);
-    }else{
-      //console.log(err);
-      callback(err);
-    }
-      
+module.exports.getRunnersList = function(){
+  return new Promise(function(resolve, reject){
+  
+    var query = `SELECT *, POINTS - CUR_RANK AS POINTS_DIFF, PLACE - CUR_PLACE AS PLACE_DIFF
+      FROM (
+        SELECT R.ID, FULLNAME, TEAM, SEX, CUR_RANK, SUBJECTIVE, S.POINTS, S.PLACE,
+        (SELECT COUNT(*) + 1 FROM RUNNERS WHERE CUR_RANK < R.CUR_RANK AND SEX = R.SEX) AS CUR_PLACE
+        FROM RUNNERS R 
+        LEFT JOIN STATISTICS S ON S.RUNNER_ID = R.ID AND S.ENTRY_DATE = DATE_SUB((SELECT max(ENTRY_DATE) FROM STATISTICS) , INTERVAL 7 DAY)
+        WHERE ACTIVE = 1 ORDER BY CUR_RANK) TEMP
+      ORDER BY SEX, CUR_RANK;`;
+   
+    connection.query(query, function(err, rows, fields) {
+      if (!err){
+        resolve(['runners', rows]);
+      }else{
+        reject(err);
+      }
+    });    
   });
 };
 
 module.exports.getRunnerResults = function(runnerID, callback){
   var query = `
     SELECT R.ID AS ID, COMPETITION, NAME, RUNNER, R.DATE AS DATE, TIME, PLACE, POINTS, COMP_GROUP AS 'GROUP', DISTANCE, TIME_BEHIND,
-    CASE WHEN R.DATE > DATE_SUB(DATE(NOW()), INTERVAL 1 YEAR) THEN "C" ELSE "P" END AS ACT_RESULT, CASE WHEN COMPETITION <> 0 THEN 1 ELSE 0 END AS COMP_RESULT
+    CASE WHEN R.DATE > DATE_SUB(DATE((SELECT max(ENTRY_DATE) FROM STATISTICS)), INTERVAL 1 YEAR) THEN "C" ELSE "P" END AS ACT_RESULT, CASE WHEN COMPETITION <> 0 THEN 1 ELSE 0 END AS COMP_RESULT
     FROM RESULTS R
     LEFT JOIN COMPETITIONS C ON C.ID = COMPETITION
     WHERE RUNNER = ${runnerID} ORDER BY ACT_RESULT ASC, COMP_RESULT DESC, POINTS;
@@ -735,7 +745,7 @@ module.exports.getStatistic = function(){
         connection.query(query, function(err, rows, fields) {
           if (!err){
             stats.leaders = rows;
-            resolve(stats);
+            resolve(['statistics', stats]);
           }else{
             //console.log(1,err);
             reject(err);
@@ -780,38 +790,17 @@ module.exports.prepareDB = function(callback){
 };
 
 module.exports.setPointsStatistic = function(date){
-  
-  //TODO -- save statistics
   return new Promise(function(resolve, reject){
-    var query = `
-    SET @placeM =0, @placeW =0;
-    `;
+    var query = `INSERT INTO STATISTICS (RUNNER_ID, ENTRY_DATE, POINTS, PLACE)
+    SELECT ID, '${date.toMysqlFormat()}', CUR_RANK, (SELECT COUNT(*) + 1 FROM RUNNERS WHERE CUR_RANK < R.CUR_RANK AND SEX = R.SEX) FROM RUNNERS R`;
+    
     connection.query(query, function(err, rows, fields) {
-      if(err){
+      if (!err){
+        resolve();
+      }else{
         console.log(err);
+        reject(err);
       }
-      var query = `
-      INSERT INTO STATISTICS (RUNNER_ID, ENTRY_DATE, POINTS, PLACE)
-      SELECT ID, '${date.toMysqlFormat()}', CUR_RANK,  @placeM:=@placeM+1 FROM RUNNERS WHERE SEX = 'M' ORDER BY CUR_RANK
-      `;
-      connection.query(query, function(err, rows, fields) {
-        if(err){
-          console.log(err);
-        }
-        var query = `
-        INSERT INTO STATISTICS (RUNNER_ID, ENTRY_DATE, POINTS, PLACE)
-        SELECT ID, '${date.toMysqlFormat()}', CUR_RANK,  @placeW:=@placeW+1 FROM RUNNERS WHERE SEX = 'W' ORDER BY CUR_RANK
-        `;
-        connection.query(query, function(err, rows, fields) {
-          
-          if (!err){
-            resolve();
-          }else{
-            reject(err);
-          }
-        });
-      });
-      
     });
   }) 
 };
@@ -1055,7 +1044,7 @@ function checkMainName(runnerName, callback){
         callback(null, rows[0].MAIN);
       }
     }else{
-      callback(err);
+      callback(err, runnerName);
     }
   });
 }

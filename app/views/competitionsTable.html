@@ -21,7 +21,7 @@
                     <span ng-switch-when="VALID" class="glyphicon glyphicon-exclamation-sign" style="color:blue;"></span>
                 </td>
                 <td style="white-space: nowrap;" >{{competition.DATE | date:'yyyy-MM-dd'}}</td>
-                <td><a ui-sref="app.competition({id: competition.ID})">{{competition.NAME }}</a></td>
+                <td><a class="competition-label" ui-sref="app.competition({id: competition.ID})">{{competition.NAME }}</a></td>
                 <td>{{competition.NOTES }}</td>
                 <td>{{competition.RUNNERS}}</td>
                 

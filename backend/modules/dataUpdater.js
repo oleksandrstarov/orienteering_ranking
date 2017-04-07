@@ -134,7 +134,9 @@ function getNewCompetitionsResults(URLsArray, callback){
                 }else{
                     //update statistics
                     if(new Date().getDay() === 0){
-                        savePointsStatisticsOnSunday(new Date());
+                        savePointsStatisticsOnSunday(new Date(), function(){
+                            db.fillCache();
+                        });
                     }
                 }
                 
@@ -179,6 +181,21 @@ function importResults(list, callback, err){
             //exit here
             if(nextSunday < new Date()){
                 saveStatistics(nextSunday, new Date(), function(){
+                    db.fillCache(function(){
+                        console.log('DONE');
+                        console.log(`Import took ${(new Date() - startImport)/1000}  sec.`);
+                        isDataUpdating = false;
+                        if(callback){
+                            
+                            callback(err);
+                            return;
+                        }
+                    });
+                    
+                    
+                })
+            }else{
+                db.fillCache(function(){
                     console.log('DONE');
                     console.log(`Import took ${(new Date() - startImport)/1000}  sec.`);
                     isDataUpdating = false;
@@ -187,16 +204,7 @@ function importResults(list, callback, err){
                         callback(err);
                         return;
                     }
-                })
-            }else{
-                console.log('DONE');
-                console.log(`Import took ${(new Date() - startImport)/1000}  sec.`);
-                isDataUpdating = false;
-                if(callback){
-                    
-                    callback(err);
-                    return;
-                }
+                });
             }
         }
     }

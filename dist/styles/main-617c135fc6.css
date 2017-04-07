@@ -277,3 +277,18 @@ tbody tr.blank-row{
   columns: 4;
 }
 
+.competition-label {
+  text-overflow: ellipsis;
+}
+
+.coror-red{
+  color:red;
+}
+
+.coror-grey{
+  color:grey;
+}
+
+.coror-green{
+  color:green;
+}
