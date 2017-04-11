@@ -50,3 +50,7 @@ bash: nodejs.log: command not found
 
 
 https://openshift.redhat.com/app/logout?cause=expired&then=%2Fapp%2Fconsole%2Fapplications
+
+#############
+
+rhc ssh ranking
