@@ -24,7 +24,13 @@ var db = require('./dbUtils.js'),
 module.exports.processCompetitionResults = function(resultsObject, callback){
     ////console.log(resultsObject);
     checkGroups(resultsObject);
-    var j = 0
+    if(resultsObject.group.length === 0){
+        resultsObject.STATUS = 'INVALID';
+        resultsObject.NOTES = 'Нет полных групп для рассчета';
+        callback(resultsObject);
+        return;
+    }
+    var j = 0;
     ////console.log(resultsObject.group[j]);
     //resultsObject.group[i].avgPoints = 10;
     getBestThreePoints(resultsObject.group[j], getBestThreePointsCallback);
@@ -44,7 +50,9 @@ module.exports.processCompetitionResults = function(resultsObject, callback){
                 if(resultsObject.group[i].isValid){
                     resultsObject.group[i] = processGroup(resultsObject.group[i]);
                 }else{
-                    resultsObject.group[i] =processInvalidGroup(resultsObject.group[i]);
+                    resultsObject.group.splice(i,1);
+                    i--;
+                    //resultsObject.group[i] =processInvalidGroup(resultsObject.group[i]);
                 }
             }
             callback(resultsObject);
@@ -170,13 +178,17 @@ function checkGroups(resultsObject){
         
         //console.log(resultsObject.group[i]);
         if(resultsObject.group[i].data.length < 3){
-            resultsObject.group[i].isValid = false;
+            //resultsObject.group[i].isValid = false;
+            resultsObject.group.splice(i,1);
+            i--;
             continue;
         }
         
         for(var j=0; j<resultsObject.group[i].data.length; j++){
             if(convertResultToSeconds(resultsObject.group[i].data[j].result) === -1 && j < 3){
-                resultsObject.group[i].isValid = false;
+                //resultsObject.group[i].isValid = false;
+                resultsObject.group.splice(i,1);
+                i--;
                 break;
             }
         }

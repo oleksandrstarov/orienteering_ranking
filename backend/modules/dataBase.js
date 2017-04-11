@@ -312,7 +312,8 @@ module.exports.setRunnersIDs = function(competition, callback){
   
   var i = 0;
   var j = 0;
-  if(competition.group[i].data[j]){
+  
+  if(competition.group[i] && competition.group[i].data[j]){
     competition.group[i].data[j].date = competition.DATE;
   }
   
