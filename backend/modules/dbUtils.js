@@ -239,9 +239,11 @@ module.exports.fillCache = function(callback){
         });
         callback();
     }).catch(function(error){
+        console.log(error);
         callback(error);
     });
 };
+
 var self =this;
 setTimeout(function(){self.fillCache(function(){})}, 1000);
 

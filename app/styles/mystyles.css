@@ -281,14 +281,18 @@ tbody tr.blank-row{
   text-overflow: ellipsis;
 }
 
-.coror-red{
+.color-red{
   color:red;
 }
 
-.coror-grey{
+.color-grey{
   color:grey;
 }
 
-.coror-green{
+.color-green{
   color:green;
+}
+
+.color-blue{
+  color:blue;
 }

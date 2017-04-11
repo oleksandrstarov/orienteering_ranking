@@ -47,3 +47,6 @@ mysql.log  nodejs.log
 [ranking-oleksandrstarov.rhcloud.com logs]\> nodejs.log
 bash: nodejs.log: command not found
 [ranking-oleksandrstarov.rhcloud.com logs]\> tail -f -n 100 nodejs.log
+
+
+https://openshift.redhat.com/app/logout?cause=expired&then=%2Fapp%2Fconsole%2Fapplications

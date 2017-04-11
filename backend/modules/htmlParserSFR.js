@@ -170,9 +170,10 @@ function normalizeClub(club){
 }
 
 function normalizeResultSet(resultSet){
-    if(resultSet.firstName.indexOf('В/К') != -1 
+    if(resultSet.firstName.toUpperCase().indexOf('В/К') != -1 
+    || resultSet.firstName.toUpperCase().indexOf('В\\К') != -1
     || resultSet.firstName.indexOf(' вк')!= -1
-    || (resultSet.notes && resultSet.notes.indexOf('в/к')!= -1)){
+    || (resultSet.notes && resultSet.notes.toUpperCase().indexOf('в/к')!= -1)){
         return null;
     }
     

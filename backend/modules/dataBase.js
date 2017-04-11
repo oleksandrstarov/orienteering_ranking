@@ -713,27 +713,21 @@ module.exports.getStatistic = function(){
   //params total, active, superactive, competitions, activecomps, mostfreq, starts,  mostfreq year, starts year, latest comp, latest update
   return new Promise(function(resolve, reject){
     var stats = {};
-    var query =  `SELECT COUNT(*) AS DATA FROM RUNNERS WHERE ACTIVE =1  
+    var query =  `(SELECT COUNT(*) AS DATA FROM RUNNERS WHERE ACTIVE = 1) 
           UNION ALL 
-          SELECT COUNT(*) FROM RUNNERS WHERE ID IN (SELECT DISTINCT RUNNER FROM RESULTS WHERE DATE > DATE_SUB(NOW(), INTERVAL 1 YEAR) AND COMPETITION != 0) AND ACTIVE =1  
+          (SELECT COUNT(*) FROM RUNNERS WHERE ID IN (SELECT DISTINCT RUNNER FROM RESULTS WHERE DATE > DATE_SUB(NOW(), INTERVAL 1 YEAR) AND COMPETITION != 0) AND ACTIVE =1)  
           UNION ALL 
-          SELECT COUNT(*) FROM RUNNERS WHERE ID IN (SELECT DISTINCT RUNNER FROM RESULTS WHERE DATE > DATE_SUB(NOW(), INTERVAL 1 YEAR) AND COMPETITION != 0 GROUP BY RUNNER HAVING COUNT(RUNNER)>=${globalSettings.startsAmount}) AND ACTIVE =1  
+          (SELECT COUNT(*) FROM RUNNERS WHERE ID IN (SELECT DISTINCT RUNNER FROM RESULTS WHERE DATE > DATE_SUB(NOW(), INTERVAL 1 YEAR) AND COMPETITION != 0 GROUP BY RUNNER HAVING COUNT(RUNNER)>=${globalSettings.startsAmount}) AND ACTIVE =1  )
           UNION ALL 
-          SELECT COUNT(ID) FROM COMPETITIONS 
+          (SELECT COUNT(ID) FROM COMPETITIONS)
           UNION ALL 
-          SELECT COUNT(ID) FROM COMPETITIONS WHERE DATE > DATE_SUB(NOW(), INTERVAL 1 YEAR) 
-          UNION ALL 
-          (SELECT (SELECT FULLNAME FROM RUNNERS WHERE ID = RUNNER) FROM RESULTS GROUP BY RUNNER ORDER BY COUNT(RUNNER) DESC LIMIT 1) 
-          UNION ALL 
-          (SELECT COUNT(RUNNER) FROM RESULTS WHERE COMPETITION != 0 GROUP BY RUNNER ORDER BY COUNT(RUNNER) DESC LIMIT 1) 
-          UNION ALL 
-          (SELECT (SELECT FULLNAME FROM RUNNERS WHERE ID = RUNNER) FROM RESULTS WHERE DATE > DATE_SUB(NOW(), INTERVAL 1 YEAR) GROUP BY RUNNER ORDER BY COUNT(RUNNER) DESC LIMIT 1) 
-          UNION ALL 
-          (SELECT COUNT(RUNNER) FROM RESULTS WHERE COMPETITION != 0 AND DATE > DATE_SUB(NOW(), INTERVAL 1 YEAR) GROUP BY RUNNER ORDER BY COUNT(RUNNER) DESC LIMIT 1) 
+          (SELECT COUNT(ID) FROM COMPETITIONS WHERE DATE > DATE_SUB(NOW(), INTERVAL 1 YEAR))
           UNION ALL 
           (SELECT DATE_FORMAT(MAX(DATE),"%d-%m-%Y") FROM COMPETITIONS) 
           UNION ALL 
-          SELECT DATE_FORMAT(MAX(UPDATED_DATE),"%d-%m-%Y") FROM RUNNERS;`;
+          (SELECT DATE_FORMAT(MAX(UPDATED_DATE),"%d-%m-%Y") FROM RUNNERS)
+          UNION ALL 
+          (SELECT (SELECT FULLNAME FROM RUNNERS WHERE ID = RUNNER) FROM RESULTS GROUP BY RUNNER ORDER BY COUNT(RUNNER) DESC LIMIT 1) `;
     
     connection.query(query, function(err, rows, fields) {
       if (!err){
@@ -745,7 +739,27 @@ module.exports.getStatistic = function(){
         connection.query(query, function(err, rows, fields) {
           if (!err){
             stats.leaders = rows;
-            resolve(['statistics', stats]);
+            var query = ` 
+             (SELECT (SELECT FULLNAME FROM RUNNERS WHERE ID = RUNNER) AS FULLNAME,RUNNER AS ID, COUNT(RUNNER) AS AMOUNT, 'A' AS PERIOD 
+              FROM RESULTS WHERE COMPETITION != 0 GROUP BY RUNNER 
+              HAVING COUNT(RUNNER) = (SELECT COUNT(RUNNER) FROM RESULTS WHERE COMPETITION != 0 GROUP BY RUNNER ORDER BY COUNT(RUNNER) DESC LIMIT 1)  
+              ORDER BY COUNT(RUNNER) DESC)
+              UNION ALL
+              (SELECT (SELECT FULLNAME FROM RUNNERS WHERE ID = RUNNER) AS FULLNAME,RUNNER AS ID, COUNT(RUNNER) AS AMOUNT, 'Y' AS PERIOD 
+              FROM RESULTS WHERE COMPETITION != 0  AND DATE > DATE_SUB(NOW(), INTERVAL 1 YEAR) GROUP BY RUNNER  
+              HAVING COUNT(RUNNER) = (SELECT COUNT(RUNNER) FROM RESULTS WHERE COMPETITION != 0 AND DATE > DATE_SUB(NOW(), INTERVAL 1 YEAR) GROUP BY RUNNER ORDER BY COUNT(RUNNER) DESC LIMIT 1)  
+              ORDER BY COUNT(RUNNER) DESC) 
+              ORDER BY PERIOD, AMOUNT DESC`;
+            
+            connection.query(query, function(err, rows, fields) {
+              if (!err){
+                stats.attenders = rows;
+                resolve(['statistics', stats]);
+              }else{
+                //console.log(1,err);
+                reject(err);
+              }
+            });
           }else{
             //console.log(1,err);
             reject(err);

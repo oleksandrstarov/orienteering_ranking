@@ -166,15 +166,28 @@ angular.module('app')
       }
       else return '';
     };
+    //"Место {{runner.PLACE_DIFF}}n\Очки {{runner.POINTS_DIFF}}"
+    self.getPopup = function(runner){
+      
+      if(runner.PLACE_DIFF=== null){
+        return "Новый спортсмен";
+      }
+      return "Место " + runner.PLACE_DIFF+" \n Очки "+runner.POINTS_DIFF;
+    };
+    
     
     self.checkPlace = function(runner){
       if(runner.PLACE_DIFF > 0){
-        return "glyphicon-circle-arrow-up coror-green"
+        return "glyphicon-circle-arrow-up color-green"
       }
       if(runner.PLACE_DIFF < 0){
-        return "glyphicon-circle-arrow-down coror-red"
+        return "glyphicon-circle-arrow-down color-red"
       }
-      return "glyphicon-circle-arrow-right coror-grey";
+      
+      if(runner.PLACE_DIFF === null){
+        return "glyphicon glyphicon-plus-sign color-blue"
+      }
+      return "glyphicon-circle-arrow-right color-grey";
     };
 }])
 

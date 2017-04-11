@@ -19,6 +19,7 @@ var currentTimeZone = -x.getTimezoneOffset()/60;
 var timeshiftFromKharkiv = currentTimeZone - x.getTimeShift();
 var requiredHour = 23;
 var timeToStart = requiredHour + timeshiftFromKharkiv;
+console.log(timeToStart);
 
 
 

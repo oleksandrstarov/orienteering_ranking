@@ -291,4 +291,4 @@ function saveStatistics(date, nextCompetitionDate, callback){
 
 module.exports.isUpdating = function(){
     return isDataUpdating === true;
-}
+};
