@@ -7,43 +7,52 @@ var competitionsCollector = require('./dataCollector.js'),
     db = require('./dbUtils.js');
 
 var isDataUpdating;
+var nextUpdateDate;
+var lastUpdateDate;
 //updateData();
 
 module.exports.updateData = function (){
-    /*db.updateRunnersPoints(null, function(){
+   //list[i].DATE.getDay() === 0 ? list[i].DATE : getNextSunday(list[i].DATE)
+    
+    db.getLastUpdateDate(function(date){
+        lastUpdateDate = date;
+        nextUpdateDate = new Date().getDay() === 0 ? new Date().withoutTime(): getNextSunday(new Date().withoutTime());
+        if(nextUpdateDate === lastUpdateDate){
+            nextUpdateDate = lastUpdateDate.addDays(7);
+        }
         getNewCompetitionsResults();
-    });*/
-    getNewCompetitionsResults();
+    });
 };
 
 
 module.exports.recalculateCompetitions = function (competitionsArray, callback){
    db.updateCompetitionsStatus(competitionsArray, function(error, earliestReadyCompetition){
+       
        if(error){
+           console.log('error');
            callback(error);
            return;
        }
-       rollBackDB(earliestReadyCompetition, callback);
+       console.log('before roll back');
+       rollBackDB(earliestReadyCompetition);
+   });
+};
+
+module.exports.dropData = function (callback){
+   db.dropData( function(error){
+       if(error){
+           callback(error);
+       }
+       getNewCompetitionsResults();
+       //rollBackDB(earliestReadyCompetition, callback);
    });
 };
 
 
-function rollBackDB(date, callback){
+function rollBackDB(date){
     db.rollBackToDate(date, function(error){
-       db.getReadyToImportCompetitions(function(error, competitions){
-            if(competitions.length != 0){
-                importResults(competitions, function(){
-                    db.updateRunnersPoints(null, function(error){
-                        callback(error);
-                    });
-                });
-            }else{
-                db.updateRunnersPoints(null, function(error){
-                    callback(error, 'Updated');
-                });
-            }
-            
-        });
+        console.log(date);
+      getNewCompetitionsResults();
    });
 }
 
@@ -67,7 +76,7 @@ module.exports.mergeDuplicates = function (runners, callback){
         
         index++;
         if(index < runners.length){
-            idArray.push(runners[index].main.ID);
+           // idArray.push(runners[index].main.ID);
             
             runners[index].duplicates.forEach(function(runner){
                 idArray.push(runner.ID);
@@ -102,16 +111,42 @@ function getNewCompetitionsResults(URLsArray, callback){
      db.getImportedCompetitionsIDs(function(data){
         ////console.log(data);
         processedCompetitions = data;
-        //console.log('after get old ids');
         competitionsCollector.getAvailableResults(processedCompetitions, URLsArray, function(error, list){
            
             if(error){
-               
+               console.log(error);
                 db.getReadyToImportCompetitions(function(error, competitions){
-                    
                     if(competitions.length != 0){
                         importResults(competitions);
+                        return;
                     }
+                   db.getLastUpdateDate(function(date){
+                        if(date.addDays(7) < nextUpdateDate || new Date().getDay() === 0){
+                            saveStatistics(date.addDays(7), nextUpdateDate, function(){
+                                db.fillCache(function(){
+                                    console.log('DONE');
+                                  
+                                    isDataUpdating = false;
+                                    if(callback){
+                                        
+                                        callback();
+                                        return;
+                                    }
+                                });
+                            });
+                        }else{
+                            db.fillCache(function(){
+                                console.log('DONE');
+                            
+                                isDataUpdating = false;
+                                if(callback){
+                                    
+                                    callback();
+                                    return;
+                                }
+                            });
+                        }
+                    });
                 });
             }else{
                 //console.log('new competitions = ' , list[0]);
@@ -133,11 +168,33 @@ function getNewCompetitionsResults(URLsArray, callback){
                     });
                 }else{
                     //update statistics
-                    if(new Date().getDay() === 0){
-                        savePointsStatisticsOnSunday(new Date(), function(){
-                            db.fillCache();
-                        });
-                    }
+                    db.getLastUpdateDate(function(date){
+                        if(date.addDays(7) < nextUpdateDate || new Date().getDay() === 0){
+                            saveStatistics(date.addDays(7), nextUpdateDate, function(){
+                                db.fillCache(function(){
+                                    console.log('DONE');
+                                  
+                                    isDataUpdating = false;
+                                    if(callback){
+                                        
+                                        callback();
+                                        return;
+                                    }
+                                });
+                            });
+                        }else{
+                            db.fillCache(function(){
+                                console.log('DONE');
+                            
+                                isDataUpdating = false;
+                                if(callback){
+                                    
+                                    callback();
+                                    return;
+                                }
+                            });
+                        }
+                    });
                 }
                 
                 //save competitions
@@ -164,23 +221,24 @@ function importResults(list, callback, err){
         var nextSunday = list[i].DATE.getDay() === 0 ? list[i].DATE : getNextSunday(list[i].DATE);
         
         
-        ////console.log(list[i].DATE);
         if(++i <= list.length-1){
             process.stdout.write("\r" +`Importing progress ${Math.round((i+1)/list.length * 100)} %`);
             var nextCompetitionDate = list[i].DATE;
             
-            
-            if(nextSunday < new Date() && nextSunday < nextCompetitionDate){
+            if(nextUpdateDate === nextSunday && new Date().withoutTime() != nextUpdateDate){
+                processCompetitionCallback();
+            }
+            if(nextSunday < nextCompetitionDate){
                 saveStatistics(nextSunday, nextCompetitionDate, function(){
                     processCompetition(list[i], processCompetitionCallback);
-                })
+                });
             }else{
                 processCompetition(list[i], processCompetitionCallback);
             }
         }else{
             //exit here
-            if(nextSunday < new Date()){
-                saveStatistics(nextSunday, new Date(), function(){
+            if(nextSunday < nextUpdateDate){
+                saveStatistics(nextSunday, nextUpdateDate, function(){
                     db.fillCache(function(){
                         console.log('DONE');
                         console.log(`Import took ${(new Date() - startImport)/1000}  sec.`);
@@ -200,7 +258,6 @@ function importResults(list, callback, err){
                     console.log(`Import took ${(new Date() - startImport)/1000}  sec.`);
                     isDataUpdating = false;
                     if(callback){
-                        
                         callback(err);
                         return;
                     }

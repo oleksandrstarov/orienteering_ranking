@@ -172,7 +172,7 @@ angular.module('app')
       if(runner.PLACE_DIFF=== null){
         return "Новый спортсмен";
       }
-      return "Место " + runner.PLACE_DIFF+" \n Очки "+runner.POINTS_DIFF;
+      return "Место " + (-runner.PLACE_DIFF)+" \n Очки "+(-runner.POINTS_DIFF);
     };
     
     
@@ -335,6 +335,20 @@ angular.module('app')
     $scope.recalculate = function(){
         $scope.message = 'Recalculation...';
         service.recalculateCompetitions().update({data: self.info}, function(response){
+            if(!response.error){
+                
+                self.info = mapValue(JSON.parse(response.data));
+                
+                //item.selected prop
+            }
+            $scope.message = response.error || 'Competitions updated';
+        });
+        $scope.newCompetition = '';
+    };
+    
+    $scope.dropData = function(){
+        $scope.message = 'Drop and Update...';
+        service.dropData().update({}, function(response){
             if(!response.error){
                 
                 self.info = mapValue(JSON.parse(response.data));

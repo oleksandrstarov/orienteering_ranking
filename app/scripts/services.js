@@ -39,6 +39,10 @@ angular.module('app')
         return $resource('admin/competitions/recalculate', null, {'update':{method: 'PUT'},'query': {method: 'GET', isArray: true }});
     };
     
+    this.dropData = function() {
+        return $resource('admin/competitions/drop', null, {'update':{method: 'PUT'},'query': {method: 'GET', isArray: true }});
+    };
+    
     this.updateCompetition = function() {
         return $resource('admin/competitions/updateCompetitionDetails', null, {'update':{method: 'PUT'},'query': {method: 'GET', isArray: false }});
     };

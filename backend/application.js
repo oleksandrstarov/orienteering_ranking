@@ -24,7 +24,7 @@ console.log(timeToStart);
 
 
 var rule = new cron.RecurrenceRule();
-rule.dayOfWeek = [0];
+rule.dayOfWeek = [new cron.Range(0, 6)];
 rule.hour = timeToStart;
 rule.minute = 30;
 cron.scheduleJob(rule, function(){
@@ -33,10 +33,7 @@ cron.scheduleJob(rule, function(){
     //console.log('TEST');
     console.log('Day: ' + now.getDate() + " Hour: " +now.getHours());
     db.initDB(function(){
-        db.updateRunnersPoints(null, function(){
-            updater.updateData();
-            
-        });
+        updater.updateData();
     });
 });
 

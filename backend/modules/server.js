@@ -130,6 +130,14 @@ app.put('/admin/competitions/recalculate',auth, function(req, res){
     });
 });
 
+app.put('/admin/competitions/drop',auth, function(req, res){
+    dataUpdater.dropData(function(error){
+        if(error){
+            res.end(JSON.stringify({error:error}));
+        }
+    });
+});
+
 app.get('/admin/runners',auth, function(req, res){
     db.getRunnersList(function(error, data){
          res.end(data);

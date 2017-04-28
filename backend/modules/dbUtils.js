@@ -152,10 +152,18 @@ module.exports.updateCompetitionsStatus = function(competitions, callback){
             callback(error);
             return;
         }
-        //console.log(idArray);
         db.getDateToDropFrom(idArray, function(error, earliestDate){
             callback(error, earliestDate);  
         });
+    });
+};
+
+module.exports.dropData = function(callback){
+    db.dropData().then(function(){
+        callback();
+    }, function(error){
+        console.log(error);
+        callback(error);
     });
 };
 
@@ -244,9 +252,18 @@ module.exports.fillCache = function(callback){
     });
 };
 
-var self =this;
-setTimeout(function(){self.fillCache(function(){})}, 1000);
+/*var self =this;
+setTimeout(function(){self.fillCache(function(){})}, 1000);*/
 
 module.exports.getDataFromCache = function(prop){
    return cache.getData(prop);
+};
+
+module.exports.getLastUpdateDate = function(callback){
+   db.getLatestUpdateDateStatistic().then(function(result){
+        callback(result[0].DATE);
+    }, function(error){
+        console.log(error);
+        callback();
+    });
 };

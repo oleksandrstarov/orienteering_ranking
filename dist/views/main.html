@@ -55,20 +55,23 @@
                 <th>№</th>
                 <th>Имя</th>
                 <th>Очки</th>
+                <th>Недель на позиции</th>
               </tr>
             </thead>
             <tbody>
               <tr ng-repeat="runner in homeCtrl.data.leaders | filter:{'SEX':'M'}">
-                <td>{{$index +1}}</td>  
+                <td>{{runner.PLACE}}</td>  
                 <td><a ui-sref="app.runner({id: runner.ID})">{{runner.FULLNAME}}</a></td>
-                <td>{{ runner.CUR_RANK | number:2}}</td>
+                <td>{{ runner.POINTS | number:2}}</td>
+                <td>{{ runner.DURATION}}</td>
               </tr>
-              <tr class="blank-row"><td colspan="3"></td></tr>
+              <tr class="blank-row"><td colspan="4"></td></tr>
              
               <tr ng-repeat="runner in homeCtrl.data.leaders | filter:{'SEX':'W'}">
-                <td>{{$index+1}}</td>  
+                <td>{{runner.PLACE}}</td>   
                 <td><a ui-sref="app.runner({id: runner.ID})">{{runner.FULLNAME}}</a></td>
-                <td>{{ runner.CUR_RANK | number:2}}</td>
+                <td>{{ runner.POINTS | number:2}}</td>
+                <td>{{ runner.DURATION}}</td>
               </tr>
             </tbody>
           </table>

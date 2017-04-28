@@ -40,10 +40,10 @@ function setRunnersStats(){
        if(item.PLACE_DIFF === null){
            progress.novices.push(item);
        }
-       if(item.PLACE_DIFF == max){
+       if(max && item.PLACE_DIFF == max){
            progress.up.push(item);
        }
-       if(item.PLACE_DIFF == min){
+       if(min && item.PLACE_DIFF == min){
            progress.down.push(item);
        }
     });
