@@ -28,10 +28,8 @@ rule.dayOfWeek = [new cron.Range(0, 6)];
 rule.hour = timeToStart;
 rule.minute = 30;
 cron.scheduleJob(rule, function(){
-    var now = new Date();
     console.log('AUTOUPDATE (local server time)');
-    //console.log('TEST');
-    console.log('Day: ' + now.getDate() + " Hour: " +now.getHours());
+    console.log('Day: ', new Date().toMysqlFormat());
     db.initDB(function(){
         updater.updateData();
     });
@@ -39,10 +37,8 @@ cron.scheduleJob(rule, function(){
 
 //manual start
 db.initDB(function(){
-     //db.updateRunnersPoints(null, function(){
     updater.updateData();
     server.startServer();
-       // });
 });
 
 

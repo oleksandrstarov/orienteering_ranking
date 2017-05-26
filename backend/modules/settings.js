@@ -5,7 +5,8 @@ var settings = {
     //defaultPoints: 10,
     defaultTime: 60,
     maxPoints: 90,
-    startsAmount:6
+    startsAmount:6,
+    defaultStart: 'Sun, 28 Dec 2014 00:00:00' // 'Sun, 1 Jan 2017 00:00:00'
 };
 
 
@@ -77,7 +78,6 @@ var groupSettings = [
 ];
 
 
-//var isMaintanance = false;
 
 module.exports.getGroupSettings =function(){
     return groupSettings;
@@ -92,4 +92,8 @@ module.exports.getSQLSettings =function(){
         return sqlSettingsOS;
     }
     return sqlSettings;
+};
+
+module.exports.getSystemSettings =function(){
+    return settings;
 };

@@ -11,3 +11,24 @@
         </div>
     </accordion-group>
 </accordion>
+
+
+<div class="panel panel-primary">
+                <div class="panel-heading">
+                    <h3 class="panel-title">{{ctrl.getTitle()}}</h3>
+                </div>
+                <div class="panel-body">
+                    <dl class="dl-horizontal runner-info">
+                        <dt>Количество общих стартов</dt>
+                        <dd>{{ctrl.compareData.length}}</dd>
+                        <span ng-if="ctrl.compareData.length > 0">
+                            <dt>Сравнение очков в общих стартах</dt>
+                            <dd>{{ctrl.getRunnerCompetitionPoints() | number:2}} 
+                            - {{ctrl.getCompareRunnerCompetitionPoints() | number:2}}</dd>
+                        </span>
+                        <dt>Сравнение рейтинговых очков</dt>
+                            <dd>{{ctrl.runner.CUR_RANK}} 
+                            - {{ctrl.compareRunner.CUR_RANK}}</dd>
+                    </dl>
+                </div>
+            </div>

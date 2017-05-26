@@ -1,4 +1,5 @@
-var express = require('express'),
+var compression = require('compression'),
+    express = require('express'),
     morgan = require('morgan'),
     session = require('express-session'),
     bodyParser = require('body-parser'),
@@ -15,6 +16,7 @@ var hostname = process.env.OPENSHIFT_NODEJS_IP  || this.serverSettings.hostname 
 var port = process.env.OPENSHIFT_NODEJS_PORT || this.serverSettings.port || process.env.PORT || 3000;
 
 var app = express();
+app.use(compression());
 app.use(session({
     secret: '2C41-4D24-WppQ38S',
     resave: true,
@@ -50,6 +52,17 @@ app.get('/runners/:id', function(req, res){
     db.getRunnerResults(req.params.id, function(error, data){
          res.end(data);
     });
+});
+
+app.get('/runner/:id/:compare', function(req, res){
+    db.getComparableData(req.params.id, req.params.compare)
+    .then(function(data){
+        res.end(JSON.stringify(data));
+    })
+    .catch(function(error){
+        console.log(error);
+        res.end();
+    })
 });
 
 app.get('/competitions', function(req, res){

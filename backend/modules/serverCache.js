@@ -22,7 +22,9 @@ function setRunnersStats(){
     if(!cacheObject['runners'] || !cacheObject['statistics']){
         return;
     }
-    var places = cacheObject['runners'].map(function(item){
+    var allRunners = cacheObject['runners'].man.concat(cacheObject['runners'].woman);
+    
+    var places = allRunners.map(function(item){
         if(item.PLACE_DIFF === null){
             return 0;
         }
@@ -36,7 +38,7 @@ function setRunnersStats(){
     var progress = {up:[], down:[], novices:[]};
     
     
-    cacheObject['runners'].forEach(function(item){
+    allRunners.forEach(function(item){
        if(item.PLACE_DIFF === null){
            progress.novices.push(item);
        }
@@ -47,6 +49,6 @@ function setRunnersStats(){
            progress.down.push(item);
        }
     });
-    
+
     cacheObject['statistics'].progress = progress;
 }

@@ -5,7 +5,7 @@ angular.module('app')
     var self = this;
     self.info=[];
     $scope.isDataLoaded = false;
-    //$timeout(function(){ $scope.isDataLoaded = true;}, 1000);
+    
     $scope.isError = false;
     $scope.message = '';
     self.data ={};
@@ -97,7 +97,7 @@ angular.module('app')
   
 }])
 
-.controller('RunnersController', ['$scope', 'runnerService', '$state', function($scope, runnerService, $state) {
+.controller('RunnersController', ['$scope', 'runnerService', '$state', function($scope, runnerService, $state, runnersManValue, runnersWomanValue) {
     var self = this;
     self.info=[];
     $scope.isDataLoaded = false;
@@ -128,38 +128,26 @@ angular.module('app')
       }
     };
     
-    runnerService.getRunners().query(
+   
+    runnerService.getRunners().get(
       function(response){
-        //console.log(response);
         $scope.isDataLoaded = true;
-        var indexManEnds = getFirstElementIndex(response, 'SEX', 'W');
-        self.manData = response.slice(0, indexManEnds-1);
-        self.womanData = response.slice(indexManEnds);
-        
+       
+        self.manData = response.man;
+        self.womanData = response.woman;
         self.manShift = -self.manData[0].CUR_RANK;
         self.womanShift = -self.womanData[0].CUR_RANK;
-      
         self.info = response;
       },
       function(response){
         if(response.status === 434){
           handleMaintanance($state);
         }
-        //console.log(response);
         $scope.isDataLoaded = true;
         $scope.isError = true;
         $scope.message = response.status + '' + response.statusText;
       });
-    
-    function getFirstElementIndex(array, attr, value){
-      for(var i = 0; i < array.length; i += 1) {
-        if(array[i][attr] === value) {
-            return i;
-        }
-      }
-      return -1;
-    }
-      
+  
     self.isSubjective = function(subjective){
       if(subjective === 'Y'){
         return 'subjective-points';
@@ -191,74 +179,146 @@ angular.module('app')
     };
 }])
 
-.controller('RunnerViewController', ['$scope', '$stateParams', 'runnerService', '$state', function($scope, $stateParams, runnerService, $state) {
+.controller('RunnerViewController', ['$scope', '$stateParams', 'runnerService', '$state', '$mdDialog', function($scope, $stateParams, runnerService, $state, $mdDialog) {
     var self = this;
     self.info=[];
     $scope.isDataLoaded = false;
     $scope.isError = false;
     $scope.message = '';
-
+    
+   
     runnerService.getRunner().get({id:parseInt($stateParams.id,10)})
     .$promise.then(
-      function(response){
-        drawChart(response.stats, response.details[0].FULLNAME);
-        onSuccess(response, self, $scope);
-      },
-      function(response){
-        if(response.status === 434){
-          handleMaintanance($state);
-        }
-        onError(response, $scope);
+    function(response){
+      drawChart(response.stats, response.details[0].FULLNAME);
+      onSuccess(response, self, $scope);
+    },
+    function(response){
+      if(response.status === 434){
+        handleMaintanance($state);
+      }
+      onError(response, $scope);
+    });
+    
+    $scope.getRunners = function(){
+      return runnerService.getRunners().get().$promise.then(function(responce){
+        self.runners = responce.man;
+      });
+    }
+    
+    $scope.compare = function(compareRunner){
+      runnerService.compareRunner().query({id:parseInt($stateParams.id,10), compare:compareRunner.ID})
+      .$promise.then(
+        function(response){
+          var customFullscreen = false;
+          var dialogObject = {
+              clickOutsideToClose:true,
+              controller:'CompereDialogController',
+              template:"<md-dialog aria-label='Compare'><compare-runners-component runner='runner' compare-runner='compareRunner' compare-data='compareData'></compare-runners-component></md-dialog>",
+              parent: angular.element(document.body),
+              targetEvent: event,
+              fullscreen: customFullscreen,
+              locals : {
+                   runner : self.info.details[0],
+                   compareRunner : compareRunner,
+                   compareData : response
+                }
+          };
+          
+          $mdDialog.show(dialogObject).then(function(result) {
+              console.log('cancel111');
+          }, function() {
+            console.log('cancel222');
+            $scope.compareRunner = null;
+          });
+          
+        },
+        function(response){
+          if(response.status === 434){
+            handleMaintanance($state);
+          }
+          console.log(response.error);
+        });
+    };
+      
+    function drawChart(data, name){
+     //Chart.defaults.global.defaultFontSize = 12;
+     
+      var labels = data.map(function(entry){
+       
+        return entry.ENTRY_DATE.slice(0, entry.ENTRY_DATE.indexOf('T'));
+        
       });
       
-      function drawChart(data, name){
-       //Chart.defaults.global.defaultFontSize = 12;
-       
-        var labels = data.map(function(entry){
-         
-          return entry.ENTRY_DATE.slice(0, entry.ENTRY_DATE.indexOf('T'));
-          
-        });
-        
-        var points = data.map(function(entry){
-          return entry.POINTS;
-        });
-        
-        var places = data.map(function(entry){
-          return entry.PLACE;
-        });
-        
-        //http://jtblin.github.io/angular-chart.js/
-        $scope.labels = labels;
-        $scope.series = ['очки', 'место'];
-        $scope.data = [points, places];
-        
-        $scope.datasetOverride = [{ yAxisID: 'y-axis-1' }, { yAxisID: 'y-axis-2' }];
-        
-        $scope.options = {
-          scales: {
-            yAxes: [
-              {
-                id: 'y-axis-1',
-                type: 'linear',
-                display: true,
-                position: 'left'
-              },
-              {
-                id: 'y-axis-2',
-                type: 'linear',
-                display: true,
-                position: 'right',
-                ticks: {
-                    min: 1
-                }
+      var points = data.map(function(entry){
+        return entry.POINTS;
+      });
+      
+      var places = data.map(function(entry){
+        return entry.PLACE;
+      });
+      
+      //http://jtblin.github.io/angular-chart.js/
+      $scope.labels = labels;
+      $scope.series = ['очки', 'место'];
+      $scope.data = [points, places];
+      
+      $scope.datasetOverride = [{ yAxisID: 'y-axis-1' }, { yAxisID: 'y-axis-2' }];
+      
+      $scope.options = {
+        scales: {
+          yAxes: [
+            {
+              id: 'y-axis-1',
+              type: 'linear',
+              display: true,
+              position: 'left'
+            },
+            {
+              id: 'y-axis-2',
+              type: 'linear',
+              display: true,
+              position: 'right',
+              ticks: {
+                  min: 1
               }
-            ]
-          }
-        };
+            }
+          ]
+        }
+      };
+    }
+    
+    function onSuccess(response, self, scope){
+
+      self.info = setTopResults(response);
+      scope.isDataLoaded = true;
+    }
+    
+    function onError(response, scope){
+      scope.isDataLoaded = true;
+      scope.isError = true;
+      scope.message = response.status + '' + response.statusText;
+    }
+    
+    function setTopResults(data){
+      for(var i = 0; i < data.results.length; i++){
+        
+        if(data.results[i].ACT_RESULT === 'C' && i < 6){
+          data.results[i].POINTS_RANK = i + 1;
+        }
+        else{
+          break;
+        }
       }
+      return data;
+    }
 }])
 
+.controller('CompereDialogController', ['$scope', 'runner', 'compareRunner','compareData',  function($scope, runner, compareRunner, compareData){
+                $scope.runner = runner;
+                $scope.compareRunner = compareRunner;
+                $scope.compareData = compareData;
+              }])
 .controller('AboutController', ['aboutService', '$scope', '$state', function(aboutService, $scope, $state) {
   var self = this;
   self.groups = '(Загрузка..)';
@@ -286,7 +346,6 @@ angular.module('app')
       $scope.message = response.status + '' + response.statusText;
     });
 }])
-
 .controller('LoginController', ['$mdDialog', '$mdMedia', '$mdToast','$state', function($mdDialog, $mdMedia, $mdToast, $state) {
    var customFullscreen = false;
 
@@ -529,34 +588,60 @@ angular.module('app')
               self.service = true;
           });
     };
-}]);
-
-function onSuccess(response, self, scope){
+}])
+.controller('CompareRunnersController', ['$mdDialog' , function ($mdDialog){
+  var self = this;
+  self.close = function() {
+     $mdDialog.cancel();
+  };
   
-  self.info = setTopResults(response);
-  scope.isDataLoaded = true;
-}
-
-function onError(response, scope){
-  scope.isDataLoaded = true;
-  scope.isError = true;
-  scope.message = response.status + '' + response.statusText;
-}
-
-function setTopResults(data){
-  for(var i = 0; i < data.results.length; i++){
-    
-    if(data.results[i].ACT_RESULT === 'C' && i < 6){
-      data.results[i].POINTS_RANK = i + 1;
+  self.getTitle = function(){
+    var isBetter = true;
+    if(self.runner.CUR_RANK - self.compareRunner.CUR_RANK > 0){
+      isBetter = false;
     }
-    else{
-      break;
+    return (isBetter?self.runner.FULLNAME:self.compareRunner.FULLNAME) + ' по статистике сильнее:';
+  };
+  
+  self.getRunnerCompetitionPoints = function(){
+    var runnerPoints = 0;
+    for (var i= 0; i< self.compareData.length; i++) {
+      runnerPoints += self.compareData[i].POINTS;
     }
-  }
-  return data;
-}
+    return runnerPoints/self.compareData.length;
+  };
+  
+  self.getCompareRunnerCompetitionPoints = function(){
+    var comparePoints = 0;
+    for (var i= 0; i< self.compareData.length; i++) {
+      comparePoints += self.compareData[i].OPPONENT_POINTS;
+    }
+    return comparePoints/self.compareData.length;
+  };
+  
+   self.getRunnerCompetitionWins = function(){
+    var wins = 0;
+    for (var i= 0; i< self.compareData.length; i++) {
+      var competition = self.compareData[i];
+      if(competition.OPPONENT_PLACE > competition.PLACE){
+        wins++;
+      }
+    }
+    return wins;
+  };
+  
+  self.getCompareRunnerCompetitionWins = function(){
+    var wins = 0;
+    for (var i= 0; i< self.compareData.length; i++) {
+      var competition = self.compareData[i];
+      if(competition.OPPONENT_PLACE < competition.PLACE){
+        wins++;
+      }
+    }
+    return wins;
+  };
+}]);
 
 function handleMaintanance($state){
   $state.go('app.service');
 }
-

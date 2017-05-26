@@ -2,7 +2,8 @@
 
 var db = require('./dataBase.js'),
     cache = require('./serverCache.js'),
-    settings = require('./settings.js').getGroupSettings();
+    settings = require('./settings.js').getGroupSettings(),
+    systemSettings = require('./settings.js').getSystemSettings();
 
 //ready
 module.exports.getImportedCompetitionsIDs = function(callback){
@@ -45,18 +46,10 @@ module.exports.processCompetition = function(competition, callback){
             return;
         }
         
-        addCompetitionResult(competition, function(error, competition){
-            //console.log('error', error);
-            db.updateCurrentRanking(competition.DATE, function(){
-               
-                //console.log('UPDATED AFTER ' + competition.DATE.toMysqlFormat());
-                callback();
-                return;
-            });
+        addCompetitionResult(competition, function(error){
+             callback();
+             return;
         });
-        
-        
-        
     });
     //save competition to db
     //update runners
@@ -202,25 +195,18 @@ module.exports.getEarliestResultDate = function(runnersIDs, callback){
 
 
 function addCompetitionResult(competition, callback){
-    //console.log('add competition Result');
     db.setRunnersIDs(competition, function(error, competition){
-        //console.log('setRunnersIDs');
         if(!error){
             db.addResults(competition, function(error){
                 if(error){
                     console.error(error);
                 }
-                
-                callback(null, competition);
-               /* //console.error(error);
-                self.addResults();*/
+                callback(null);
             });
         }else{
-            callback(error, competition);
+            callback(error);
         }
-        
     });
-    
 };
 
 module.exports.getStatistics = function(){
@@ -261,9 +247,21 @@ module.exports.getDataFromCache = function(prop){
 
 module.exports.getLastUpdateDate = function(callback){
    db.getLatestUpdateDateStatistic().then(function(result){
-        callback(result[0].DATE);
+        var date = result[0].DATE;
+        if(date == null){
+            date = new Date(systemSettings.defaultStart);
+        }
+        callback(date);
     }, function(error){
-        console.log(error);
+        console.log('error while getting LatestUpdateDateStatistic', error);
         callback();
     });
 };
+
+module.exports.getCompetitionsToImport = function(date){
+    return db.getCompetitionsToImport(date);
+};
+
+module.exports.getComparableData = function(runnerOne, runnerTwo){
+    return db.getComparableData(runnerOne, runnerTwo);
+}

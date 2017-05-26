@@ -1,0 +1,56 @@
+<form ng-cloak>
+    <md-toolbar>
+      <div class="md-toolbar-tools">
+        <h2>Сравнение c {{ctrl.compareRunner.FULLNAME}}</h2>
+        <span flex></span>
+        <md-button class="md-icon-button" ng-click="ctrl.close()">Х</md-button>
+      </div>
+    </md-toolbar>
+
+    <md-dialog-content>
+      <div class="md-dialog-content">
+           <table class="fullWidth">
+            <thead>
+              <tr>
+                  <th></th>
+                  <th>{{ctrl.runner.FULLNAME}}</th>
+                  <th>{{ctrl.compareRunner.FULLNAME}}</th>
+              </tr>
+            </thead>
+                <tr>
+                   <td class="bold">Текущий рейтинг</td>
+                   <td>{{ctrl.runner.CUR_RANK}}</td>
+                   <td>{{ctrl.compareRunner.CUR_RANK}}</td>  
+                </tr>
+                <tr>
+                   <td class="bold">Место</td>
+                   <td>{{ctrl.runner.PLACE}}</td>
+                   <td>{{ctrl.compareRunner.PLACE}}</td>    
+                </tr>
+                <tr ng-if="ctrl.compareData.length != 0">
+                   <td class="bold">Общих стартов</td>
+                   <td colspan="2" style="text-align: center;">{{ctrl.compareData.length}}</td>
+                </tr>
+                <tr ng-if="ctrl.compareData.length != 0">
+                   <td class="bold">Средние очки в общих стартах</td>
+                   <td>{{ctrl.getRunnerCompetitionPoints() | number:2}}</td>
+                   <td>{{ctrl.getCompareRunnerCompetitionPoints() | number:2}}</td>    
+                </tr>
+                <tr ng-if="ctrl.compareData.length != 0">
+                   <td class="bold">Победы</td>
+                   <td>{{ctrl.getRunnerCompetitionWins()}}</td>
+                   <td>{{ctrl.getCompareRunnerCompetitionWins()}}</td>    
+                </tr>
+                
+            <tbody>
+            </tbody>
+        </table>
+      </div>
+    </md-dialog-content>
+    <md-dialog-actions layout="row">
+      <span flex></span>
+      <md-button ng-click="ctrl.close()">
+        Закрыть
+      </md-button>
+    </md-dialog-actions>
+  </form>

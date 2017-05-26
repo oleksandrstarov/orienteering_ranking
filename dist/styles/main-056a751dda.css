@@ -296,3 +296,7 @@ tbody tr.blank-row{
 .color-blue{
   color:blue;
 }
+
+.bold{
+  font-weight: bold;
+}

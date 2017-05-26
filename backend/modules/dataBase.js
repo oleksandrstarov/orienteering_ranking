@@ -269,6 +269,19 @@ module.exports.updateCompetitionsStatus = function(competitions, callback){
   
 };
 
+module.exports.getCompetitionsToImport = function(date){
+  return new Promise(function(resolve, reject){
+    var query = `SELECT ID, DATE, URL, NAME, TYPE, STATUS, NOTES FROM COMPETITIONS WHERE STATUS = "VALID" AND (IS_ALLOWED = "Y" OR IS_ALLOWED IS NULL) AND DATE BETWEEN '${date.addDays(-7).toMysqlFormat()}' AND '${date.toMysqlFormat()}' ORDER BY DATE;`;
+    connection.query(query, function(err, rows, fields) {
+      if (!err){
+        resolve(rows);
+      }else{
+        reject(err);
+      }
+    });    
+  });
+};
+
 //RUNNERS
 function getPersonID(runner, points, callback){
   if(!runner){
@@ -459,19 +472,36 @@ module.exports.updateCurrentRanking = function(date, callback){
 
 module.exports.getRunnersList = function(){
   return new Promise(function(resolve, reject){
-  
+    var runners = {};
     var query = `SELECT *, POINTS - CUR_RANK AS POINTS_DIFF, PLACE - CUR_PLACE AS PLACE_DIFF
       FROM (
         SELECT R.ID, FULLNAME, TEAM, SEX, S1.POINTS AS CUR_RANK, SUBJECTIVE, S.POINTS, S.PLACE, S1.PLACE AS CUR_PLACE
         FROM RUNNERS R 
         JOIN STATISTICS S1 ON S1.RUNNER_ID = R.ID AND S1.ENTRY_DATE = (SELECT max(ENTRY_DATE) FROM STATISTICS)
         LEFT JOIN STATISTICS S ON S.RUNNER_ID = R.ID AND S.ENTRY_DATE = DATE_SUB((SELECT max(ENTRY_DATE) FROM STATISTICS) , INTERVAL 7 DAY)
-        WHERE ACTIVE = 1 ORDER BY S1.POINTS) TEMP
-      ORDER BY SEX, CUR_RANK;`;
+        WHERE ACTIVE = 1 ORDER BY S1.POINTS) TEMP WHERE SEX = 'M'
+      ORDER BY CUR_RANK;`;
    
     connection.query(query, function(err, rows, fields) {
       if (!err){
-        resolve(['runners', rows]);
+        runners.man = rows;
+         var query = `SELECT *, POINTS - CUR_RANK AS POINTS_DIFF, PLACE - CUR_PLACE AS PLACE_DIFF
+          FROM (
+            SELECT R.ID, FULLNAME, TEAM, SEX, S1.POINTS AS CUR_RANK, SUBJECTIVE, S.POINTS, S.PLACE, S1.PLACE AS CUR_PLACE
+            FROM RUNNERS R 
+            JOIN STATISTICS S1 ON S1.RUNNER_ID = R.ID AND S1.ENTRY_DATE = (SELECT max(ENTRY_DATE) FROM STATISTICS)
+            LEFT JOIN STATISTICS S ON S.RUNNER_ID = R.ID AND S.ENTRY_DATE = DATE_SUB((SELECT max(ENTRY_DATE) FROM STATISTICS) , INTERVAL 7 DAY)
+            WHERE ACTIVE = 1 ORDER BY S1.POINTS) TEMP WHERE SEX = 'W'
+          ORDER BY CUR_RANK;`;
+       
+        connection.query(query, function(err, rows, fields) {
+          if (!err){
+            runners.woman = rows;
+            resolve(['runners', runners]);
+          }else{
+            reject(err);
+          }
+        });    
       }else{
         reject(err);
       }
@@ -781,6 +811,26 @@ module.exports.getStatistic = function(){
       }
         
     });    
+  });
+};
+
+module.exports.getComparableData = function(runnerOne, runnerTwo){
+  return new Promise(function(resolve, reject){
+    var query = `SELECT 
+    R1.COMPETITION, R1.DATE, R1.COMP_GROUP, 
+    R1.RUNNER AS RUNNER, R1.TIME AS TIME, R1.PLACE AS PLACE, R1.POINTS AS POINTS,
+    R2.RUNNER AS OPPONENT, R2.TIME AS OPPENENT_TIME, R2.PLACE AS OPPONENT_PLACE, R2.POINTS AS OPPONENT_POINTS
+    FROM RESULTS R1
+    INNER JOIN RESULTS R2 ON R1.COMPETITION = R2.COMPETITION AND R1.COMP_GROUP = R2.COMP_GROUP AND R2.RUNNER = ${runnerTwo}
+    WHERE R1.RUNNER = ${runnerOne} AND R1.COMPETITION != 0;`;
+ 
+    connection.query(query, function(err, rows, fields) {
+      if (!err){
+        resolve(rows);
+      }else{
+        reject(err);
+      }
+    });
   });
 };
 

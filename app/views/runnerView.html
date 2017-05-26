@@ -24,6 +24,14 @@
                 </div>
             </div>
         </div>
+         <div class="col-xs-12 col-sm-6">
+            <md-input-container>
+              <md-select ng-model="compareRunner" placeholder="Сравнить с ..." md-on-open="getRunners()">
+                <md-option ng-value="runner" ng-repeat="runner in runnerViewCtrl.runners | filter:{ID : '!' + runnerViewCtrl.info.details[0].ID }">{{ runner.FULLNAME }}</md-option>
+              </md-select>
+            </md-input-container>
+            <button type="button" class="btn btn-success" ng-disabled="!compareRunner" ng-click="compare(compareRunner)">Сравнить</button>
+        </div>
         <table class="fullWidth">
             <thead>
               <tr>

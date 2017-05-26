@@ -9,56 +9,47 @@ var request = require('request'),
     //SFRparser= require('./htmlParserSFR.js'),
     url = 'http://orienteering.kh.ua/Result/Index/tag/1/';
 
-
-
-module.exports.getAvailableResults = function(competitionsInDB, customURL, callback){
-    if(!customURL){
-        grabResults(function(error, data){
-            //console.log(data.length);
-           importCompetitions(data);
-            //callback(error, data);
-        });
-    }else{
-        var data = [];
+module.exports.manualImport = function(customURL, callback){
+    var data = [];
         data.push(parseUrl(customURL));
-        importCompetitions(data);
-    }
-    
-    function importCompetitions(data){
-        //console.log('t ', data);
+        importCompetitions(data, callback);
+}
+
+
+module.exports.getNewCompetitions = function(competitionsInDB, callback){
+    grabResults(function(error, data){
         var newResults = filterNewResults(data, competitionsInDB);
-        //console.log(newResults);
-        //
-        if(newResults.length === 0){
-            callback('No new Results', []);
-            return;
+        importCompetitions(newResults, callback);
+    });
+};
+
+function importCompetitions(data, callback){
+    if(data.length === 0){
+        callback('No new Results', []);
+        return;
+    }
+    var newCompetitionsData = [];
+    var i = 0;
+    //console.log(newResults);
+    processCompetition(data[i], processCompetitionCallback);
+     
+    function processCompetitionCallback(error, result){
+        if(error){
+            console.error(error);
+           
         }
-        var newCompetitionsData = [];
-        var i = 0;
-        //console.log(newResults);
-        processCompetition(newResults[i], processCompetitionCallback);
-         
-        function processCompetitionCallback(error, result){
-            if(error){
-                console.error(error);
-               
-            }
-            //filter duplicated splits-results
-            if(!newCompetitionsData.some(comp => comp.id === newResults[i].id)){
-                newCompetitionsData.push(result);
-            }
-            
-            
-            
-            if(++i < newResults.length){
-                processCompetition(newResults[i], processCompetitionCallback);
-            }else{
-                callback(null, newCompetitionsData);
-            }
+        //filter duplicated splits-results
+        if(!newCompetitionsData.some(comp => comp.id === data[i].id)){
+            newCompetitionsData.push(result);
+        }
+        
+        if(++i < data.length){
+            processCompetition(data[i], processCompetitionCallback);
+        }else{
+            callback(null, newCompetitionsData);
         }
     }
-    
-};
+}
 
 function grabResults(callback){
     var availableCompetitions = [];

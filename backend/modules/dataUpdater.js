@@ -12,17 +12,46 @@ var lastUpdateDate;
 //updateData();
 
 module.exports.updateData = function (){
-   //list[i].DATE.getDay() === 0 ? list[i].DATE : getNextSunday(list[i].DATE)
-    
     db.getLastUpdateDate(function(date){
         lastUpdateDate = date;
-        nextUpdateDate = new Date().getDay() === 0 ? new Date().withoutTime(): getNextSunday(new Date().withoutTime());
-        if(nextUpdateDate === lastUpdateDate){
-            nextUpdateDate = lastUpdateDate.addDays(7);
-        }
-        getNewCompetitionsResults();
+        nextUpdateDate =  getPrevSunday(new Date().withoutTime());
+        console.log('last ', lastUpdateDate, ' next ', nextUpdateDate);
+        processUpdate();
     });
 };
+
+function processUpdate(callback){
+    isDataUpdating = true;
+    var startImport = new Date();
+     updateCompetitions()
+        .then(function(){
+            console.log('import');
+            return importResults();
+        })
+        .then(function(){
+            
+            isDataUpdating = false;
+            console.log('DONE');
+            console.log(`Import took ${(new Date() - startImport)/1000}  sec.`);
+            db.fillCache(function(){
+                if(callback){
+                    callback();
+                }
+            });
+        })
+        .catch(function(error){
+            console.log(`Fails after ${(new Date() - startImport)/1000}  sec.`);
+            isDataUpdating = false;
+            console.log('error on update competitions', error);
+            db.fillCache(function(){
+                if(callback){
+                    callback(error);
+                }
+            });
+        });
+}
+
+
 
 
 module.exports.recalculateCompetitions = function (competitionsArray, callback){
@@ -43,7 +72,7 @@ module.exports.dropData = function (callback){
        if(error){
            callback(error);
        }
-       getNewCompetitionsResults();
+       processUpdate(callback);
        //rollBackDB(earliestReadyCompetition, callback);
    });
 };
@@ -51,8 +80,7 @@ module.exports.dropData = function (callback){
 
 function rollBackDB(date){
     db.rollBackToDate(date, function(error){
-        console.log(date);
-      getNewCompetitionsResults();
+       processUpdate();
    });
 }
 
@@ -88,262 +116,176 @@ module.exports.mergeDuplicates = function (runners, callback){
                 rollBackDB(earliestResultDate, callback);
            });
         }
-        
-        
     }
 };
 
 module.exports.manualImport = function (data, callback){
-    /*db.updateRunnersPoints(null, function(){
-        getNewCompetitionsResults();
-    });*/
-    
-    if(/http:\/\/(.+)\.(.+)\/(.+)\.(htm|html)/.test(data)){
-        getNewCompetitionsResults(data, callback);
+    var isValidURL = /http:\/\/(.+)\.(.+)\/(.+)\.(htm|html)/.test(data);
+    if(isValidURL){
+        competitionsCollector.getNewCompetitions(data, function(error, list){
+            if(error){
+               console.log(error);
+            }
+            db.saveNewCompetitions(list.reverse(), function(error){
+                if(error){
+                    console.log(error);
+                }
+                callback();
+            });
+        });
     }else{
         callback('Invalid URL provided. Please check');
     }
 };
 
-function getNewCompetitionsResults(URLsArray, callback){
-
-     var processedCompetitions = [];
-     db.getImportedCompetitionsIDs(function(data){
-        ////console.log(data);
-        processedCompetitions = data;
-        competitionsCollector.getAvailableResults(processedCompetitions, URLsArray, function(error, list){
-           
-            if(error){
-               console.log(error);
-                db.getReadyToImportCompetitions(function(error, competitions){
-                    if(competitions.length != 0){
-                        importResults(competitions);
-                        return;
-                    }
-                   db.getLastUpdateDate(function(date){
-                        if(date.addDays(7) < nextUpdateDate || new Date().getDay() === 0){
-                            saveStatistics(date.addDays(7), nextUpdateDate, function(){
-                                db.fillCache(function(){
-                                    console.log('DONE');
-                                  
-                                    isDataUpdating = false;
-                                    if(callback){
-                                        
-                                        callback();
-                                        return;
-                                    }
-                                });
-                            });
-                        }else{
-                            db.fillCache(function(){
-                                console.log('DONE');
-                            
-                                isDataUpdating = false;
-                                if(callback){
-                                    
-                                    callback();
-                                    return;
-                                }
-                            });
-                        }
-                    });
-                });
-            }else{
-                //console.log('new competitions = ' , list[0]);
-                if(list.length > 0){
-
-                    db.saveNewCompetitions(list.reverse(), function(error){
-                        if(URLsArray){
-                            callback();
-                            return;
-                        }
-                        if(!error){
-                            db.getReadyToImportCompetitions(function(error, competitions){
-                                //console.log(competitions);
-                                if(competitions.length != 0){
-                                    importResults(competitions);
-                                }
-                            });
-                        }
-                    });
+function updateCompetitions(){
+    return new Promise(function(resolve, reject){
+        var processedCompetitions = [];
+         db.getImportedCompetitionsIDs(function(data){
+            ////console.log(data);
+            processedCompetitions = data;
+            competitionsCollector.getNewCompetitions(processedCompetitions, function(error, list){
+                if(error){
+                   console.log(error);
+                    resolve();
                 }else{
-                    //update statistics
-                    db.getLastUpdateDate(function(date){
-                        if(date.addDays(7) < nextUpdateDate || new Date().getDay() === 0){
-                            saveStatistics(date.addDays(7), nextUpdateDate, function(){
-                                db.fillCache(function(){
-                                    console.log('DONE');
-                                  
-                                    isDataUpdating = false;
-                                    if(callback){
-                                        
-                                        callback();
-                                        return;
-                                    }
-                                });
-                            });
-                        }else{
-                            db.fillCache(function(){
-                                console.log('DONE');
-                            
-                                isDataUpdating = false;
-                                if(callback){
-                                    
-                                    callback();
-                                    return;
-                                }
-                            });
-                        }
-                    });
+                    if(list.length > 0){
+                        db.saveNewCompetitions(list.reverse(), function(error){
+                            if(error){
+                                console.log(error);
+                            }
+                             resolve();
+                        });
+                    }
                 }
-                
-                //save competitions
-                //and get new sorted list
-            }
+            });
         });
     });
 }
 
-
-function importResults(list, callback, err){
-    isDataUpdating = true;
-    // drop to date before import
-    // check best points only for started runners
-    var startImport = new Date();
-    var i = 0;
-    processCompetition(list[i], processCompetitionCallback);
-     
-    function processCompetitionCallback(error){
-        if(error){
-            console.error(error);
-        }
-        
-        var nextSunday = list[i].DATE.getDay() === 0 ? list[i].DATE : getNextSunday(list[i].DATE);
-        
-        
-        if(++i <= list.length-1){
-            process.stdout.write("\r" +`Importing progress ${Math.round((i+1)/list.length * 100)} %`);
-            var nextCompetitionDate = list[i].DATE;
-            
-            if(nextUpdateDate === nextSunday && new Date().withoutTime() != nextUpdateDate){
-                processCompetitionCallback();
-            }
-            if(nextSunday < nextCompetitionDate){
-                saveStatistics(nextSunday, nextCompetitionDate, function(){
-                    processCompetition(list[i], processCompetitionCallback);
-                });
-            }else{
-                processCompetition(list[i], processCompetitionCallback);
-            }
+function importResults(){
+    return new Promise(function(resolve, reject){
+        if(lastUpdateDate.addDays(7) <= nextUpdateDate){
+            importResultsForWeek(lastUpdateDate.addDays(7), function(){
+                resolve();
+            });
         }else{
-            //exit here
-            if(nextSunday < nextUpdateDate){
-                saveStatistics(nextSunday, nextUpdateDate, function(){
-                    db.fillCache(function(){
-                        console.log('DONE');
-                        console.log(`Import took ${(new Date() - startImport)/1000}  sec.`);
-                        isDataUpdating = false;
-                        if(callback){
-                            
-                            callback(err);
-                            return;
-                        }
-                    });
-                    
-                    
-                })
-            }else{
-                db.fillCache(function(){
-                    console.log('DONE');
-                    console.log(`Import took ${(new Date() - startImport)/1000}  sec.`);
-                    isDataUpdating = false;
-                    if(callback){
-                        callback(err);
-                        return;
-                    }
-                });
-            }
+            reject('not a sunday today');
         }
-    }
+    });
 }
 
+function importResultsForWeek(date, callback){
+    var isNextWeekValid = date.addDays(7) <= nextUpdateDate;
+    weeklyImport(date).then(function(){
+        if(isNextWeekValid){
+            process.stdout.write("\r" +`Working on ${date.addDays(7).toMysqlFormat()}`);
+            importResultsForWeek(date.addDays(7), callback);
+        }else{
+           callback();
+        }
+    });
+}
 
+function weeklyImport(date){
+    return new Promise(function(resolve, reject){
+        db.getCompetitionsToImport(date)
+        .then(function(competitions){
+            return processCompetitionsResults(competitions);
+        })
+        .then(function(){
+            return savePointsStatisticsOnSunday(date);
+        })
+        .then(function(){
+            resolve();
+        })
+        .catch(function(error){
+            console.log(error);
+            reject('dataUpdater.js ' + error);
+        });
+    });
+}
 
-function processCompetition(competition, callback){
-    
-    getResults(competition, function(error, competitionData){
+function processCompetitionsResults(competitions){
+    return new Promise(function(resolve, reject){
+        if(competitions == null || competitions.length == 0){
+            resolve();
+        }
+        var competition = competitions.shift();
+        processCompetitionResult(competition, processCompetitionCallback);
         
+        
+        function processCompetitionCallback(error){
+            if(error){
+                reject('rejected with error '+ error);
+            }
+            if(competitions.length > 0){
+                competition = competitions.shift();
+                processCompetitionResult(competition, processCompetitionCallback);
+            }else{
+                resolve();
+            }
+        }
+    });
+}
+
+function processCompetitionResult(competition, callback){
+    getResults(competition, function(error, competitionData){
         if(error){
+            console.log(error);
             db.processCompetition(competitionData, function(){
-                
                 callback();
                 return;
             });
         }else{
-            //console.log('COMPETITION ' + competitionData.DATE.toMysqlFormat());
-        
             db.updateRunnersPoints(competitionData.DATE, function(error){
                 pointsCalculator.processCompetitionResults(competitionData, function(competitionData){
-                //console.log('before process');
                     db.processCompetition(competitionData, function(){
-                        //console.log('after process');
                         callback();
                         return;
                     });
                 });
             });    
         }
-        
     });
 }
+
+
 
 function getResults(competition, callback){
     if(competition.TYPE === 'SFR'){
         SFRparser.processCompetition(competition, function(error, data){
             callback(error, data);
         });
-        
     }else if(competition.TYPE === 'WINORIENT'){
-        
         WOparser.processCompetition(competition, function(error, data){
             
             callback(error, data);
         });
     }else{
+        competition.STATUS = 'INVALID';
         callback('UNKNOWN TYPE', competition);
     }
     
 }
 
-function savePointsStatisticsOnSunday(date, callback){
-   db.updateRunnersPoints(date, function(error){
-       db.setPointsStatistic(date).then(function(){
-          callback(true);
-       },
-       function(error){
-           callback(error);
-       });
-   }); 
-    
+function savePointsStatisticsOnSunday(date){
+    return new Promise(function(resolve, reject){
+        db.updateRunnersPoints(date, function(error){
+           db.setPointsStatistic(date)
+               .then(function(){
+                  resolve();
+               },
+               function(error){
+                   reject(error);
+               });
+       }); 
+    });
 };
 
-function getNextSunday(date){
+function getPrevSunday(date){
     var day = date.getDay();
-    var diff = 7 - day;
-    return date.addDays(diff);
-}
-
-function saveStatistics(date, nextCompetitionDate, callback){
-    savePointsStatisticsOnSunday(date, function(result){
-        
-        var nextDate = date.addDays(7);
-        if(nextCompetitionDate > nextDate){
-            saveStatistics(nextDate, nextCompetitionDate, callback);
-        }else{
-            callback();
-        }
-        
-    });
+    return date.addDays(-day);
 }
 
 module.exports.isUpdating = function(){

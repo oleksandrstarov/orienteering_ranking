@@ -11,7 +11,6 @@ angular.module('app')
         return $resource('/competitions/:id');
     };
 }])
-
 .service('runnerService',['$resource', function($resource){
     this.getRunners = function() {
         return $resource('/runners');
@@ -19,6 +18,10 @@ angular.module('app')
     
     this.getRunner = function() {
         return $resource('/runners/:id');
+    };
+    
+     this.compareRunner = function() {
+        return $resource('/runner/:id/:compare');
     };
 }])
 .service('statsService',['$resource', function($resource){
@@ -72,4 +75,6 @@ angular.module('app')
         return $resource('/about');
     };
 }])
+.value('runnersManValue', [])
+.value('runnersWomanValue', [])
 ;
