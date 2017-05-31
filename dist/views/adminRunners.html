@@ -1,0 +1,81 @@
+<h1>RUNNERS</h1><br/>
+<a ui-sref="app.adminCompetitions">Competitions</a>
+<div class="row">
+    <div class='text-danger bg-info col-sm-2' ng-show='message != ""'>{{message}}</div>
+</div>
+<div class="container">
+ <div class="row">
+    <div class="col-md-6 col-lg-6">
+      <h1>Спортсмены</h1>
+      <table class="fullWidth">
+          <thead>
+            <tr>
+                <th></th>
+                <th>Имя</th>
+                <th>Спортивное общество</th>
+                <th>Очки</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr ng-repeat="runner in filterInfo(info) |orderBy: 'FULLNAME'">
+            <td><input type="checkbox" name="" ng-change="AdminRunnersCtrl.selected(runner)" ng-model="runner.isSelected"/></td>
+            <td>{{runner.FULLNAME}}</a></td>
+            <td>{{runner.TEAM}}</td>
+            <td>{{runner.CUR_RANK | number:2}}</td>
+            </tr>
+          </tbody>
+      </table>
+    </div>
+    <div class="col-md-6">
+        <h1>Выбраные</h1> 
+        <table class="fullWidth">
+            <thead>
+            <tr>
+                <th></th>
+                <th>Имя</th>
+                <th>Спортивное общество</th>
+            </tr>
+          </thead>
+            <tbody>
+                <tr ng-repeat="runner in info | orderBy: 'FULLNAME' | filter: {'isSelected':true} as selectedRunners">
+                <td><input type="radio" name="duplicates" ng-value="runner" ng-change="AdminRunnersCtrl.selectedPrimary(runner)" ng-model="AdminRunnersCtrl.selectedRunner"/></td>
+                <td>{{runner.FULLNAME}}</a></td>
+                <td>{{runner.TEAM}}</td>
+                </tr>
+          </tbody>
+        </table>
+       <div ng-show="show">
+        <div class="panel panel-primary" >
+            <div class="panel-heading">
+                <h3 class="panel-title">{{AdminRunnersCtrl.selectedRunner.FULLNAME}}</h3>
+            </div>
+            <div class="panel-body">
+                <dl class="dl-horizontal">
+                    <dt>ID</dt>
+                    <dd>{{AdminRunnersCtrl.selectedRunner.ID}}</dd>
+                    <dt>Клуб</dt>
+                    <dd><input type="text" class="input-medium form-control" ng-model="AdminRunnersCtrl.selectedRunner.TEAM" ng-disabled="selectedRunners.length>1"></dd>
+                    <dt>Пол</dt>
+                    <dd>
+                        <select class="input-medium form-control" ng-model="AdminRunnersCtrl.selectedRunner.SEX" ng-disabled="selectedRunners.length>1">
+                            <option value="W">Women</option>
+                            <option value="M">Man</option>
+                        </select>
+                    </dd>
+               </dl>
+            </div>
+            </div>
+            <button ng-show="selectedRunners.length>1" type="button" class="btn btn-danger" ng-click="merge()">Merge</button>
+            <button ng-hide="selectedRunners.length>1" type="button" class="btn btn-danger" ng-click="update()">Update</button>
+        </div>
+        <div ng-show="mergedRunners.length>0">
+            </br>
+            <h2>Спортсмены для обработки:</h2>
+            <div ng-repeat="runner in mergedRunners">
+               {{$index+1}} - {{runner.main.FULLNAME}}
+            </div>
+            <button ng-show="mergedRunners.length>0" type="button" class="btn btn-success" ng-click="updateMergedData()">Save</button>
+            <button ng-show="mergedRunners.length>0" type="button" class="btn btn-info" ng-click="cancel()">Cancel</button>
+        </div>
+  </div>
+</div>

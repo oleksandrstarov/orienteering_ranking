@@ -1,0 +1,83 @@
+<div class="container">
+  <loader-template ng-hide="isDataLoaded"></loader-template>
+  <div class="row" ng-show="isDataLoaded && isError">{{message}}</div>
+  <div class="row" ng-show="isDataLoaded && !isError">
+    
+   <div class="col-xs-12 col-sm-5 info">
+        <div class="panel panel-primary">
+            <div class="panel-heading">
+                <h3 class="panel-title">Статистика</h3>
+            </div>
+            <div class="panel-body">
+                <dl class="dl-horizontal">
+                    <dt>Всего спортсменов:</dt>
+                    <dd>{{homeCtrl.data.simpleStats[0].DATA}}</dd>
+                    <dt>Активных:</dt>
+                    <dd>{{homeCtrl.data.simpleStats[1].DATA}}</dd>
+                    <dt>Активных &gt6 стартов:</dt>
+                    <dd>{{homeCtrl.data.simpleStats[2].DATA}}</dd>
+                    <hr>
+                    <dt>Всего стартов:</dt>
+                    <dd>{{homeCtrl.data.simpleStats[3].DATA}}</dd>
+                    <dt>в т.ч. за год:</dt>
+                    <dd>{{homeCtrl.data.simpleStats[4].DATA}}</dd>
+                    <hr>
+                    <dt>Больше всех стартов:</dt>
+                    <dd  ng-repeat="runner in homeCtrl.data.attenders | filter: {'PERIOD':'A'}"><a ui-sref="app.runner({id: runner.ID})">{{runner.FULLNAME}}</a> - {{runner.AMOUNT}}</dd>
+                    <dt>за последний год:</dt>
+                    <dd  ng-repeat="runner in homeCtrl.data.attenders | filter: {'PERIOD':'Y'}"><a ui-sref="app.runner({id: runner.ID})">{{runner.FULLNAME}}</a> - {{runner.AMOUNT}}</dd>
+                    <dt>Последний старт:</dt>
+                    <dd class="date-field">{{homeCtrl.data.simpleStats[5].DATA | date:'dd-MM-yyyy'}}</dd>
+                    <dt>Пересчет очков:</dt>
+                    <dd class="date-field">{{homeCtrl.data.simpleStats[6].DATA | date:'dd-MM-yyyy'}}</dd>
+                    <hr>
+                    <dt>Подъем в рейтинге:</dt>
+                    <dd ng-repeat="runner in homeCtrl.data.progress.up"><a ui-sref="app.runner({id: runner.ID})"><span class="glyphicon glyphicon-circle-arrow-up color-green"></span>{{runner.FULLNAME}}</a> c {{runner.PLACE}} на {{runner.PLACE + runner.PLACE_DIFF*-1}} ({{-runner.PLACE_DIFF}})</dd>
+                    <dt>Потеря в рейтинге:</dt>
+                    <dd ng-repeat="runner in homeCtrl.data.progress.down"><a ui-sref="app.runner({id: runner.ID})"><span class="glyphicon glyphicon-circle-arrow-down color-red"></span>{{runner.FULLNAME}}</a> c {{runner.PLACE}} на {{runner.PLACE + runner.PLACE_DIFF*-1}} (+{{-runner.PLACE_DIFF}})</dd>
+                    <dt>Новички:</dt>
+                    <dd ng-repeat="runner in homeCtrl.data.progress.novices"><a ui-sref="app.runner({id: runner.ID})">{{runner.FULLNAME}}</a></dd>
+               </dl>
+            </div>
+        
+        </div>
+    </div>
+    <div class="col-xs-12 col-sm-5 col-sm-offset-2 info">
+       
+      <div class="panel panel-primary">
+        <div class="panel-heading">
+            <h3 class="panel-title">Топ-3</h3>
+        </div>
+        <div class="panel-body">
+          <table class="fullWidth">
+            <thead>
+              <tr>
+                <th>№</th>
+                <th>Имя</th>
+                <th>Очки</th>
+                <th>Недель на позиции</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr ng-repeat="runner in homeCtrl.data.leaders | filter:{'SEX':'M'}">
+                <td>{{runner.PLACE}}</td>  
+                <td><a ui-sref="app.runner({id: runner.ID})">{{runner.FULLNAME}}</a></td>
+                <td>{{ runner.POINTS | number:2}}</td>
+                <td>{{ runner.DURATION}}</td>
+              </tr>
+              <tr class="blank-row"><td colspan="4"></td></tr>
+             
+              <tr ng-repeat="runner in homeCtrl.data.leaders | filter:{'SEX':'W'}">
+                <td>{{runner.PLACE}}</td>   
+                <td><a ui-sref="app.runner({id: runner.ID})">{{runner.FULLNAME}}</a></td>
+                <td>{{ runner.POINTS | number:2}}</td>
+                <td>{{ runner.DURATION}}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      
+      </div>
+    </div>
+  </div>
+</div>

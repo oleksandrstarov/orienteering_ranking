@@ -202,7 +202,7 @@ angular.module('app')
     
     $scope.getRunners = function(){
       return runnerService.getRunners().get().$promise.then(function(responce){
-        let isMan = self.info.details[0].SEX == "M";
+        var isMan = self.info.details[0].SEX == "M";
         self.runners = isMan?responce.man:responce.woman;
       });
     }
