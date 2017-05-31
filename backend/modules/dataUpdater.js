@@ -10,15 +10,18 @@ var isDataUpdating;
 var nextUpdateDate;
 var lastUpdateDate;
 //updateData();
+var self = this;
 
-module.exports.updateData = function (){
+module.exports.updateData = function (callback){
     db.getLastUpdateDate(function(date){
         lastUpdateDate = date;
         nextUpdateDate =  getPrevSunday(new Date().withoutTime());
         console.log('last ', lastUpdateDate, ' next ', nextUpdateDate);
-        processUpdate();
+        processUpdate(callback);
     });
 };
+
+
 
 function processUpdate(callback){
     isDataUpdating = true;
@@ -72,7 +75,8 @@ module.exports.dropData = function (callback){
        if(error){
            callback(error);
        }
-       processUpdate(callback);
+       
+       //processUpdate(callback);
        //rollBackDB(earliestReadyCompetition, callback);
    });
 };
@@ -80,7 +84,8 @@ module.exports.dropData = function (callback){
 
 function rollBackDB(date){
     db.rollBackToDate(date, function(error){
-       processUpdate();
+       self.updateData();
+       //processUpdate();
    });
 }
 
