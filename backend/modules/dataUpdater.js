@@ -14,7 +14,7 @@ var self = this;
 
 module.exports.updateData = function (callback){
     db.getLastUpdateDate(function(date){
-        lastUpdateDate = date;
+        lastUpdateDate = date.withoutTime();
         nextUpdateDate =  getPrevSunday(new Date().withoutTime());
         console.log('last ', lastUpdateDate, ' next ', nextUpdateDate);
         processUpdate(callback);

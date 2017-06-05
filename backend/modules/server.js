@@ -22,7 +22,10 @@ app.use(session({
     resave: true,
     saveUninitialized: true
 }));
-app.use(morgan('dev'));
+morgan('combined', {
+  skip: function (req, res) { return res.statusCode < 400 }
+});
+app.use(morgan('combined'));
 app.use(express.static(__dirname + "./../../dist"));
 app.use(bodyParser.json());
 
