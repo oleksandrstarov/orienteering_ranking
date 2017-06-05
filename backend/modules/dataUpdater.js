@@ -75,7 +75,7 @@ module.exports.dropData = function (callback){
        if(error){
            callback(error);
        }
-       
+       self.updateData(callback);
        //processUpdate(callback);
        //rollBackDB(earliestReadyCompetition, callback);
    });

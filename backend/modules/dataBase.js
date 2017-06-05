@@ -120,7 +120,7 @@ module.exports.saveNewCompetitions = function(competitions, callback){
 
 module.exports.getReadyToImportCompetitions = function(callback){
   var query = 'SELECT ID, DATE, URL, NAME, TYPE, STATUS, NOTES FROM COMPETITIONS WHERE STATUS = "VALID" AND (IS_ALLOWED = "Y" OR IS_ALLOWED IS NULL) '
-    + ' ORDER BY DATE;';
+    + ' ORDER BY DATE, ID DESC;';
   
   ////console.log(query);
   connection.query(query, function(err, rows, fields) {
