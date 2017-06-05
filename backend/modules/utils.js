@@ -23,7 +23,7 @@ Date.prototype.addDays = function(days) {
 
 Date.prototype.withoutTime = function () {
     var d = new Date(this);
-    d.setHours(0, 0, 0, 0);
+    d.setUTCHours(0, 0, 0, 0);
     return d;
 }
 
