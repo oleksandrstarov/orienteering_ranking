@@ -32,45 +32,53 @@
             </md-input-container>
             <button type="button" class="btn btn-success" ng-disabled="!compareRunner" ng-click="compare(compareRunner)">Сравнить</button>
         </div>
-        <table class="fullWidth">
+        <table class="fullWidth cut-text-table">
             <thead>
               <tr>
-                  <th>Дата</th>
+                  <th class="table-col-medium">Дата</th>
                   <th>Соревнования</th>
-                  <th>Группа</th>
-                  <th>Результат</th>
-                  <th>Место</th>
-                  <th>Очки</th>
-                  <th>Лучшие</th>
+                  <th class="table-col-medium">Группа</th>
+                  <th class="desktop">Результат</th>
+                  <th class="desktop">Место</th>
+                  <th class="table-col-medium">Очки</th>
+                  <th class="table-col-small">#</th>
               </tr>
             </thead>
             <tbody>
-              <tr ng-repeat="entry in runnerViewCtrl.info.results | filter: {ACT_RESULT:'C'} | orderBy:'DATE':true as current">
-                <td class="date-field">{{entry.DATE | date:'yyyy-MM-dd'}}</td>
-                <td><a ui-sref="app.competition({id: entry.COMPETITION})">{{entry.NAME}}</a></td>
+              <tr ng-repeat="entry in runnerViewCtrl.info.results | filter: {ACT_RESULT:'C'} | orderBy:'DATE':true as current track by $index">
+                <td class="table-cell-date">{{entry.DATE | date:'yyyy-MM-dd'}}</td>
+                <td class="cut-text"><a ui-sref="app.competition({id: entry.COMPETITION})">{{entry.NAME}}</a></td>
                 <td>{{entry.GROUP}}</td>
-                <td ng-switch="entry.PLACE">
+                <td class="desktop" ng-switch="entry.PLACE">
                    <span ng-switch-when="-1">-</span>
                    <span ng-switch-default>{{entry.TIME}}</span>
                 </td>
                 
-                <td ng-switch="entry.PLACE">
+                <td class="desktop" ng-switch="entry.PLACE">
                   <span ng-switch-when="-1">-</span>
                   <span ng-switch-default>{{entry.PLACE}}</span>
                 </td>
                 <td>{{entry.POINTS | number:2}}</td>
                 <td>{{entry.POINTS_RANK}}</td>
               </tr>
-              <tr ng-if="current.length != runnerViewCtrl.info.results.length" class="blank-row"><td colspan="7"></td></tr>
+              <tr ng-if="current.length != runnerViewCtrl.info.results.length" class="blank-row">
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td class="desktop"></td>
+                  <td class="desktop"></td>
+                  <td></td>
+                  <td></td>
+              </tr>
               <tr ng-repeat="entry in runnerViewCtrl.info.results | filter: {ACT_RESULT:'P'} | orderBy:'DATE':true" class="past">
-                <td class="date-field">{{entry.DATE | date:'yyyy-MM-dd'}}</td>
-                <td><a ui-sref="app.competition({id: entry.COMPETITION})">{{entry.NAME}}</a></td>
+                <td class="table-cell-date">{{entry.DATE | date:'yyyy-MM-dd'}}</td>
+                <td class="cut-text"><a ui-sref="app.competition({id: entry.COMPETITION})">{{entry.NAME}}</a></td>
                 <td>{{entry.GROUP}}</td>
-                <td ng-switch="entry.PLACE">
+                <td class="desktop" ng-switch="entry.PLACE">
                    <span ng-switch-when="-1">-</span>
                    <span ng-switch-default>{{entry.TIME}}</span>
                 </td>
-                <td ng-switch="entry.PLACE">
+                <td class="desktop" ng-switch="entry.PLACE">
                   <span ng-switch-when="-1">-</span>
                   <span ng-switch-default>{{entry.PLACE}}</span>
                 </td>

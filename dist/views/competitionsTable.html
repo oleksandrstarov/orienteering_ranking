@@ -2,33 +2,31 @@
  <loader-template ng-hide="isDataLoaded"></loader-template>
   <div class="row"ng-show="isDataLoaded">
     <h1>Соревнования в системе</h1>
-    <table class="fullWidth">
+    <table class="fullWidth cut-text-table">
         <thead>
           <tr>
-              <th>Статус</th>
-              <th>Дата</th>
+              <th class="table-col-small"></th>
+              <th class="table-col-medium">Дата</th>
               <th>Название</th>
-              <th>Примечание</th>
-              <th>Участников</th>
+              <th class="desktop">Примечание</th>
+              <th class="table-col-small">Уч.</th>
           </tr>
-      
         </thead>
         <tbody>
             <tr ng-repeat="competition in competitionsCtrl.info | orderBy:'DATE':true">
-                <td ng-switch="competition.STATUS" style="text-align: center;">
+                <td  ng-switch="competition.STATUS" style="text-align: center;">
                     <span ng-switch-when="INVALID" class="glyphicon glyphicon-remove-sign" style="color:red; "></span>
                     <span ng-switch-when="IMPORTED" class="glyphicon glyphicon-ok-sign" style="color:green;"></span>
                     <span ng-switch-when="VALID" class="glyphicon glyphicon-exclamation-sign" style="color:blue;"></span>
                 </td>
-                <td style="white-space: nowrap;" >{{competition.DATE | date:'yyyy-MM-dd'}}</td>
-                <td><a class="competition-label" ui-sref="app.competition({id: competition.ID})">{{competition.NAME }}</a></td>
-                <td>{{competition.NOTES }}</td>
-                <td>{{competition.RUNNERS}}</td>
+                <td class="table-cell-date" >{{competition.DATE | date:'yyyy-MM-dd'}}</td>
+                <td class="cut-text"><a ui-sref="app.competition({id: competition.ID})">{{competition.NAME }}</a></td>
+                <td class="desktop">{{competition.NOTES}}</td>
+                <td >{{competition.RUNNERS}}</td>
                 
                 <!--<td><img ng-src="images/{{competition.STATUS}}_icon.png"></td>-->
             </tr>
         </tbody>
     </table>
   </div>
-
 </div>

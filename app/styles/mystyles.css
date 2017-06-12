@@ -234,9 +234,6 @@ thead th, thead td {
   margin-right: 0px;
 }
 
-.date-field{
-  min-width: 90px;
-}
 
 tbody tr.blank-row{
     height: 6px !important; /* Overwrite any previous rules */
@@ -277,9 +274,6 @@ tbody tr.blank-row{
   columns: 4;
 }
 
-.competition-label {
-  text-overflow: ellipsis;
-}
 
 .color-red{
   color:red;
@@ -300,3 +294,40 @@ tbody tr.blank-row{
 .bold{
   font-weight: bold;
 }
+
+.table-cell-date{
+     white-space: nowrap;
+  }
+
+
+
+@media all and (max-width: 993px) {
+  .desktop{
+    display:none;
+    width:0;
+    height:0;
+    opacity:0;
+    visibility: collapse;
+  }
+  
+  .cut-text-table{
+    table-layout: fixed;
+    width: 100%;
+  }
+  
+  .cut-text{
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  
+  .table-col-small{
+    width: 30px;
+  }
+  
+  .table-col-medium{
+    width: 90px;
+  }
+}
+
+

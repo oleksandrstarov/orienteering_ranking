@@ -110,6 +110,16 @@ angular.module('app')
     self.manData = [];
     self.womanData = [];
     
+    $scope.showMan = true;
+    $scope.showWoman = true;
+    $scope.toggleManInfo = function(){
+       $scope.showMan = !$scope.showMan;
+    };
+    
+    $scope.toggleWomanInfo = function(){
+       $scope.showWoman = !$scope.showWoman;
+    };
+    
     self.search = function(runner){
       if(runner.SEX === 'M'){
         var normalizedFilter = self.manFilter.toLowerCase();

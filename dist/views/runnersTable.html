@@ -3,20 +3,22 @@
   
   <div class="row" ng-show="isDataLoaded">
     <div class="col-xs-12  col-sm-12 col-md-6 col-lg-6">
-      <h2 class="col-md-4">Мужчины </h2><h2 class="col-md-offset-1 col-md-5"><small>  Корректировка: <span class="label label-default">{{runnersCtrl.manShift | number:2}} </span></small></h2>
-      <span class="col-md-12 input-group" style="margin-top:20px;">
+      <h2 class="col-md-3">Мужчины </h2>
+      <h2 class="col-md-offset-1 col-md-8"><small>  Корректировка: <span class="label label-default">{{runnersCtrl.manShift | number:2}} </span> 
+      <span ng-click="toggleManInfo()" ><span ng-if="!showMan" class="glyphicon glyphicon-menu-down"></span> <span ng-if="showMan" class="glyphicon glyphicon-menu-up"></span></span></small></h2>
+      <span ng-show="showMan" class="col-md-12 input-group" style="margin-top:20px;">
           <span class="input-group-addon"> Скрыть субъективные 
             <input type="checkbox" title="Скрыть субъективные" ng-model="runnersCtrl.noSubjectiveMan">
           </span>
           <input type="text" class="form-control no-left-padding" placeholder="Поиск по имени или клубу" ng-model="runnersCtrl.manFilter"/>
       </span>
       </br>
-      <table class="fullWidth">
+      <table ng-show="showMan" class="fullWidth">
           <thead>
             <tr>
               <th style="text-align:center">№</th>
               <th style="text-align:center">Имя</th>
-              <th style="text-align:center">Клуб</th>
+              <th style="text-align:center" class="desktop">Клуб</th>
               <th style="text-align:center" colspan="2">Очки</th>
             </tr>
           </thead>
@@ -24,7 +26,7 @@
             <tr ng-repeat="runner in runnersCtrl.manData | filter: runnersCtrl.search | filter: runnersCtrl.subjectiveFilter">
               <td>{{runner.CUR_PLACE}}</td>     
               <td><a ui-sref="app.runner({id: runner.ID})">{{runner.FULLNAME}}</a></td>
-              <td>{{runner.TEAM}}</td>
+              <td class="desktop">{{runner.TEAM}}</td>
               <td ng-class="runnersCtrl.isSubjective(runner.SUBJECTIVE)">{{(runner.CUR_RANK +  runnersCtrl.manShift)| number:2}}</td>
               <td><span ng-class="runnersCtrl.checkPlace(runner)" class="glyphicon" title="{{runnersCtrl.getPopup(runner)}}"></span></td>
             </tr>
@@ -33,20 +35,23 @@
       
     </div>
     <div class="col-xs-12  col-sm-12 col-md-6 col-lg-6">
-      <h2 class="col-md-4">Женщины </h2><h2 class="col-md-offset-1 col-md-5"><small>  Корректировка: <span class="label label-default">{{runnersCtrl.womanShift | number:2}} </span></small></h2>
-      <span class="col-md-12 input-group" style="margin-top:20px;">
+      <h2 class="col-md-3">Женщины </h2>
+      <h2 class="col-md-offset-1 col-md-8"><small>  Корректировка: <span class="label label-default">{{runnersCtrl.womanShift | number:2}} </span>
+      <span ng-click="toggleWomanInfo()" ><span ng-if="!showWoman" class="glyphicon glyphicon-menu-down"></span> <span ng-if="showWoman" class="glyphicon glyphicon-menu-up"></span></span></small></h2>
+      
+      <span  ng-show="showWoman" class="col-md-12 input-group" style="margin-top:20px;">
           <span class="input-group-addon"> Скрыть субъективные 
             <input type="checkbox" title="Скрыть субъективные" ng-model="runnersCtrl.noSubjectiveWoman">
           </span>
           <input type="text" class="form-control no-left-padding" placeholder="Поиск по имени или клубу" ng-model="runnersCtrl.womanFilter"/>
       </span>
       </br>
-      <table class="fullWidth">
+      <table  ng-show="showWoman" class="fullWidth">
           <thead>
             <tr>
               <th style="text-align:center">№</th>
               <th style="text-align:center">Имя</th>
-              <th style="text-align:center">Клуб</th>
+              <th style="text-align:center" class="desktop">Клуб</th>
               <th style="text-align:center" colspan="2">Очки</th>
             </tr>
           </thead>
@@ -54,7 +59,7 @@
             <tr ng-repeat="runner in runnersCtrl.womanData | filter: runnersCtrl.search | filter: runnersCtrl.subjectiveFilter">
               <td>{{runner.CUR_PLACE}}</td>  
               <td><a ui-sref="app.runner({id: runner.ID})">{{runner.FULLNAME}}</a></td>
-              <td>{{runner.TEAM}}</td>
+              <td class="desktop">{{runner.TEAM}}</td>
               <td ng-class="runnersCtrl.isSubjective(runner.SUBJECTIVE)">{{ (runner.CUR_RANK +  runnersCtrl.womanShift) | number:2}}</td>
               <td><span ng-class="runnersCtrl.checkPlace(runner)" class="glyphicon" title="{{runnersCtrl.getPopup(runner)}}"></span></td>
             </tr>

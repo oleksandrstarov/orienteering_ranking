@@ -54,6 +54,10 @@ body {
   margin-top: 28px;
 }
 
+.desktop{
+  color:red;
+}
+
 /* Responsive: Portrait tablets and up */
 @media screen and (min-width: 768px) {
   .container {
@@ -74,6 +78,14 @@ body {
   /* Remove the bottom border on the jumbotron for visual effect */
   .jumbotron {
     border-bottom: 0;
+  }
+  
+  .desktop{
+    display:none;
+    width:0;
+    height:0;
+    opacity:0;
+    visibility: collapse;
   }
   
 }
