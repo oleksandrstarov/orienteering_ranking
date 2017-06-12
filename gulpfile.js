@@ -33,6 +33,13 @@ gulp.task('default', ['clean'], function() {
     gulp.start('usemin', 'imagemin', 'adminApp','copyfonts');
 });
 
+// Default task
+gulp.task('debug', ['clean'], function() {
+    gulp.start('copyFiles', 'imagemin', 'adminApp','copyfonts');
+});
+
+
+
 // admin
 gulp.task('adminApp',['jshint'], function () {
   return gulp.src('./app/admin/*.html')
@@ -45,6 +52,17 @@ gulp.task('adminApp',['jshint'], function () {
         js: [ngannotate(), rev()]
       }))
       .pipe(gulp.dest('dist/admin'));
+});
+
+gulp.task('copyFiles',['jshint'], function () {
+  return gulp.src(['./app/**/*.html', '!./app/admin/*.html'])
+      .pipe(usemin({
+        css:[rev()],
+        css_custom:[rev()],
+        js: [ngannotate(),rev()],
+        js_custom: [ngannotate(),rev()]
+      }))
+      .pipe(gulp.dest('dist/'));
 });
 
 
