@@ -12,6 +12,9 @@ this.serverSettings = {
     hostname : '0.0.0.0'
 };
 
+var serverProps= {
+     cacheTime: 1200
+};
 var hostname = process.env.OPENSHIFT_NODEJS_IP  || this.serverSettings.hostname || process.env.IP || 'localhost';
 var port = process.env.OPENSHIFT_NODEJS_PORT || this.serverSettings.port || process.env.PORT || 3000;
 
@@ -48,10 +51,12 @@ app.use(function (req, res, next) {
 
 app.get('/runners', function(req, res){
     var runners =  JSON.stringify(db.getDataFromCache('runners'));
+    res.setHeader('Cache-Control', `public, max-age=${serverProps.cacheTime}`);
     res.end(runners);
 });
 
 app.get('/runners/:id', function(req, res){
+    res.setHeader('Cache-Control', `public, max-age=${serverProps.cacheTime}`);
     db.getRunnerResults(req.params.id, function(error, data){
          res.end(data);
     });
@@ -60,6 +65,7 @@ app.get('/runners/:id', function(req, res){
 app.get('/runner/:id/:compare', function(req, res){
     db.getComparableData(req.params.id, req.params.compare)
     .then(function(data){
+        res.setHeader('Cache-Control', `public, max-age=${serverProps.cacheTime}`);
         res.end(JSON.stringify(data));
     })
     .catch(function(error){
@@ -70,11 +76,13 @@ app.get('/runner/:id/:compare', function(req, res){
 
 app.get('/competitions', function(req, res){
     var competitions =  JSON.stringify(db.getDataFromCache('competitions'));
+    res.setHeader('Cache-Control', `public, max-age=${serverProps.cacheTime}`);
     res.end(competitions);
 });
 
 app.get('/competitions/:id', function(req, res){
     db.getCompetitionResults(req.params.id, function(error, data){
+         res.setHeader('Cache-Control', `public, max-age=${serverProps.cacheTime}`);
          res.end(data);
     });
 });
@@ -82,11 +90,13 @@ app.get('/competitions/:id', function(req, res){
 
 app.get('/stats', function(req, res){
     var statistics =  JSON.stringify({stats:db.getDataFromCache('statistics')});
+    res.setHeader('Cache-Control', `public, max-age=${serverProps.cacheTime}`);
     res.end(statistics);
 });
 
 
 app.get('/about', function(req, res){
+    res.setHeader('Cache-Control', `public, max-age=${serverProps.cacheTime}`);
     res.end(JSON.stringify(db.getGroupSettings()));
 });
 
@@ -167,12 +177,12 @@ app.get('/admin/competitions',auth, function(req, res){
 });
 
 app.put('/adminLogin', function(req, res){
-    if(req.body.user === 'admin01' && req.body.password === '!Pass'){
+    if(req.body.user === 'admin01' && req.body.password.getHashCode() === 32956370){
         req.session.user = "admin01";
         req.session.admin = true;
         setTimeout(function(){
             req.session.destroy();
-        }, 1800000); // 10 minutes
+        }, 1800000); // 30 minutes
         res.end(JSON.stringify({adminPanel:'app.adminCompetitions'}));
     }
     res.end(JSON.stringify({error:'invalid password'}));

@@ -17,7 +17,7 @@ console.log('APPLICATION STARTED at : ' +now.getDate()+ "." +  (now.getMonth()+1
 var x = new Date();
 var currentTimeZone = -x.getTimezoneOffset()/60;
 var timeshiftFromKharkiv = currentTimeZone - x.getTimeShift();
-var requiredHour = 23;
+var requiredHour = 22;
 var timeToStart = requiredHour + timeshiftFromKharkiv;
 console.log(timeToStart);
 
@@ -26,7 +26,7 @@ console.log(timeToStart);
 var rule = new cron.RecurrenceRule();
 rule.dayOfWeek = [new cron.Range(0, 6)];
 rule.hour = timeToStart;
-rule.minute = 30;
+//rule.minute = 30;
 cron.scheduleJob(rule, function(){
     console.log('AUTOUPDATE (local server time)');
     console.log('Day: ', new Date().toMysqlFormat());

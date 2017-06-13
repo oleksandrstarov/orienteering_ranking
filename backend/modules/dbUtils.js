@@ -33,8 +33,6 @@ module.exports.getBestThreePoints = function(personsArray, callback){
     db.getBestThreePoints(persons, function(error, points){
         callback(error, points);
     })
-    
-    
 };
 
 module.exports.processCompetition = function(competition, callback){

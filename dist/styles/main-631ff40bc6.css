@@ -321,11 +321,15 @@ tbody tr.blank-row{
     overflow: hidden;
   }
   
-  .table-col-small{
+  .table-col-30{
     width: 30px;
   }
   
-  .table-col-medium{
+  .table-col-60{
+    width: 60px;
+  }
+  
+  .table-col-90{
     width: 90px;
   }
 }

@@ -21,17 +21,21 @@ Date.prototype.addDays = function(days) {
     return result; 
 };
 
-Date.prototype.withoutTime = function () {
+Date.prototype.withoutTime = function() {
     var d = new Date(this);
     d.setUTCHours(0, 0, 0, 0);
     return d;
+};
+
+Date.prototype.UTC = function() {
+    return new Date(this.getUTCFullYear(), this.getUTCMonth(), this.getUTCDate(), this.getUTCHours(), this.getUTCMinutes(), this.getUTCSeconds()); 
 }
 
 function twoDigits(d) {
     if(0 <= d && d < 10) return "0" + d.toString();
     if(-10 < d && d < 0) return "-0" + (-1*d).toString();
     return d.toString();
-};
+}
 
 String.prototype.normalizeTitle = function(){
    return this.replace(/\n/g, ' ')
@@ -43,4 +47,8 @@ String.prototype.normalizeTitle = function(){
    .replace('Протокол результатов.', '')
    .replace('ПРОТОКОЛ РЕЗУЛЬТАТОВ', '').trim();
    //.replace(/,?[, -]\d{2,}/, '');
+};
+
+String.prototype.getHashCode = function(){
+  return this.split("").reduce(function(a,b){a=((a<<5)-a)+b.charCodeAt(0);return a&a},0);              
 };

@@ -23,7 +23,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr ng-repeat="runner in runnersCtrl.manData | filter: runnersCtrl.search | filter: runnersCtrl.subjectiveFilter">
+            <tr ng-repeat="runner in runnersCtrl.manData | filter: runnersCtrl.search | filter: runnersCtrl.subjectiveFilter track by $index">
               <td>{{runner.CUR_PLACE}}</td>     
               <td><a ui-sref="app.runner({id: runner.ID})">{{runner.FULLNAME}}</a></td>
               <td class="desktop">{{runner.TEAM}}</td>
@@ -56,7 +56,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr ng-repeat="runner in runnersCtrl.womanData | filter: runnersCtrl.search | filter: runnersCtrl.subjectiveFilter">
+            <tr ng-repeat="runner in runnersCtrl.womanData | filter: runnersCtrl.search | filter: runnersCtrl.subjectiveFilter  track by $index">
               <td>{{runner.CUR_PLACE}}</td>  
               <td><a ui-sref="app.runner({id: runner.ID})">{{runner.FULLNAME}}</a></td>
               <td class="desktop">{{runner.TEAM}}</td>
