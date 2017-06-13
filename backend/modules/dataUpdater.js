@@ -295,7 +295,10 @@ function savePointsStatisticsOnSunday(date){
 
 function getPrevSunday(date){
     var day = date.getDay();
-    return date.addDays(-day);
+    console.log(-day);
+    date = date.addDays(-day);
+    console.log(date);
+    return date;
 }
 
 module.exports.isUpdating = function(){
