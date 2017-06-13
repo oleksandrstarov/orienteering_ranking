@@ -17,6 +17,9 @@ module.exports.updateData = function (callback){
         lastUpdateDate = date.withoutTime();
         nextUpdateDate =  getPrevSunday(new Date().UTC().withoutTime());
         console.log('last ', lastUpdateDate, ' next ', nextUpdateDate);
+        console.log(new Date().UTC());
+        console.log(new Date().UTC().withoutTime());
+        console.log(new Date().UTC().getDay());
         processUpdate(callback);
     });
 };
