@@ -19,8 +19,8 @@ module.exports.updateData = function (callback){
         console.log('last ', lastUpdateDate, ' next ', nextUpdateDate);
         console.log(new Date().UTC());
         console.log(new Date().UTC().withoutTime());
-        console.log(new Date().UTC().getDay());
-        console.log(new Date().UTC().withoutTime().addDays(-(new Date().UTC().getDay())));
+        console.log(new Date().UTC().withoutTime().getDay());
+        console.log(new Date().UTC().withoutTime().addDays(-(new Date().UTC().withoutTime().getDay())));
         console.log(new Date().UTC().addDays(-(new Date().UTC().getDay())).withoutTime());
         processUpdate(callback);
     });
