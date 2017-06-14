@@ -184,7 +184,7 @@ function importResultsForWeek(date, callback){
     var isNextWeekValid = date.addDays(7) <= nextUpdateDate;
     weeklyImport(date).then(function(){
         if(isNextWeekValid){
-            process.stdout.write("\r" +`Working on ${date.addDays(7).toMysqlFormat()}`);
+            process.stdout.write("\r" +`Working on ${date.addDays(7).toMysqlFormat()}`, date.toString());
             importResultsForWeek(date.addDays(7), callback);
         }else{
            callback();
@@ -271,7 +271,6 @@ function getResults(competition, callback){
         competition.STATUS = 'INVALID';
         callback('UNKNOWN TYPE', competition);
     }
-    
 }
 
 function savePointsStatisticsOnSunday(date){
