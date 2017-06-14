@@ -864,7 +864,6 @@ module.exports.prepareDB = function(callback){
 };
 
 module.exports.setPointsStatistic = function(date){
-  console.log(date.toString(), date.toMysqlFormat());
   return new Promise(function(resolve, reject){
     var query = `INSERT INTO STATISTICS (RUNNER_ID, ENTRY_DATE, POINTS, PLACE)
     SELECT ID, '${date.toMysqlFormat()}', CUR_RANK, (SELECT COUNT(*) + 1 FROM RUNNERS WHERE CUR_RANK < R.CUR_RANK AND SEX = R.SEX AND ACTIVE = 1) FROM RUNNERS R WHERE ACTIVE = 1`;
@@ -1096,6 +1095,10 @@ function addNewRunner(runner, points, callback){
       var date = new Date(runner.date);
       setDefaultPoints(runnerID, date, points).then(function(){
         callback(null, runnerID);
+      })
+      .catch(function(error){
+        console.log('addNewRunner', error);
+        callback(error);
       });
      
     });
@@ -1104,6 +1107,10 @@ function addNewRunner(runner, points, callback){
     var date = new Date(runner.date);
     setDefaultPoints(runnerID, date, points).then(function(){
       callback(null, runnerID);
+    })
+    .catch(function(error){
+      console.log('addNewRunner', error);
+      callback(error);
     });
   }
   

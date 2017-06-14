@@ -7,7 +7,7 @@ var request = require('request'),
 
 module.exports.processCompetition = function (competitionData, callback){
     var url = competitionData.URL;
-    request({ encoding: null, method: "GET", url: url}, function (error, response, body) {
+    request({encoding:null, method: "GET", url: url}, function (error, response, body) {
         if (!error) {
             //console.log(url);
             

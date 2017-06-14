@@ -152,15 +152,18 @@ function updateCompetitions(){
             competitionsCollector.getNewCompetitions(processedCompetitions, function(error, list){
                 if(error){
                    console.log(error);
-                    resolve();
+                   resolve();
                 }else{
                     if(list.length > 0){
                         db.saveNewCompetitions(list.reverse(), function(error){
                             if(error){
                                 console.log(error);
+                                reject(error);
                             }
-                             resolve();
+                            resolve();
                         });
+                    }else{
+                        resolve();
                     }
                 }
             });
@@ -171,7 +174,11 @@ function updateCompetitions(){
 function importResults(){
     return new Promise(function(resolve, reject){
         if(lastUpdateDate.addDays(7) <= nextUpdateDate){
-            importResultsForWeek(lastUpdateDate.addDays(7), function(){
+            importResultsForWeek(lastUpdateDate.addDays(7), function(error){
+                if(error){
+                    console.log(error);
+                    reject(error);
+                }
                 resolve();
             });
         }else{
@@ -182,13 +189,18 @@ function importResults(){
 
 function importResultsForWeek(date, callback){
     var isNextWeekValid = date.addDays(7) <= nextUpdateDate;
-    weeklyImport(date).then(function(){
+    weeklyImport(date)
+    .then(function(){
         if(isNextWeekValid){
-            process.stdout.write("\r" +`Working on ${date.addDays(7).toMysqlFormat()}`, date.toString());
+            process.stdout.write("\r" +`Working on ${date.addDays(7).toMysqlFormat()}`);
             importResultsForWeek(date.addDays(7), callback);
         }else{
            callback();
         }
+    })
+    .catch(function(error){
+        console.log('weeklyImport', error);
+        callback(error);
     });
 }
 
@@ -279,10 +291,11 @@ function savePointsStatisticsOnSunday(date){
            db.setPointsStatistic(date)
                .then(function(){
                   resolve();
-               },
-               function(error){
-                   reject(error);
-               });
+               })
+               .catch(function(error){
+                  console.log('savePointsStatisticsOnSunday', error);
+                  reject(error);
+                });
        }); 
     });
 };

@@ -36,7 +36,6 @@ function importCompetitions(data, callback){
     function processCompetitionCallback(error, result){
         if(error){
             console.error(error);
-           
         }
         //filter duplicated splits-results
         if(!newCompetitionsData.some(comp => comp.id === data[i].id)){
