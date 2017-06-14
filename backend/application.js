@@ -26,9 +26,9 @@ console.log(timeToStart);
 var rule = new cron.RecurrenceRule();
 rule.dayOfWeek = [new cron.Range(0, 6)];
 rule.hour = timeToStart;
-//rule.minute = 30;
+rule.minute = 30;
 cron.scheduleJob(rule, function(){
-    console.log('AUTOUPDATE (local server time)');
+    console.log('AUTOUPDATE (UTC time)');
     console.log('Day: ', new Date().toMysqlFormat());
     db.initDB(function(){
         updater.updateData();

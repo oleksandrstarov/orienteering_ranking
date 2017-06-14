@@ -15,13 +15,8 @@ var self = this;
 module.exports.updateData = function (callback){
     db.getLastUpdateDate(function(date){
         lastUpdateDate = date.withoutTime();
-        nextUpdateDate =  getPrevSunday(new Date().UTC().withoutTime());//new Date().UTC().withoutTime().addDays(-(new Date().UTC().getDay()));//getPrevSunday(new Date().UTC().withoutTime());
+        nextUpdateDate =  getPrevSunday(new Date().UTC()).withoutTime();
         console.log('last ', lastUpdateDate, ' next ', nextUpdateDate);
-        console.log(new Date().UTC());
-        console.log(new Date().UTC().withoutTime());
-        console.log(new Date().UTC().withoutTime().getDay());
-        console.log(new Date().UTC().withoutTime().addDays(-(new Date().UTC().withoutTime().getDay())));
-        console.log(new Date().UTC().addDays(-(new Date().UTC().getDay())).withoutTime());
         processUpdate(callback);
     });
 };
@@ -294,11 +289,8 @@ function savePointsStatisticsOnSunday(date){
 };
 
 function getPrevSunday(date){
-    console.log(date);
     var day = date.getDay();
-    console.log(-day);
     date = date.addDays(-day);
-    console.log(date);
     return date;
 }
 
