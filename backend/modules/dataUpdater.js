@@ -127,7 +127,7 @@ module.exports.mergeDuplicates = function (runners, callback){
 module.exports.manualImport = function (data, callback){
     var isValidURL = /http:\/\/(.+)\.(.+)\/(.+)\.(htm|html)/.test(data);
     if(isValidURL){
-        competitionsCollector.getNewCompetitions(data, function(error, list){
+        competitionsCollector.manualImport(data, function(error, list){
             if(error){
                console.log(error);
             }
