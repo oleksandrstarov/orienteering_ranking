@@ -864,9 +864,10 @@ module.exports.prepareDB = function(callback){
 };
 
 module.exports.setPointsStatistic = function(date){
+  console.log(date, date.UTC(), date.withoutTime(), date.toMysqlFormat());
   return new Promise(function(resolve, reject){
     var query = `INSERT INTO STATISTICS (RUNNER_ID, ENTRY_DATE, POINTS, PLACE)
-    SELECT ID, '${date.withoutTime().toMysqlFormat()}', CUR_RANK, (SELECT COUNT(*) + 1 FROM RUNNERS WHERE CUR_RANK < R.CUR_RANK AND SEX = R.SEX AND ACTIVE = 1) FROM RUNNERS R WHERE ACTIVE = 1`;
+    SELECT ID, '${date.toMysqlFormat()}', CUR_RANK, (SELECT COUNT(*) + 1 FROM RUNNERS WHERE CUR_RANK < R.CUR_RANK AND SEX = R.SEX AND ACTIVE = 1) FROM RUNNERS R WHERE ACTIVE = 1`;
     
     connection.query(query, function(err, rows, fields) {
       if (!err){
