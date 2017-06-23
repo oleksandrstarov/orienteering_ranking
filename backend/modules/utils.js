@@ -16,10 +16,8 @@ Date.prototype.stdTimezoneOffset = function() {
 };
 
 Date.prototype.addDays = function(days) {
-    console.log(this.toMysqlFormat());
     var result = new Date(this);
     result.setUTCDate(result.getUTCDate() + days);
-    console.log(result.toMysqlFormat());
     return result; 
 };
 
