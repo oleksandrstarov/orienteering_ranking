@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('app')
-.controller('HomeController', ['$scope', 'statsService', '$state', function($scope, statsService, $state) {
+.controller('HomeController', ['$scope', 'statsService', '$state', function HomeController($scope, statsService, $state) {
     var self = this;
     self.info=[];
     $scope.isDataLoaded = false;
@@ -109,9 +109,9 @@ angular.module('app')
     self.womanShift = null;
     self.manData = [];
     self.womanData = [];
-    
+
     $scope.showMan = true;
-    $scope.showWoman = true;
+    $scope.showWoman = true;    
     $scope.toggleManInfo = function(){
        $scope.showMan = !$scope.showMan;
     };

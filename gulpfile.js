@@ -14,7 +14,8 @@ var gulp = require('gulp'),
     cache = require('gulp-cache'),
     rev = require('gulp-rev'),
     del = require('del'),
-    ngannotate = require('gulp-ng-annotate');
+    ngannotate = require('gulp-ng-annotate'),
+    Server = require('karma').Server;;
     
     
 gulp.task('jshint', function() {
@@ -29,7 +30,7 @@ gulp.task('clean', function() {
 });
 
 // Default task
-gulp.task('default', ['clean'], function() {
+gulp.task('default', ['test', 'clean'], function() {
     gulp.start('usemin', 'imagemin', 'adminApp','copyfonts');
 });
 
@@ -90,6 +91,13 @@ gulp.task('copyfonts', function () {
 
 gulp.task('web', ['clean'], function () {
   gulp.start('usemin', 'imagemin', 'copyfonts');
+});
+
+gulp.task('test', function (done) {
+  new Server({
+    configFile: __dirname + '/my.conf.js',
+    singleRun: true
+  }, done).start();
 });
 
 /*gulp.task('build', ['clean'], function () {
