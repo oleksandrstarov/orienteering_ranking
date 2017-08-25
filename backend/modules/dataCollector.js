@@ -131,7 +131,7 @@ function processCompetition(competitionData, callback){
             if(type === 'SFR'){
                 result.isValid = true;
                 result.title = $('h1').text().normalizeTitle();
-                result.date = toDate($('h1').text().match(/(\d{2}.){2}(\d{4}|\d{2})/)[0]).toMysqlFormat();
+                result.date = toDate($('h1').text().match(/(\d{2}.){2}(\d{4}|\d{2})/)[0]).withoutTime().toMysqlFormat();
                 callback(null, result);
                 
             }else if(type === 'WINORIENT'){
@@ -140,7 +140,7 @@ function processCompetition(competitionData, callback){
                 result.isValid = true;
                 if(/(\d{1,2}.){2}(\d{4}|\d{2})/.test($('h1').text())){
                     result.title = $('h1').text().normalizeTitle();
-                    result.date = toDate($('h1').text().match(/(\d{1,2}.){2}(\d{4}|\d{2})/)[0]).toMysqlFormat();
+                    result.date = toDate($('h1').text().match(/(\d{1,2}.){2}(\d{4}|\d{2})/)[0]).withoutTime().toMysqlFormat();
                     callback(null, result);
                 }else if(result.id !== null){
                     getInfoFromWebPage(result, function(error, data){
