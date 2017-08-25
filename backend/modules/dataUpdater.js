@@ -173,8 +173,10 @@ function updateCompetitions(){
 
 function importResults(){
     return new Promise(function(resolve, reject){
-        if(lastUpdateDate.addDays(7) <= nextUpdateDate){
-            importResultsForWeek(lastUpdateDate.addDays(7), function(error){
+        var targetDate = lastUpdateDate === nextUpdateDate ? lastUpdateDate : lastUpdateDate.addDays(7);
+        
+        if(targetDate <= nextUpdateDate){
+            importResultsForWeek(targetDate, function(error){
                 if(error){
                     console.log(error);
                     reject(error);
