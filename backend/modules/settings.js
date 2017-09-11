@@ -37,6 +37,8 @@ var groupSettings = [
     
     {name: 'M16', variants:['М16', 'M16', 'Ч16'], sex: 'M', shift: 16},
     
+    {name: 'M30', variants:['М30', 'M30', 'Ч30'], sex: 'M', shift: 17},
+    
     {name: 'M35', variants:['М35', 'M35', 'Ч35'], sex: 'M', shift: 17},
     
     {name: 'M40', variants:['М40', 'M40', 'Ч40'], sex: 'M', shift: 18},
@@ -61,6 +63,8 @@ var groupSettings = [
     {name: 'Ж18', variants:['Ж18', 'W18'], sex: 'W', shift: 14},
     
     {name: 'Ж16', variants:['Ж16', 'W16'], sex: 'W', shift: 16},
+    
+    {name: 'Ж30', variants:['Ж30', 'W30'], sex: 'W', shift: 17},
     
     {name: 'Ж35', variants:['Ж35', 'W35'], sex: 'W', shift: 17},
     
